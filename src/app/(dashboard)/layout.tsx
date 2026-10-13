@@ -366,7 +366,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <>
-      {currentMerchant?.isCustomized === false && <OnboardingWizard />}
+      {currentMerchant?.isCustomized === false && !currentMerchant.id.startsWith('m-') && <OnboardingWizard />}
       <div className={`flex h-screen flex-col overflow-hidden bg-bg-primary text-text-primary ${themeClass}`}>
       {/* Top Header (100% width across the top) */}
       <header className="sticky top-0 z-50 flex h-16 items-center justify-between vendor-navbar backdrop-blur-md pl-6 pr-0 shadow-md border-b border-border-brand/40 shrink-0">

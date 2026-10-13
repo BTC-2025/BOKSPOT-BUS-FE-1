@@ -223,6 +223,9 @@ export interface MerchantUser {
   gallery?: string[];
   about?: string;
   amenities?: string[];
+  
+  // Custom auth info for sign up
+  passwordHash?: string;
 }
 
 export interface StaffPermissions {
@@ -254,12 +257,14 @@ interface VendorStoreState {
   fetchServices: () => Promise<void>;
   staffAccounts: StaffMember[];
   customMerchants: Record<string, Partial<MerchantUser>>;
+  registeredMerchants: MerchantUser[];
   
   // Theme actions
   setTheme: (theme: 'system' | 'light' | 'dark') => void;
   
   // Auth actions
   loginMerchant: (username: string, passwordHash: string) => boolean;
+  registerMerchant: (merchant: MerchantUser, passwordHash: string) => boolean;
   logoutMerchant: () => void;
   switchStore: (merchantId: string) => void;
   
@@ -948,8 +953,11 @@ export const useVendorStore = create<VendorStoreState>()(
         }
       },
       
+      bookings: [],
       services: [],
       staffAccounts: [],
+      customMerchants: {},
+      registeredMerchants: [],
       
       setTheme: (theme) => set({ theme }),
       
@@ -969,7 +977,25 @@ export const useVendorStore = create<VendorStoreState>()(
           }
         }
 
-        // 1. Check Sub ID (Supervisor)
+        // 1. Check Registered Accounts (Custom Signups)
+        const registeredAcc = get().registeredMerchants.find(
+          (m) => m.email?.toLowerCase() === lowerUser && m.passwordHash === passwordHash
+        );
+        if (registeredAcc) {
+          const finalMerchant = { ...registeredAcc, ...(get().customMerchants[registeredAcc.id] || {}), isCustomized: true };
+          set({ 
+            currentMerchant: finalMerchant, 
+            loginRole: 'vendor', 
+            supervisorId: null,
+            services: [],
+            bookings: [],
+            supportTickets: [],
+            staffAccounts: []
+          });
+          return true;
+        }
+
+        // 2. Check Sub ID (Supervisor)
         const subAcc = SUB_ACCOUNTS.find(
           (s) => s.subId.toUpperCase() === cleanUser.toUpperCase() && s.passwordHash === passwordHash
         );
@@ -1012,6 +1038,14 @@ export const useVendorStore = create<VendorStoreState>()(
         }
 
         return false;
+      },
+      
+      registerMerchant: (merchant, passwordHash) => {
+        const newMerchant = { ...merchant, passwordHash };
+        set((state) => ({
+          registeredMerchants: [...state.registeredMerchants, newMerchant],
+        }));
+        return true;
       },
       
       logoutMerchant: () => {
