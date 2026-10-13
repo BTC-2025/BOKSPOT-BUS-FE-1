@@ -18,85 +18,95 @@
 }
 
 :root {
-  --primary: #d4af37;
-  --primary-dark: #cca022;
-  --accent: #ff6325;
+  --primary: #c99719;
+  --primary-dark: #a3760a;
+  --accent: #f97316;
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
-  --border: rgba(252, 238, 167, 0.15);
+  --border: rgba(212, 175, 55, 0.18);
   
   /* Defaults to Dark theme variable values */
-  --bg-primary: #0c0c10;
-  --bg-secondary: #111116;
-  --bg-tertiary: #18181f;
+  --bg-primary: #0a0b0e;
+  --bg-secondary: #12141a;
+  --bg-tertiary: #191c24;
   
-  --text-primary: #f1f5f9;
+  --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
   
-  --sidebar-bg: #111116;
+  --sidebar-bg: #12141a;
   --sidebar-text: #94a3b8;
 }
 
 .light {
-  --primary: #8b6508;
-  --primary-dark: #664a05;
-  --accent: #ff6325;
+  --primary: #946c07;
+  --primary-dark: #745404;
+  --accent: #ea580c;
   
-  --bg-primary: #fdfbf7;      /* warm beige background */
-  --bg-secondary: #ffffff;    /* clean white sidebar */
-  --bg-tertiary: #f5f0e1;     /* warmer beige card containers */
+  --bg-primary: #f8fafc;      /* sleek crisp slate-50 canvas */
+  --bg-secondary: #ffffff;    /* pure white elevation */
+  --bg-tertiary: #f1f5f9;     /* soft slate-100 card */
   
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
+  --text-primary: #0f172a;    /* deep rich slate-900 */
+  --text-secondary: #475569;  /* readable slate-600 */
+  --text-muted: #64748b;      /* subtle slate-500 */
   
-  --border: rgba(139, 101, 8, 0.2);
-  --sidebar-bg: #fdfbf7;
-  --sidebar-text: #475569;
+  --border: rgba(148, 108, 7, 0.18);
+  --sidebar-bg: #ffffff;
+  --sidebar-text: #334155;
 }
 
 .dark {
   --primary: #d4af37;
-  --primary-dark: #cca022;
-  --accent: #ff6325;
+  --primary-dark: #b89324;
+  --accent: #f97316;
   
-  --bg-primary: #0c0c10;      /* near black body */
-  --bg-secondary: #111116;    /* dark charcoal sidebar */
-  --bg-tertiary: #18181f;     /* dark charcoal card backgrounds */
+  --bg-primary: #0a0b0e;      /* obsidian ultra-dark */
+  --bg-secondary: #12141a;    /* deep charcoal card */
+  --bg-tertiary: #191c24;     /* layered surface */
   
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-primary: #f8fafc;    /* brilliant off-white */
+  --text-secondary: #cbd5e1;  /* crisp slate-300 */
+  --text-muted: #94a3b8;      /* clear slate-400 */
   
-  --border: rgba(252, 238, 167, 0.15);
-  --sidebar-bg: #111116;
-  --sidebar-text: #94a3b8;
+  --border: rgba(212, 175, 55, 0.2);
+  --sidebar-bg: #12141a;
+  --sidebar-text: #cbd5e1;
 }
 
 .theme-medical {
-  --primary: #0ea5e9;
-  --primary-dark: #0284c7;
+  --primary: #0284c7;
+  --primary-dark: #0369a1;
   --bg-primary: #f8fafc;
   --bg-secondary: #ffffff;
-  --bg-tertiary: #f1f5f9;
-  --border: rgba(14, 165, 233, 0.2);
-  --sidebar-bg: #f8fafc;
+  --bg-tertiary: #f0f9ff;
+  --border: rgba(2, 132, 199, 0.2);
+  --sidebar-bg: #ffffff;
+}
+
+.theme-hotel {
+  --primary: #946c07;
+  --primary-dark: #745404;
+  --bg-primary: #faf8f5;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f5f0e6;
+  --border: rgba(148, 108, 7, 0.2);
+  --sidebar-bg: #ffffff;
 }
 
 .theme-turf {
-  --primary: #22c55e;
-  --primary-dark: #16a34a;
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #171717;
-  --bg-tertiary: #262626;
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #475569;
-  --border: rgba(34, 197, 94, 0.25);
-  --sidebar-bg: #171717;
-  --sidebar-text: #94a3b8;
+  --primary: #16a34a;
+  --primary-dark: #15803d;
+  --bg-primary: #0a0f0d;
+  --bg-secondary: #111a15;
+  --bg-tertiary: #18261e;
+  --text-primary: #f0fdf4;
+  --text-secondary: #bbf7d0;
+  --text-muted: #86efac;
+  --border: rgba(22, 163, 74, 0.25);
+  --sidebar-bg: #111a15;
+  --sidebar-text: #bbf7d0;
 }
 
 /* Global overrides for hardcoded Tailwind backgrounds and brand colors */
@@ -104,7 +114,7 @@
 .bg-\[\#061528\] { background-color: var(--bg-secondary) !important; }
 .bg-\[\#0d1120\] { background-color: var(--bg-tertiary) !important; }
 
-/* Map old gold color class (#8b6508) to new variable primary color (#d4af37) */
+/* Map old gold color class (#8b6508) to new variable primary color */
 .text-\[\#8b6508\] { color: var(--primary) !important; }
 .bg-\[\#8b6508\] { background-color: var(--primary) !important; }
 .border-\[\#8b6508\] { border-color: var(--primary) !important; }
@@ -121,89 +131,44 @@
 body {
   background: var(--bg-primary);
   color: var(--text-primary);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
+/* Top Header Navbar - Original Yellow Brand Navbar with Clear Legible Text */
 .vendor-navbar {
   background: #d4a729 !important;
-  border-bottom: 1px solid rgba(252, 238, 167, 0.4) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+  border-bottom: 1px solid rgba(252, 238, 167, 0.45) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12) !important;
 }
 
-/* Ensure all text, buttons, and icons inside vendor-navbar remain styled, dark-bronze-contrast on gold */
-.vendor-navbar,
-.vendor-navbar span,
 .vendor-navbar button,
+.vendor-navbar a,
+.vendor-navbar span,
 .vendor-navbar svg {
-  color: #fceea7 !important;
+  color: #1a1506 !important;
 }
 
-/* Adjust nested button fills for high contrast on the gold navbar */
-.vendor-navbar button:not(.profile-dropdown-card button),
-.vendor-navbar .relative > button:not(.profile-dropdown-card button) {
-  background-color: #5a4409 !important;
-  border: 1px solid rgba(252, 238, 167, 0.28) !important;
+.vendor-navbar .relative > button {
+  background-color: rgba(26, 21, 6, 0.12) !important;
+  border: 1px solid rgba(26, 21, 6, 0.22) !important;
+  color: #1a1506 !important;
 }
 
-.vendor-navbar button:not(.profile-dropdown-card button):hover,
-.vendor-navbar .relative > button:not(.profile-dropdown-card button):hover {
-  background-color: #72560c !important;
-  border-color: rgba(252, 238, 167, 0.45) !important;
+.vendor-navbar .relative > button:hover {
+  background-color: rgba(26, 21, 6, 0.2) !important;
+  border-color: rgba(26, 21, 6, 0.35) !important;
 }
 
-/* Ensure all text, buttons, and icons inside vendor-navbar remain light and readable in light mode */
-.light .vendor-navbar {
-  .text-white,
-  .text-slate-100,
-  .text-slate-200,
-  .text-slate-300,
-  .text-slate-400,
-  .text-text-secondary,
-  .text-text-primary {
-    color: #cbd5e1 !important; /* light slate-300 */
-  }
-
-  .text-white:hover,
-  .text-slate-300:hover,
-  .text-text-primary:hover {
-    color: #ffffff !important;
-  }
-
-  button,
-  .border-white\/5,
-  .border-white\/10,
-  .border-white\/20,
-  .border-border-brand {
-    border-color: rgba(255, 255, 255, 0.15) !important;
-  }
-
-  button:hover {
-    background-color: rgba(255, 255, 255, 0.05) !important;
-  }
-
-  .text-\[\#fceea7\],
-  .bg-\[\#8b6508\]\/10 {
-    color: #fceea7 !important;
-    background-color: rgba(139, 101, 8, 0.2) !important;
-  }
-
-  /* Keep profile avatar icon white and deep blue */
-  .bg-white {
-    background-color: #ffffff !important;
-  }
-  .text-\[\#0a3161\] {
-    color: #0a3161 !important;
-  }
-
-  svg {
-    color: #94a3b8 !important;
-  }
-  
-  button:hover svg {
-    color: #ffffff !important;
-  }
+.vendor-navbar .relative > button svg,
+.vendor-navbar .relative > button span {
+  color: #1a1506 !important;
 }
 
+/* Ensure profile dropdown avatar and contents remain properly colored */
+.vendor-navbar .profile-dropdown-card,
+.vendor-navbar .profile-dropdown-card * {
+  color: var(--text-primary) !important;
+}
 
 .gradient-text {
   background: linear-gradient(135deg, #8b6508, #d4af37);
@@ -280,23 +245,21 @@ body {
   /* Inputs placeholder text */
   .placeholder-slate-600::placeholder { color: #94a3b8 !important; }
   
-  /* Exceptions: Buttons & badges containing white text should stay white */
+  /* Buttons and badges with colored backgrounds keep clear white text */
   button.text-white,
-  button .text-white,
-  button svg,
-  .bg-gradient-to-r,
-  .bg-gradient-to-r *,
-  .bg-indigo-600,
-  .bg-indigo-600 *,
-  .bg-indigo-500\/10 *,
-  .bg-rose-500,
-  .bg-emerald-500\/10 *,
+  button.bg-\[\#8b6508\],
+  .bg-\[\#8b6508\] button,
+  .bg-\[\#8b6508\] .text-white,
+  .bg-blue-600,
+  .bg-blue-700,
   .bg-emerald-500,
-  .text-emerald-400,
-  .text-indigo-400,
-  .text-amber-400,
-  .text-red-400 {
-    color: inherit;
+  .bg-emerald-600,
+  .bg-indigo-600,
+  .bg-rose-500,
+  .bg-red-500,
+  .bg-purple-600,
+  .bg-amber-600 {
+    color: #ffffff !important;
   }
   
   /* Keep quick login credentials readable in light mode */

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import axios from 'axios';
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1';
 
 export interface MedicalReport {
   id: string;
@@ -1283,15 +1283,19 @@ export const useVendorStore = create<VendorStoreState>()(
               'Service': [], // Generic — show all
             };
             
-            // Filter 1: by merchantName (exact match if possible)
-            const byName = currentMerchantName
-              ? servicesData.filter((s: any) => s.metadata?.merchantName === currentMerchantName)
-              : [];
-            
-            // If no services found for this merchant, return empty array instead of falling back to generic archetype services
-            let filteredData = byName;
-            const mapped = filteredData.map((s: any) => {
-              let fetchedMerchantName = s.metadata?.merchantName || currentMerchantName || 'Grand Hotel';
+            // Filter: match by activeMerchantId OR merchantName (case-insensitive) OR fallback to all returned for this merchant
+            const filteredData = servicesData.filter((s: any) => {
+              if (s.merchantId === activeMerchantId || s.merchant?.id === activeMerchantId) return true;
+              if (currentMerchantName && s.metadata?.merchantName && s.metadata.merchantName.trim().toLowerCase() === currentMerchantName.trim().toLowerCase()) return true;
+              if (currentMerchantName && s.merchant?.name && s.merchant.name.trim().toLowerCase() === currentMerchantName.trim().toLowerCase()) return true;
+              return false;
+            });
+
+            // If backend already filtered by merchantId, and by-name filter was empty, use servicesData directly
+            const finalDataToMap = filteredData.length > 0 ? filteredData : servicesData;
+
+            const mapped = finalDataToMap.map((s: any) => {
+              let fetchedMerchantName = s.metadata?.merchantName || s.merchant?.name || currentMerchantName || 'Grand Hotel';
               
               return {
                 id: s.id,
@@ -1447,10 +1451,25 @@ export const useVendorStore = create<VendorStoreState>()(
             alert('Failed to save to database. Error: ' + errText);
           } else {
             const data = await res.json();
-            const finalService = { ...service, id: data.data?.id || service.id };
+            const savedItem = data.data || data;
+            const finalService: CatalogService = { 
+              ...service, 
+              id: savedItem?.id || service.id,
+              merchant: get().currentMerchant?.merchantName || service.merchant,
+              category: service.category,
+              city: service.city || get().currentMerchant?.city || 'Chennai',
+              metadata: {
+                ...(service.metadata || {}),
+                ...(savedItem?.metadata || {}),
+                merchantName: get().currentMerchant?.merchantName || service.merchant,
+                originalCategory: service.category
+              }
+            };
             set((state) => ({
-              services: [finalService, ...state.services]
+              services: [finalService, ...state.services.filter(s => s.id !== finalService.id)]
             }));
+            // Refresh from backend to guarantee full sync
+            await get().fetchServices();
             alert('Success! Category/Service saved to Database.');
           }
         } catch (e) {

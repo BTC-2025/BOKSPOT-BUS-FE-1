@@ -38,7 +38,6 @@ export default function DashboardPage() {
   const showMap = !currentMerchant?.isCustomized || activeModules.includes('map');
 
   const [mounted, setMounted] = useState(false);
-  const [currentSlide, setCurrentSlide] = useState(0);
   const [activeTab, setActiveTab] = useState('This Week');
   const [liveBookings, setLiveBookings] = useState<any[]>([]);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
@@ -61,12 +60,6 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => { setMounted(true); }, []);
-
-  // Carousel Auto-slide
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentSlide(p => (p + 1) % 3), 5000);
-    return () => clearInterval(timer);
-  }, []);
 
   if (!currentMerchant || !mounted) {
     return (
@@ -246,109 +239,109 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6 pb-12 font-sans animate-fade-in max-w-7xl mx-auto">
 
-      {/* 1. Header */}
-      <div className="flex items-center justify-between px-2">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900">{currentMerchant.merchantName}</h1>
-          <p className="text-sm font-semibold text-slate-500 mt-1 flex items-center gap-2">
+      {/* 1. Premium Command Bar Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl bg-white dark:bg-[#12141a] border border-slate-200/80 dark:border-white/10 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-80 h-full bg-gradient-to-l from-amber-500/10 via-amber-500/5 to-transparent pointer-events-none" />
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+              {currentMerchant.merchantName}
+            </h1>
+            <span className="px-2.5 py-0.5 rounded-full bg-amber-400/10 text-amber-500 text-[11px] font-bold border border-amber-400/30">
+              {currentMerchant.category || 'Verified Partner'}
+            </span>
+          </div>
+          <p className="text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 flex items-center gap-2">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
-            Live System Active
+            <span className="font-semibold text-emerald-600 dark:text-emerald-400">Live System Active</span>
+            <span>•</span>
+            <span>Welcome back to {archetypeConfig.dashboardTitle || 'Admin Console'}</span>
           </p>
         </div>
-      </div>
 
-      {/* 2. Carousel */}
-      <div className="relative w-full h-[280px] md:h-[350px] rounded-3xl overflow-hidden shadow-sm group">
-        {carouselImages.map((img, idx) => (
-          <div
-            key={idx}
-            className={`absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 ${idx === currentSlide ? 'opacity-100' : 'opacity-0'}`}
-            style={{ backgroundImage: `url(${img})` }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/40 to-transparent" />
+        <div className="relative z-10 flex items-center gap-2 self-start sm:self-auto">
+          <div className="px-4 py-2 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-right">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Merchant ID</p>
+            <p className="text-xs font-black text-slate-700 dark:text-slate-200">{currentMerchant.id || 'M-2025'}</p>
           </div>
-        ))}
-        <div className="absolute bottom-0 left-0 p-8 w-full">
-          <h2 className="text-3xl md:text-4xl font-black text-black mb-2 drop-shadow-sm">
-            Welcome back to {archetypeConfig.dashboardTitle || 'Admin Console'}
-          </h2>
-          <p className="text-black/80 font-medium text-sm md:text-base max-w-xl line-clamp-2">
-            Monitor your {archetypeConfig.activeStaffLabel?.toLowerCase() || 'live capacity'}, track revenue, and manage daily operations from your centralized command center.
-          </p>
         </div>
-        <div className="absolute bottom-6 right-8 flex gap-2">
-          {carouselImages.map((_, idx) => (
-            <button key={idx} onClick={() => setCurrentSlide(idx)}
-              className={`h-2 rounded-full transition-all duration-300 ${idx === currentSlide ? 'w-8 bg-white' : 'w-2 bg-white/50 hover:bg-white/80'}`}
-              aria-label={`Go to slide ${idx + 1}`}
-            />
-          ))}
-        </div>
-        <button onClick={() => setCurrentSlide(prev => (prev === 0 ? 2 : prev - 1))}
-          className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/20 hover:bg-black/40 text-white rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all">
-          <ChevronLeft size={24} />
-        </button>
-        <button onClick={() => setCurrentSlide(prev => (prev + 1) % 3)}
-          className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/20 hover:bg-black/40 text-white rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all">
-          <ChevronRight size={24} />
-        </button>
       </div>
 
-      {/* 3. Finance KPI Cards */}
+      {/* 2. Finance KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm relative overflow-hidden group hover:border-[#8b6508]/30 transition-colors">
+        <div className="bg-white dark:bg-[#12141a] rounded-3xl p-5 border border-slate-200/80 dark:border-white/10 shadow-sm relative overflow-hidden group hover:border-amber-400/40 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20"><IndianRupee size={20} /></div>
-            <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full"><TrendingUp size={12} /> +12.5%</span>
+            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+              <IndianRupee size={20} />
+            </div>
+            <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/40 px-2.5 py-1 rounded-full">
+              <TrendingUp size={12} /> +12.5%
+            </span>
           </div>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Today's Revenue</p>
-          <h3 className="text-2xl font-black text-slate-900">₹{totalRevenue.toLocaleString()}</h3>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Today's Revenue</p>
+          <h3 className="text-2xl font-black text-slate-900 dark:text-white">₹{totalRevenue.toLocaleString()}</h3>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm relative overflow-hidden group hover:border-[#8b6508]/30 transition-colors">
+        <div className="bg-white dark:bg-[#12141a] rounded-3xl p-5 border border-slate-200/80 dark:border-white/10 shadow-sm relative overflow-hidden group hover:border-amber-400/40 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20"><Calendar size={20} /></div>
-            <span className="flex items-center gap-1 text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full"><ArrowUpRight size={12} /> +4.2%</span>
+            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+              <Calendar size={20} />
+            </div>
+            <span className="flex items-center gap-1 text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-800/40 px-2.5 py-1 rounded-full">
+              <ArrowUpRight size={12} /> +4.2%
+            </span>
           </div>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{archetypeConfig.metric1Title || 'Total Bookings'}</p>
-          <h3 className="text-2xl font-black text-slate-900">{liveForMerchant.length}</h3>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">{archetypeConfig.metric1Title || 'Total Bookings'}</p>
+          <h3 className="text-2xl font-black text-slate-900 dark:text-white">{liveForMerchant.length}</h3>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm relative overflow-hidden group hover:border-[#8b6508]/30 transition-colors">
+        <div className="bg-white dark:bg-[#12141a] rounded-3xl p-5 border border-slate-200/80 dark:border-white/10 shadow-sm relative overflow-hidden group hover:border-amber-400/40 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white shadow-md shadow-amber-500/20"><Users size={20} /></div>
-            <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-full"><ArrowUpRight size={12} /> High</span>
+            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white shadow-md shadow-amber-500/20">
+              <Users size={20} />
+            </div>
+            <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-800/40 px-2.5 py-1 rounded-full">
+              <ArrowUpRight size={12} /> High
+            </span>
           </div>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{archetypeConfig.metric2Title || 'Active Customers'}</p>
-          <h3 className="text-2xl font-black text-slate-900">{occupancy}</h3>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">{archetypeConfig.metric2Title || 'Active Customers'}</p>
+          <h3 className="text-2xl font-black text-slate-900 dark:text-white">{occupancy}</h3>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm relative overflow-hidden group hover:border-[#8b6508]/30 transition-colors">
+        <div className="bg-white dark:bg-[#12141a] rounded-3xl p-5 border border-slate-200/80 dark:border-white/10 shadow-sm relative overflow-hidden group hover:border-amber-400/40 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white shadow-md shadow-purple-500/20"><Activity size={20} /></div>
-            <span className="flex items-center gap-1 text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded-full"><TrendingUp size={12} /> Peak</span>
+            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white shadow-md shadow-purple-500/20">
+              <Activity size={20} />
+            </div>
+            <span className="flex items-center gap-1 text-[10px] font-bold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 border border-purple-200/60 dark:border-purple-800/40 px-2.5 py-1 rounded-full">
+              <TrendingUp size={12} /> Peak
+            </span>
           </div>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{archetypeConfig.activeStaffLabel || 'Live Capacity'}</p>
-          <h3 className="text-2xl font-black text-slate-900">{metric3}</h3>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">{archetypeConfig.activeStaffLabel || 'Live Capacity'}</p>
+          <h3 className="text-2xl font-black text-slate-900 dark:text-white">{metric3}</h3>
         </div>
       </div>
 
-      {/* 4. Statistics Trend */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 px-6 sm:px-8 bg-slate-50/50">
-          <div className="py-5">
-            <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
-              <TrendingUp size={18} className="text-[#8b6508]" />
+      {/* 3. Statistics Trend */}
+      <div className="bg-white dark:bg-[#12141a] rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-white/5 px-6 sm:px-8 py-5 bg-slate-50/50 dark:bg-white/[0.02]">
+          <div>
+            <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+              <TrendingUp size={18} className="text-amber-500" />
               {archetypeConfig.trendTitle || 'Booking Statistics & Trends'}
             </h2>
           </div>
-          <div className="flex items-center gap-1 pb-4 sm:pb-0">
+          <div className="flex items-center gap-1.5 mt-3 sm:mt-0 p-1 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
             {['Today', 'This Week', 'This Month'].map(tab => (
               <button key={tab} onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${activeTab === tab ? 'bg-[#8b6508] text-white shadow-md' : 'text-slate-500 hover:text-[#8b6508] hover:bg-[#8b6508]/10'}`}>
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  activeTab === tab 
+                    ? 'bg-amber-400 text-black shadow-sm font-black' 
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}>
                 {tab}
               </button>
             ))}
@@ -362,15 +355,15 @@ export default function DashboardPage() {
               return (
                 <div key={idx} className="h-full flex flex-col items-center gap-3 flex-1 group">
                   <div className="w-full relative flex justify-center items-end h-full">
-                    <div className="w-full max-w-[60px] bg-slate-100 rounded-t-xl relative group-hover:bg-[#8b6508]/20 transition-colors" style={{ height: `${hp}%` }}>
-                      <div className="absolute bottom-0 w-full bg-[#8b6508] rounded-t-xl group-hover:bg-[#6c4e06] transition-all shadow-[0_0_15px_rgba(139,101,8,0.3)]" style={{ height: `${hp * 0.7}%` }} />
+                    <div className="w-full max-w-[60px] bg-slate-100 dark:bg-white/5 rounded-t-xl relative group-hover:bg-amber-400/20 transition-colors" style={{ height: `${hp}%` }}>
+                      <div className="absolute bottom-0 w-full bg-amber-500 rounded-t-xl group-hover:bg-amber-400 transition-all shadow-[0_0_15px_rgba(245,158,11,0.35)]" style={{ height: `${hp * 0.7}%` }} />
                     </div>
-                    <div className="absolute -top-10 bg-[#8b6508] text-white shadow-xl text-[10px] font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                    <div className="absolute -top-10 bg-black/90 text-white shadow-xl text-[10px] font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 border border-white/10">
                       {val} Bookings
-                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#8b6508]" />
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-t-black/90" />
                     </div>
                   </div>
-                  <span className="text-[10px] sm:text-xs font-bold uppercase text-slate-400 group-hover:text-slate-900 transition-colors">{days[idx]}</span>
+                  <span className="text-[10px] sm:text-xs font-bold uppercase text-slate-400 dark:text-slate-500 group-hover:text-amber-500 transition-colors">{days[idx]}</span>
                 </div>
               );
             })}
@@ -378,35 +371,35 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 5. Live Booking Queue with Accept button */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 sm:px-8 py-5 bg-slate-50/50">
-          <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
-            <FileText size={18} className="text-[#8b6508]" />
+      {/* 4. Live Booking Queue with Accept button */}
+      <div className="bg-white dark:bg-[#12141a] rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 px-6 sm:px-8 py-5 bg-slate-50/50 dark:bg-white/[0.02]">
+          <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+            <FileText size={18} className="text-amber-500" />
             {archetypeConfig.liveQueueTitle || 'Live Booking Queue'}
             {liveForMerchant.filter(b => b.status === 'PENDING').length > 0 && (
-              <span className="ml-2 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-black animate-pulse">
+              <span className="ml-2 px-2.5 py-0.5 rounded-full bg-amber-400/15 text-amber-500 border border-amber-400/30 text-[10px] font-black animate-pulse">
                 {liveForMerchant.filter(b => b.status === 'PENDING').length} New
               </span>
             )}
           </h2>
-          <button onClick={() => router.push('/tracks/bookings')} className="text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1">
-            View All <ChevronRight size={16} />
+          <button onClick={() => router.push('/tracks/bookings')} className="text-xs font-bold text-amber-500 hover:text-amber-400 flex items-center gap-1 transition-colors">
+            View All <ChevronRight size={14} />
           </button>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-white border-b border-slate-100">
-                <th className="py-4 px-6 sm:px-8 text-[11px] font-black uppercase tracking-widest text-slate-400">Customer Details</th>
-                <th className="py-4 px-6 text-[11px] font-black uppercase tracking-widest text-slate-400">Service / Ref</th>
-                <th className="py-4 px-6 text-[11px] font-black uppercase tracking-widest text-slate-400">Time & Date</th>
-                <th className="py-4 px-6 text-[11px] font-black uppercase tracking-widest text-slate-400">Assigned To</th>
-                <th className="py-4 px-6 sm:px-8 text-[11px] font-black uppercase tracking-widest text-slate-400 text-right">Status / Action</th>
+              <tr className="bg-slate-50/70 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5">
+                <th className="py-4 px-6 sm:px-8 text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Customer Details</th>
+                <th className="py-4 px-6 text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Service / Ref</th>
+                <th className="py-4 px-6 text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Time & Date</th>
+                <th className="py-4 px-6 text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Assigned To</th>
+                <th className="py-4 px-6 sm:px-8 text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 text-right">Status / Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
               {activeBookings.length > 0 ? (
                 activeBookings.slice(0, 8).map(booking => {
                   const doc = staffList.find(d => d.id === booking.assignedDoctorId);
@@ -427,35 +420,35 @@ export default function DashboardPage() {
                   };
 
                   return (
-                    <tr key={booking.id} className={`hover:bg-slate-50/50 transition-colors group ${isPending ? 'bg-amber-50/40' : ''}`}>
+                    <tr key={booking.id} className={`hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors group ${isPending ? 'bg-amber-50/40 dark:bg-amber-400/5' : ''}`}>
                       <td className="py-4 px-6 sm:px-8">
                         <div className="flex items-center gap-3">
-                          <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold text-sm ${isPending ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
+                          <div className={`h-10 w-10 rounded-2xl flex items-center justify-center font-bold text-sm ${isPending ? 'bg-amber-100 dark:bg-amber-400/20 text-amber-700 dark:text-amber-400 border border-amber-400/30' : 'bg-blue-100 dark:bg-blue-400/20 text-blue-700 dark:text-blue-400 border border-blue-400/30'}`}>
                             {(booking.teamName || booking.customerName || '?').charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <p className="font-bold text-slate-900 text-sm">{booking.teamName || booking.customerName || 'N/A'}</p>
-                            <p className="text-[11px] text-slate-500 font-medium leading-tight mt-0.5">
+                            <p className="font-bold text-slate-900 dark:text-white text-sm">{booking.teamName || booking.customerName || 'N/A'}</p>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-tight mt-0.5">
                               {booking.customerPhone && <span className="block">{booking.customerPhone}</span>}
                               {booking.customerEmail && <span className="block">{booking.customerEmail}</span>}
-                              <span className="block">{booking.customerAddress || '123 Test St, Chennai, 600001'}</span>
+                              <span className="block truncate max-w-xs">{booking.customerAddress || '123 Test St, Chennai, 600001'}</span>
                             </p>
                           </div>
                         </div>
                       </td>
                       <td className="py-4 px-6">
-                        <p className="text-[11px] font-black uppercase tracking-widest text-blue-600 mb-0.5">
+                        <p className="text-[11px] font-black uppercase tracking-wider text-amber-500 mb-0.5">
                           {getBookingType(booking.serviceName, currentMerchant.category)} &bull; {getCategoryName(booking.serviceName, booking.category)}
                         </p>
-                        <p className="font-bold text-slate-900 text-sm">{booking.serviceName}</p>
-                        <p className="text-[11px] text-slate-500 font-medium">Ref: #{booking.ref}</p>
+                        <p className="font-bold text-slate-900 dark:text-white text-sm">{booking.serviceName}</p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Ref: #{booking.ref}</p>
                       </td>
                       <td className="py-4 px-6">
                         <div className="flex items-start gap-2">
                           <Clock size={14} className="text-slate-400 mt-0.5" />
                           <div>
-                            <p className="text-xs font-bold text-slate-900">{formatDate(booking.date)}</p>
-                            <p className="text-[11px] font-bold text-[color:var(--color-primary)] mt-0.5">{booking.time}</p>
+                            <p className="text-xs font-bold text-slate-900 dark:text-white">{formatDate(booking.date)}</p>
+                            <p className="text-[11px] font-bold text-amber-500 mt-0.5">{booking.time}</p>
                             {booking.bookedAt && (
                               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">
                                 Placed: {formatDateTime(booking.bookedAt)}
@@ -467,11 +460,11 @@ export default function DashboardPage() {
                       <td className="py-4 px-6">
                         {doc ? (
                           <div className="flex items-center gap-2">
-                            <Stethoscope size={14} className="text-[#8b6508]" />
-                            <span className="text-xs font-bold text-slate-700">{archetypeConfig.staffPrefix || ''}{doc.name}</span>
+                            <Stethoscope size={14} className="text-amber-500" />
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{archetypeConfig.staffPrefix || ''}{doc.name}</span>
                           </div>
                         ) : (
-                          <span className="text-xs font-semibold text-slate-400 italic">Unassigned</span>
+                          <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 italic">Unassigned</span>
                         )}
                       </td>
                       <td className="py-4 px-6 sm:px-8 text-right">
@@ -524,17 +517,17 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 6. Live Map */}
+      {/* 5. Live Map */}
       {showMap && (
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between border-b border-slate-100 px-6 sm:px-8 py-5 bg-slate-50/50">
-            <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
-              <MapPin size={18} className="text-[#8b6508]" />
+        <div className="bg-white dark:bg-[#12141a] rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 px-6 sm:px-8 py-5 bg-slate-50/50 dark:bg-white/[0.02]">
+            <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+              <MapPin size={18} className="text-amber-500" />
               Facility & Resource Map
             </h2>
           </div>
-          <div className="p-4 sm:p-6 bg-slate-50">
-            <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-inner">
+          <div className="p-4 sm:p-6 bg-slate-50/50 dark:bg-black/20">
+            <div className="rounded-2xl overflow-hidden border border-slate-200/80 dark:border-white/10 shadow-inner">
               <LiveResourceMap />
             </div>
           </div>

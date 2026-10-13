@@ -109,14 +109,32 @@ export default function LiveResourceMap() {
       status: Math.random() > 0.5 ? 'Available' : 'Occupied'
     }));
     return (
-      <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm relative">
-        <h2 className="text-lg font-black text-slate-900 mb-6 flex items-center gap-2">
-          <Building2 size={18} className="text-indigo-500" /> Floor Plan
-        </h2>
-        <div className="grid grid-cols-4 gap-3 bg-slate-50 p-6 rounded-2xl border border-slate-200">
+      <div className="bg-white dark:bg-[#12141a] rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-white/10 shadow-sm relative">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+            <Building2 size={18} className="text-amber-500" /> Floor Plan
+          </h2>
+          <div className="flex items-center gap-3 text-xs font-bold">
+            <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" /> Available
+            </span>
+            <span className="flex items-center gap-1.5 text-slate-400">
+              <span className="w-2 h-2 rounded-full bg-slate-400" /> Occupied
+            </span>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 dark:bg-white/[0.02] p-5 sm:p-6 rounded-2xl border border-slate-200/60 dark:border-white/5">
           {rooms.map(r => (
-            <div key={r.id} className={`h-16 rounded-lg border flex flex-col items-center justify-center ${r.status === 'Available' ? 'bg-white border-emerald-200 text-emerald-600' : 'bg-slate-100 border-slate-200 text-slate-400'}`}>
+            <div 
+              key={r.id} 
+              className={`h-16 rounded-xl border flex flex-col items-center justify-center transition-all ${
+                r.status === 'Available' 
+                  ? 'bg-emerald-50/70 dark:bg-emerald-500/10 border-emerald-300/80 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 font-bold shadow-xs' 
+                  : 'bg-slate-100/80 dark:bg-white/5 border-slate-200 dark:border-white/5 text-slate-400 dark:text-slate-500'
+              }`}
+            >
               <span className="text-xs font-black">{r.id}</span>
+              <span className="text-[9px] uppercase tracking-wider font-semibold opacity-80 mt-0.5">{r.status}</span>
             </div>
           ))}
         </div>
