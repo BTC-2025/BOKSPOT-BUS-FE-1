@@ -97,22 +97,22 @@ export default function ListingEditorPage() {
       <div className="py-6">
         <button 
           onClick={() => router.push(`/workspace/my-services/${serviceId}`)}
-          className="flex items-center gap-2 text-slate-500 hover:text-[#8b6508] font-bold text-sm mb-4 transition-colors"
+          className="flex items-center gap-2 text-slate-400 hover:text-[#ff6325] font-bold text-sm mb-4 transition-colors"
         >
           <ArrowLeft size={16} /> Back to {category.name} Listings
         </button>
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+        <h1 className="text-3xl font-black text-white tracking-tight flex items-center gap-3">
           {isCreating ? 'Create New Listing' : 'Edit Listing'}
         </h1>
-        <p className="text-sm text-slate-500 font-medium mt-2">
-          Listing in category: <strong>{category.name}</strong>
+        <p className="text-sm text-slate-300 font-medium mt-2">
+          Listing in category: <strong className="text-white">{category.name}</strong>
         </p>
       </div>
 
       {/* Stepper */}
       <div className="flex items-center justify-between relative mb-12 px-4">
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-200 z-0 rounded-full overflow-hidden">
-          <div className="h-full bg-[#8b6508] transition-all duration-500" style={{ width: step === 1 ? '0%' : step === 2 ? '50%' : '100%' }}></div>
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-white/10 z-0 rounded-full overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-[#0a3161] to-[#ff6325] transition-all duration-500" style={{ width: step === 1 ? '0%' : step === 2 ? '50%' : '100%' }}></div>
         </div>
         {[
           { num: 1, label: 'Basic Info', icon: Info },
@@ -121,11 +121,11 @@ export default function ListingEditorPage() {
         ].map((s) => (
           <div key={s.num} className="relative z-10 flex flex-col items-center gap-2" onClick={() => setStep(s.num)} style={{ cursor: 'pointer' }}>
             <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-colors shadow-sm
-              ${step >= s.num ? 'bg-[#8b6508] text-white' : 'bg-white text-slate-400 border-2 border-slate-200'}
+              ${step >= s.num ? 'bg-gradient-to-tr from-[#0a3161] to-[#124b8f] text-white ring-4 ring-[#ff6325]/30' : 'bg-[#162033] text-slate-400 border-2 border-white/10'}
             `}>
-              <s.icon size={20} />
+              <s.icon size={20} className={step >= s.num ? 'text-[#ff6325]' : 'text-slate-400'} />
             </div>
-            <span className={`text-xs font-bold uppercase tracking-wider ${step >= s.num ? 'text-[#8b6508]' : 'text-slate-400'}`}>
+            <span className={`text-xs font-bold uppercase tracking-wider ${step >= s.num ? 'text-[#ff6325]' : 'text-slate-400'}`}>
               {s.label}
             </span>
           </div>
@@ -133,41 +133,41 @@ export default function ListingEditorPage() {
       </div>
 
       {/* Step Content */}
-      <div className="bg-white rounded-[2rem] shadow-lg border border-slate-200/60 overflow-hidden">
+      <div className="bg-[#0f1624] rounded-[2rem] shadow-2xl border border-white/10 overflow-hidden text-white">
         
         {step === 1 && (
           <div className="p-8 md:p-10 space-y-8 animate-fade-in">
-            <h2 className="text-2xl font-black text-slate-900 border-b border-slate-100 pb-4">1. Basic Information</h2>
+            <h2 className="text-2xl font-black text-white border-b border-white/10 pb-4">1. Basic Information</h2>
             
             <div className="space-y-6">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Listing Name <span className="text-red-500">*</span></label>
+                <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-2">Listing Name <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   value={serviceName}
                   onChange={(e) => setServiceName(e.target.value)}
-                  placeholder="e.g. Deluxe Room, Full Body Massage, VIP Table"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#8b6508] focus:ring-2 focus:ring-[#8b6508]/20 transition-all font-medium bg-slate-50 focus:bg-white"
+                  placeholder="e.g. Deluxe AC Room, Presidential Suite, Standard King"
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium bg-[#162033] text-white placeholder-slate-400"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Listing Image</label>
+                <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-2">Listing Image</label>
                 <div 
                   onClick={() => document.getElementById('listing-image-upload')?.click()}
-                  className="w-full h-32 rounded-xl border-2 border-dashed border-slate-300 hover:border-[#8b6508] bg-slate-50 flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden group mb-3"
+                  className="w-full h-32 rounded-xl border-2 border-dashed border-white/20 hover:border-[#ff6325] bg-[#162033] flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden group mb-3"
                 >
                   {imageUrl ? (
                     <>
                       <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                         <span className="text-white font-bold text-sm flex items-center gap-2">
                           Change Image
                         </span>
                       </div>
                     </>
                   ) : (
-                    <div className="flex flex-col items-center text-slate-500 group-hover:text-[#8b6508] transition-colors">
+                    <div className="flex flex-col items-center text-slate-400 group-hover:text-[#ff6325] transition-colors">
                       <span className="font-bold text-sm">Click to choose local image</span>
                       <span className="text-xs mt-1 opacity-70">PNG, JPG up to 5MB</span>
                     </div>
@@ -190,19 +190,19 @@ export default function ListingEditorPage() {
                   }}
                   accept="image/*"
                 />
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Or enter Image URL</label>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Or enter Image URL</label>
                 <input
                   type="url"
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
                   placeholder="https://example.com/image.jpg"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#8b6508] focus:ring-2 focus:ring-[#8b6508]/20 transition-all font-medium bg-slate-50 focus:bg-white"
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium bg-[#162033] text-white placeholder-slate-400"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Base Price (₹) <span className="text-red-500">*</span></label>
+                  <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-2">Base Price (₹) <span className="text-red-500">*</span></label>
                   <input
                     type="number"
                     value={basePrice}
@@ -210,37 +210,37 @@ export default function ListingEditorPage() {
                     placeholder="e.g. 500"
                     min="0"
                     step="0.01"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#8b6508] focus:ring-2 focus:ring-[#8b6508]/20 transition-all font-medium bg-slate-50 focus:bg-white"
+                    className="w-full px-4 py-3 rounded-xl border border-white/10 focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium bg-[#162033] text-white placeholder-slate-400"
                     required
                   />
-                  <p className="text-[10px] text-slate-500 mt-1">The starting price shown to customers.</p>
+                  <p className="text-[10px] text-slate-400 mt-1">The starting price shown to customers.</p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Short Description</label>
+                <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-2">Short Description</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe this listing..."
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#8b6508] focus:ring-2 focus:ring-[#8b6508]/20 transition-all font-medium bg-slate-50 focus:bg-white min-h-[120px]"
+                  placeholder="Describe this listing (amenities, view, bedding details)..."
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium bg-[#162033] text-white placeholder-slate-400 min-h-[120px]"
                 />
               </div>
 
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Add-ons / Extras (Optional)</label>
-                  <button onClick={() => setAddons([...addons, { name: '', price: 0 }])} className="text-xs font-bold text-[#8b6508] flex items-center gap-1 hover:underline bg-[#8b6508]/10 px-3 py-1.5 rounded-lg"><Plus size={14} /> Add Option</button>
+                  <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider">Add-ons / Extras (Optional)</label>
+                  <button onClick={() => setAddons([...addons, { name: '', price: 0 }])} className="text-xs font-bold text-[#ff6325] flex items-center gap-1 hover:underline bg-[#ff6325]/10 px-3 py-1.5 rounded-lg border border-[#ff6325]/20"><Plus size={14} /> Add Option</button>
                 </div>
                 {addons.length === 0 && <p className="text-sm text-slate-400 italic">No add-ons configured.</p>}
                 {addons.map((addon, idx) => (
-                  <div key={idx} className="flex items-center gap-3 mb-3 bg-slate-50 p-3 rounded-xl border border-slate-200 animate-fade-in">
-                    <input type="text" placeholder="Add-on Name (e.g. Extra Bed)" value={addon.name} onChange={(e) => { const newA = [...addons]; newA[idx].name = e.target.value; setAddons(newA); }} className="flex-1 px-4 py-2.5 rounded-lg border border-slate-200 text-sm font-medium focus:border-[#8b6508] focus:outline-none" />
+                  <div key={idx} className="flex items-center gap-3 mb-3 bg-[#162033] p-3 rounded-xl border border-white/10 animate-fade-in">
+                    <input type="text" placeholder="Add-on Name (e.g. Extra Bed, Breakfast)" value={addon.name} onChange={(e) => { const newA = [...addons]; newA[idx].name = e.target.value; setAddons(newA); }} className="flex-1 px-4 py-2.5 rounded-lg border border-white/10 bg-[#0f1624] text-white text-sm font-medium focus:border-[#ff6325] focus:outline-none" />
                     <div className="relative w-28">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">₹</span>
-                      <input type="number" placeholder="Price" value={addon.price} onChange={(e) => { const newA = [...addons]; newA[idx].price = Number(e.target.value); setAddons(newA); }} className="w-full pl-7 pr-3 py-2.5 rounded-lg border border-slate-200 text-sm font-medium focus:border-[#8b6508] focus:outline-none" />
+                      <input type="number" placeholder="Price" value={addon.price} onChange={(e) => { const newA = [...addons]; newA[idx].price = Number(e.target.value); setAddons(newA); }} className="w-full pl-7 pr-3 py-2.5 rounded-lg border border-white/10 bg-[#0f1624] text-white text-sm font-medium focus:border-[#ff6325] focus:outline-none" />
                     </div>
-                    <button onClick={() => setAddons(addons.filter((_, i) => i !== idx))} className="text-red-500 hover:bg-red-50 hover:text-red-600 p-2.5 rounded-lg border border-transparent hover:border-red-100 transition-colors"><X size={16} strokeWidth={3} /></button>
+                    <button onClick={() => setAddons(addons.filter((_, i) => i !== idx))} className="text-red-400 hover:bg-red-500/20 p-2.5 rounded-lg border border-transparent hover:border-red-500/30 transition-colors"><X size={16} strokeWidth={3} /></button>
                   </div>
                 ))}
               </div>
@@ -250,7 +250,7 @@ export default function ListingEditorPage() {
               <button 
                 onClick={() => setStep(2)}
                 disabled={!serviceName}
-                className="px-8 py-3 bg-[#8b6508] text-white rounded-xl font-bold disabled:opacity-50 hover:bg-[#6c4e06] transition-colors"
+                className="px-8 py-3 bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white rounded-xl font-bold disabled:opacity-50 transition-all shadow-lg shadow-[#ff6325]/25"
               >
                 Next: Dynamic Details
               </button>
@@ -259,15 +259,15 @@ export default function ListingEditorPage() {
         )}
 
         {step === 2 && (
-          <div className="p-8 md:p-10 space-y-8 animate-fade-in bg-indigo-50/30">
-            <h2 className="text-2xl font-black text-slate-900 border-b border-indigo-100 pb-4 flex items-center gap-2">
-              <Zap className="text-indigo-600" /> 2. Dynamic Details ({archetype})
+          <div className="p-8 md:p-10 space-y-8 animate-fade-in bg-[#162033]/40">
+            <h2 className="text-2xl font-black text-white border-b border-white/10 pb-4 flex items-center gap-2">
+              <Zap className="text-[#ff6325]" /> 2. Dynamic Details ({archetype})
             </h2>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-slate-300">
               These fields are specifically tailored for your business category type ({archetype}). Fill them out accurately.
             </p>
             
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="bg-[#0f1624] rounded-2xl shadow-xl border border-white/10 overflow-hidden">
               <DynamicForm 
                 archetype={archetype}
                 initialData={metadata}
@@ -281,49 +281,49 @@ export default function ListingEditorPage() {
         )}
 
         {step === 3 && (
-          <div className="p-8 md:p-10 space-y-8 animate-fade-in bg-green-50/30">
-            <h2 className="text-2xl font-black text-slate-900 border-b border-green-100 pb-4 flex items-center gap-2">
-              <CheckCircle2 className="text-green-600" /> 3. Review & Publish
+          <div className="p-8 md:p-10 space-y-8 animate-fade-in bg-[#162033]/40">
+            <h2 className="text-2xl font-black text-white border-b border-white/10 pb-4 flex items-center gap-2">
+              <CheckCircle2 className="text-emerald-400" /> 3. Review & Publish
             </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-4">
-                <h3 className="font-bold text-slate-800 text-lg">Basic Info</h3>
-                <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
-                  <p className="text-sm"><span className="text-slate-500">Name:</span> <strong>{serviceName}</strong></p>
-                  <p className="text-sm"><span className="text-slate-500">Category:</span> <strong>{category.name}</strong></p>
-                  <p className="text-sm"><span className="text-slate-500">Archetype:</span> <strong>{archetype}</strong></p>
-                  <p className="text-sm"><span className="text-slate-500">Base Price:</span> <strong>₹{basePrice || '0'}</strong></p>
+                <h3 className="font-bold text-white text-lg">Basic Info</h3>
+                <div className="bg-[#162033] p-4 rounded-xl border border-white/10 space-y-2 text-white">
+                  <p className="text-sm"><span className="text-slate-400">Name:</span> <strong>{serviceName}</strong></p>
+                  <p className="text-sm"><span className="text-slate-400">Category:</span> <strong>{category.name}</strong></p>
+                  <p className="text-sm"><span className="text-slate-400">Archetype:</span> <strong>{archetype}</strong></p>
+                  <p className="text-sm"><span className="text-slate-400">Base Price:</span> <strong className="text-[#ff6325]">₹{basePrice || '0'}</strong></p>
                 </div>
               </div>
               
               <div className="space-y-4">
-                <h3 className="font-bold text-slate-800 text-lg">Dynamic Config</h3>
-                <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-2 max-h-64 overflow-y-auto">
+                <h3 className="font-bold text-white text-lg">Dynamic Config</h3>
+                <div className="bg-[#162033] p-4 rounded-xl border border-white/10 space-y-2 max-h-64 overflow-y-auto text-white">
                   {Object.entries(metadata).length > 0 ? (
                     Object.entries(metadata).map(([key, val]) => (
-                      <div key={key} className="text-sm border-b border-slate-100 pb-2 last:border-0">
-                        <span className="text-slate-500 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</span> <br/>
+                      <div key={key} className="text-sm border-b border-white/5 pb-2 last:border-0">
+                        <span className="text-slate-400 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</span> <br/>
                         <strong>{Array.isArray(val) ? val.join(', ') : String(val)}</strong>
                       </div>
                     ))
                   ) : (
-                    <p className="text-sm text-slate-500 italic">No dynamic details provided.</p>
+                    <p className="text-sm text-slate-400 italic">No dynamic details provided.</p>
                   )}
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-between pt-6 border-t border-slate-200">
+            <div className="flex justify-between pt-6 border-t border-white/10">
               <button 
                 onClick={() => setStep(2)}
-                className="px-6 py-3 text-slate-500 hover:bg-slate-100 rounded-xl font-bold transition-colors"
+                className="px-6 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition-colors"
               >
                 Back to Edit
               </button>
               <button 
                 onClick={handleSaveDetails}
-                className="flex items-center gap-2 px-8 py-3 bg-[#8b6508] text-white rounded-xl font-bold hover:bg-[#6c4e06] shadow-lg shadow-[#8b6508]/20 transition-all"
+                className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white rounded-xl font-bold shadow-lg shadow-[#ff6325]/25 transition-all"
               >
                 <Save size={18} /> Publish Listing
               </button>

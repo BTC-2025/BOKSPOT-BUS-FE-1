@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useVendorStore } from '@/lib/store';
-import { Building2, Info, CheckSquare, Image as ImageIcon, Plus, X, Save } from 'lucide-react';
+import { Building2, Info, CheckSquare, Image as ImageIcon, Plus, X, Save, MapPin } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function VenueProfilePage() {
@@ -21,6 +21,15 @@ export default function VenueProfilePage() {
   const [gallery, setGallery] = useState<string[]>([]);
   const [newImageUrl, setNewImageUrl] = useState('');
 
+  // Location & Around Property State
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [latitude, setLatitude] = useState('');
+  const [longitude, setLongitude] = useState('');
+  const [aroundProperty, setAroundProperty] = useState<Array<{ name: string; distance: string }>>([]);
+  const [newLandmarkName, setNewLandmarkName] = useState('');
+  const [newLandmarkDist, setNewLandmarkDist] = useState('');
+
   useEffect(() => {
     setMounted(true);
     if (currentMerchant) {
@@ -28,7 +37,7 @@ export default function VenueProfilePage() {
       const fetchProfile = async () => {
         try {
           const isProd = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
-          const baseUrl = process.env.NEXT_PUBLIC_API_URL || (isProd ? 'https://bokspot-be.onrender.com/api/v1' : '/api/v1');
+          const baseUrl = process.env.NEXT_PUBLIC_API_URL || (isProd ? 'https://bokspot-be.onrender.com/api/v1' : 'http://localhost:9000/api/v1');
           
           const res = await fetch(`${baseUrl}/merchants/${currentMerchant.id}`);
           if (res.ok) {
@@ -36,16 +45,30 @@ export default function VenueProfilePage() {
             setAboutText(data.description || '');
             setThingsToKnow(data.amenities || []);
             setGallery(data.images || []);
+            setAddress(data.address || '');
+            setCity(data.city || currentMerchant.city || '');
+            if (data.latitude) setLatitude(String(data.latitude));
+            if (data.longitude) setLongitude(String(data.longitude));
             if (data.metadata?.policies) {
               setPolicies(data.metadata.policies);
+            }
+            if (data.metadata?.aroundProperty) {
+              setAroundProperty(data.metadata.aroundProperty);
             }
           } else {
             // Fallback to local state if backend fetch fails
             setAboutText(currentMerchant.aboutText || '');
             setThingsToKnow(currentMerchant.thingsToKnow || []);
             setGallery(currentMerchant.gallery || []);
+            setAddress(currentMerchant.address || '');
+            setCity(currentMerchant.city || 'Chennai');
+            if (currentMerchant.latitude) setLatitude(String(currentMerchant.latitude));
+            if (currentMerchant.longitude) setLongitude(String(currentMerchant.longitude));
             if ((currentMerchant as any).policies) {
               setPolicies((currentMerchant as any).policies);
+            }
+            if ((currentMerchant as any).aroundProperty) {
+              setAroundProperty((currentMerchant as any).aroundProperty);
             }
           }
         } catch (err) {
@@ -117,7 +140,12 @@ export default function VenueProfilePage() {
       aboutText,
       thingsToKnow,
       gallery,
-      policies
+      policies,
+      address,
+      city,
+      latitude: latitude ? parseFloat(latitude) : undefined,
+      longitude: longitude ? parseFloat(longitude) : undefined,
+      aroundProperty
     } as any);
     alert('Venue Profile saved successfully!');
   };
@@ -126,7 +154,7 @@ export default function VenueProfilePage() {
     <div className="max-w-4xl mx-auto space-y-8 pb-24 animate-fade-in">
       <div className="py-6">
         <h1 className="text-3xl font-black text-slate-900 flex items-center gap-3">
-          <Building2 className="text-[#8b6508]" size={32} />
+          <Building2 className="text-[#0a3161]" size={32} />
           Venue Profile
         </h1>
         <p className="text-slate-500 font-medium mt-2">
@@ -138,13 +166,13 @@ export default function VenueProfilePage() {
         {/* About Section */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
           <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2 mb-4">
-            <Info className="text-blue-500" /> About Us
+            <Info className="text-[#0a3161]" /> About Us
           </h2>
           <textarea
             value={aboutText}
             onChange={(e) => setAboutText(e.target.value)}
             placeholder="Welcome to our facility. We provide..."
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#8b6508] focus:ring-2 focus:ring-[#8b6508]/20 transition-all font-medium bg-slate-50 focus:bg-white min-h-[120px]"
+            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium bg-slate-50 focus:bg-white min-h-[120px]"
           />
         </div>
 
@@ -214,6 +242,120 @@ export default function VenueProfilePage() {
           </div>
         </div>
 
+        {/* Location & Map Coordinates */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2 mb-2">
+            <MapPin className="text-[#ff6325]" /> Location & Map Coordinates
+          </h2>
+          <p className="text-sm text-slate-500 mb-6">
+            Provide the precise address and Google Maps coordinates so customers can view your venue on the map and calculate directions.
+          </p>
+
+          <div className="space-y-4 mb-6">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Full Address</label>
+              <input
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="e.g. 142 Anna Salai, Thousand Lights, Chennai - 600006"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-[#ff6325] transition-colors font-medium text-sm"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Latitude (GPS)</label>
+                <input
+                  type="text"
+                  value={latitude}
+                  onChange={(e) => setLatitude(e.target.value)}
+                  placeholder="e.g. 13.0827"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-[#ff6325] transition-colors font-medium text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Longitude (GPS)</label>
+                <input
+                  type="text"
+                  value={longitude}
+                  onChange={(e) => setLongitude(e.target.value)}
+                  placeholder="e.g. 80.2707"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-[#ff6325] transition-colors font-medium text-sm"
+                />
+              </div>
+            </div>
+
+            {latitude && longitude && (
+              <div className="pt-2">
+                <a
+                  href={`https://www.google.com/maps?q=${latitude},${longitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-bold text-[#ff6325] hover:underline flex items-center gap-1.5"
+                >
+                  📍 Test Google Maps pin (opens new tab) &rarr;
+                </a>
+              </div>
+            )}
+          </div>
+
+          {/* Around Property Landmarks */}
+          <div className="pt-6 border-t border-slate-100">
+            <h3 className="text-sm font-bold text-slate-900 mb-2 uppercase tracking-wider">Around Property (Nearby Landmarks)</h3>
+            <p className="text-xs text-slate-500 mb-4">Add nearby transit, hospitals, metro, or attractions with distances.</p>
+            
+            <div className="flex flex-col gap-2 mb-4">
+              {aroundProperty.map((item, idx) => (
+                <div key={idx} className="flex justify-between items-center bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200">
+                  <span className="font-semibold text-sm text-slate-800">{item.name}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-[#ff6325] bg-[#ff6325]/10 px-2 py-0.5 rounded-md">{item.distance}</span>
+                    <button 
+                      onClick={() => setAroundProperty(aroundProperty.filter((_, i) => i !== idx))} 
+                      className="text-slate-400 hover:text-red-500 transition-colors"
+                    >
+                      <X size={15} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {aroundProperty.length === 0 && (
+                <p className="text-xs text-slate-400 italic">No landmarks added yet. Add one below if you want it displayed.</p>
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newLandmarkName}
+                onChange={(e) => setNewLandmarkName(e.target.value)}
+                placeholder="Landmark (e.g. Metro Station, Airport)"
+                className="flex-1 px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-sm font-medium"
+              />
+              <input
+                type="text"
+                value={newLandmarkDist}
+                onChange={(e) => setNewLandmarkDist(e.target.value)}
+                placeholder="Distance (e.g. 0.5 km)"
+                className="w-32 px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-sm font-medium"
+              />
+              <button
+                onClick={() => {
+                  if (newLandmarkName.trim()) {
+                    setAroundProperty([...aroundProperty, { name: newLandmarkName.trim(), distance: newLandmarkDist.trim() || 'Nearby' }]);
+                    setNewLandmarkName('');
+                    setNewLandmarkDist('');
+                  }
+                }}
+                className="bg-[#0a3161] hover:bg-[#124b8f] text-white px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Gallery */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
           <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2 mb-4">
@@ -258,7 +400,7 @@ export default function VenueProfilePage() {
         <div className="flex justify-end pt-4">
           <button 
             onClick={handleSave}
-            className="flex items-center gap-2 px-8 py-3.5 bg-[#8b6508] text-white rounded-xl font-bold hover:bg-[#6c4e06] shadow-lg shadow-[#8b6508]/20 transition-all"
+            className="flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white rounded-xl font-bold shadow-lg shadow-[#ff6325]/25 transition-all"
           >
             <Save size={20} /> Save Venue Profile
           </button>

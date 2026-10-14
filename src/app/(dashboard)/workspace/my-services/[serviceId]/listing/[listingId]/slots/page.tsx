@@ -47,7 +47,7 @@ export default function SlotManagerPage() {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <h2 className="text-2xl font-bold text-slate-900 mb-4">Listing Not Found</h2>
-        <button onClick={() => router.push(`/workspace/my-services/${serviceId}`)} className="px-6 py-2 bg-[#8b6508] hover:bg-[#6c4e06] text-white rounded-xl">Go Back</button>
+        <button onClick={() => router.push(`/workspace/my-services/${serviceId}`)} className="px-6 py-2 bg-gradient-to-r from-[#0a3161] to-[#124b8f] text-white font-bold rounded-xl shadow-lg shadow-[#0a3161]/20">Go Back</button>
       </div>
     );
   }
@@ -121,14 +121,14 @@ export default function SlotManagerPage() {
             <ArrowLeft size={16} /> Back to {category.name}
           </button>
           <h1 className="text-2xl font-black text-slate-900 flex items-center gap-3">
-            <CalendarIcon className="text-[#8b6508]" size={28} />
+            <CalendarIcon className="text-[#ff6325]" size={28} />
             Slot Manager: {listing.name}
           </h1>
           <p className="text-slate-500 text-sm mt-1">Define your weekly availability and pricing for this specific listing.</p>
         </div>
         <button
           onClick={handleSaveSchedule}
-          className="flex items-center gap-2 px-6 py-3 bg-[#8b6508] hover:bg-[#6c4e06] text-white font-bold rounded-xl shadow-lg transition-all"
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-bold rounded-xl shadow-lg shadow-[#ff6325]/25 transition-all"
         >
           <Save size={18} /> Save Schedule
         </button>
@@ -146,11 +146,11 @@ export default function SlotManagerPage() {
                 <button
                   key={day}
                   onClick={() => setActiveDay(day)}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-bold text-sm transition-all ${isActive ? 'bg-[#8b6508] text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-bold text-sm transition-all ${isActive ? 'bg-gradient-to-r from-[#0a3161] to-[#124b8f] text-white shadow-md shadow-[#0a3161]/25' : 'text-slate-600 hover:bg-slate-50'}`}
                 >
                   {day}
                   {slotCount > 0 && (
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] ${isActive ? 'bg-white/20 text-white' : 'bg-[#8b6508]/10 text-[#8b6508]'}`}>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] ${isActive ? 'bg-white/20 text-white' : 'bg-[#ff6325]/10 text-[#ff6325] font-bold'}`}>
                       {slotCount} slots
                     </span>
                   )}
@@ -167,7 +167,7 @@ export default function SlotManagerPage() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-black text-slate-900">Slots for {activeDay}</h2>
               {activeDay !== 'Monday' && (
-                <button onClick={handleCopyFromMonday} className="text-xs font-bold text-[#8b6508] hover:underline bg-[#8b6508]/5 px-3 py-1.5 rounded-lg">
+                <button onClick={handleCopyFromMonday} className="text-xs font-bold text-[#ff6325] hover:underline bg-[#ff6325]/10 px-3 py-1.5 rounded-lg transition-all">
                   Copy from Monday
                 </button>
               )}
@@ -179,17 +179,17 @@ export default function SlotManagerPage() {
               <div className="flex flex-wrap items-end gap-4">
                 <div className="flex-1 min-w-[120px]">
                   <label className="block text-xs font-semibold text-slate-500 mb-1">Start Time</label>
-                  <input type="time" value={newStartTime} onChange={e => setNewStartTime(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-[#8b6508] focus:ring-1 focus:ring-[#8b6508] outline-none" />
+                  <input type="time" value={newStartTime} onChange={e => setNewStartTime(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-[#ff6325] focus:ring-1 focus:ring-[#ff6325] outline-none" />
                 </div>
                 <div className="flex-1 min-w-[120px]">
                   <label className="block text-xs font-semibold text-slate-500 mb-1">End Time</label>
-                  <input type="time" value={newEndTime} onChange={e => setNewEndTime(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-[#8b6508] focus:ring-1 focus:ring-[#8b6508] outline-none" />
+                  <input type="time" value={newEndTime} onChange={e => setNewEndTime(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-[#ff6325] focus:ring-1 focus:ring-[#ff6325] outline-none" />
                 </div>
                 <div className="flex-1 min-w-[120px]">
                   <label className="block text-xs font-semibold text-slate-500 mb-1">Price (₹)</label>
-                  <input type="number" value={newPrice} onChange={e => setNewPrice(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-[#8b6508] focus:ring-1 focus:ring-[#8b6508] outline-none" placeholder="e.g. 1500" />
+                  <input type="number" value={newPrice} onChange={e => setNewPrice(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-[#ff6325] focus:ring-1 focus:ring-[#ff6325] outline-none" placeholder="e.g. 1500" />
                 </div>
-                <button onClick={handleAddSlot} className="h-[42px] px-6 bg-[#8b6508] text-white font-bold rounded-xl hover:bg-[#6c4e06] transition-colors flex items-center gap-2">
+                <button onClick={handleAddSlot} className="h-[42px] px-6 bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-bold rounded-xl transition-all shadow-md shadow-[#ff6325]/20 flex items-center gap-2">
                   <Plus size={16} /> Add
                 </button>
               </div>
@@ -208,14 +208,14 @@ export default function SlotManagerPage() {
               ) : (
                 <div className="space-y-3">
                   {activeDaySlots.map((slot, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-2xl hover:border-[#8b6508]/50 transition-colors group">
+                    <div key={idx} className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-2xl hover:border-[#ff6325]/50 transition-colors group">
                       <div className="flex items-center gap-4">
-                        <div className="h-10 w-10 rounded-full bg-[#8b6508]/10 text-[#8b6508] flex items-center justify-center">
+                        <div className="h-10 w-10 rounded-full bg-[#0a3161]/10 text-[#0a3161] flex items-center justify-center">
                           <Clock size={18} />
                         </div>
                         <div>
                           <p className="font-black text-slate-900">{formatTime(slot.startTime)} - {formatTime(slot.endTime)}</p>
-                          <p className="text-sm font-bold text-green-600">₹{slot.price}</p>
+                          <p className="text-sm font-bold text-emerald-600">₹{slot.price}</p>
                         </div>
                       </div>
                       <button onClick={() => handleRemoveSlot(idx)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">

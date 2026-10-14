@@ -87,63 +87,63 @@ export default function StaffPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/[0.06]">
         <div>
-          <h1 className="text-2xl font-black uppercase tracking-wider text-text-primary flex items-center gap-2">
-            <Shield size={24} className="text-[#8b6508]" /> Staff Access Control
+          <h1 className="text-2xl font-black uppercase tracking-wider text-white flex items-center gap-2.5">
+            <Shield size={24} className="text-[#ff6325]" /> Staff Access Control
           </h1>
-          <p className="text-xs text-text-secondary">Grant access to existing Sub-IDs and configure Role-Based Access for your portal.</p>
+          <p className="text-xs text-slate-400 mt-1">Grant access to existing Sub-IDs and configure Role-Based Access for your portal.</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#8b6508] to-[#d4af37] hover:brightness-110 text-white px-4 py-2.5 text-xs font-bold transition-all shadow-md cursor-pointer"
+          className="flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white px-6 py-3 text-xs font-bold uppercase tracking-wider transition-all shadow-lg shadow-[#ff6325]/25 active:scale-95 cursor-pointer"
         >
-          <UserPlus size={15} />
+          <UserPlus size={16} />
           <span>Grant Access</span>
         </button>
       </div>
 
       {/* Search and Filters */}
-      <div className="rounded-xl border border-border-brand bg-bg-secondary p-4">
+      <div className="rounded-2xl border border-white/10 bg-[#0f1624] p-4 shadow-lg backdrop-blur-sm">
         <div className="relative">
           <input
             type="text"
             placeholder="Search by name, role or sub-id email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-lg border border-border-brand bg-bg-tertiary/20 pl-10 pr-4 py-2 text-xs text-text-primary outline-none focus:border-[#8b6508] transition-all"
+            className="w-full rounded-xl border border-white/10 bg-[#162033] pl-10 pr-4 py-2.5 text-xs text-white placeholder:text-slate-500 outline-none focus:border-[#ff6325] focus:ring-1 focus:ring-[#ff6325]/20 transition-all"
           />
-          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
         </div>
       </div>
 
       {/* Staff list card */}
-      <div className="rounded-xl border border-border-brand bg-bg-secondary overflow-hidden shadow-xl">
+      <div className="rounded-2xl border border-white/10 bg-[#0f1624] overflow-hidden shadow-2xl backdrop-blur-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[800px]">
             <thead>
-              <tr className="bg-bg-tertiary/40 border-b border-border-brand text-[10px] uppercase font-bold tracking-wider text-text-secondary">
-                <th className="py-3 px-5">Staff Member</th>
-                <th className="py-3 px-5">Verified Sub-ID (Login)</th>
-                <th className="py-3 px-5">Active Permissions</th>
-                <th className="py-3 px-5 text-right">Actions</th>
+              <tr className="bg-[#162033]/80 border-b border-white/[0.08] text-[10px] uppercase font-bold tracking-wider text-slate-300">
+                <th className="py-3.5 px-5">Staff Member</th>
+                <th className="py-3.5 px-5">Verified Sub-ID (Login)</th>
+                <th className="py-3.5 px-5">Active Permissions</th>
+                <th className="py-3.5 px-5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.03]">
+            <tbody className="divide-y divide-white/[0.05]">
               {filteredStaff.map((staff) => (
-                <tr key={staff.id} className="hover:bg-white/[0.01] transition-colors text-xs">
+                <tr key={staff.id} className="hover:bg-white/[0.02] transition-colors text-xs">
                   {/* Name & Role */}
                   <td className="py-4 px-5">
                     <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-full bg-[#8b6508]/15 border border-[#8b6508]/30 flex items-center justify-center font-bold text-[#d4af37] text-sm uppercase shrink-0">
+                      <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-[#0a3161] to-[#124b8f] border border-[#ff6325]/30 flex items-center justify-center font-black text-white text-sm uppercase shrink-0 shadow-md">
                         {staff.name.charAt(0)}
                       </div>
                       <div>
-                        <div className="font-bold text-text-primary flex items-center gap-2">
+                        <div className="font-bold text-white flex items-center gap-2 text-sm">
                           {staff.name}
-                          {staff.isDoctor && <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] px-1.5 py-0.5 rounded uppercase">{archetypeConfig.staffTitle || 'Staff'}</span>}
+                          {staff.isDoctor && <span className="bg-[#ff6325]/10 text-[#ff6325] border border-[#ff6325]/20 text-[9px] px-1.5 py-0.5 rounded uppercase font-bold">{archetypeConfig.staffTitle || 'Staff'}</span>}
                         </div>
-                        <div className="text-[10px] text-text-secondary font-medium">{staff.roleTitle}</div>
+                        <div className="text-[11px] text-slate-400 font-medium mt-0.5">{staff.roleTitle}</div>
                       </div>
                     </div>
                   </td>
@@ -169,7 +169,7 @@ export default function StaffPage() {
                         <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase">Billing</span>
                       )}
                       {staff.permissions.canManageAppointments && (
-                        <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase">Appointments</span>
+                        <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-orange-500/10 text-[#ff6325] border border-orange-500/20 uppercase">Appointments</span>
                       )}
                       {!Object.values(staff.permissions).some(Boolean) && (
                         <span className="text-[10px] text-slate-500 italic">Read-only Access</span>
@@ -203,15 +203,15 @@ export default function StaffPage() {
 
       {/* Add Staff Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-500/ backdrop-blur-xs px-4">
-          <div className="w-full max-w-lg bg-bg-secondary border border-border-brand rounded-2xl p-6 shadow-2xl space-y-4 animate-scale-up max-h-[90vh] overflow-y-auto custom-scrollbar">
-            <div className="flex items-center justify-between border-b border-white/5 pb-3">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-text-primary flex items-center gap-2">
-                <Shield size={16} className="text-[#d4af37]" /> Grant Staff Access
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md px-4">
+          <div className="w-full max-w-lg bg-[#0f1624] border border-white/10 rounded-3xl p-6 shadow-2xl space-y-4 animate-scale-up max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
+                <Shield size={16} className="text-[#ff6325]" /> Grant Staff Access
               </h3>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="text-text-secondary hover:text-text-primary p-1 rounded-lg hover:bg-white/5 cursor-pointer"
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/5 cursor-pointer transition-colors"
               >
                 <X size={18} />
               </button>
@@ -221,36 +221,36 @@ export default function StaffPage() {
               {/* Basic Info */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[10px] uppercase font-bold text-text-secondary">Full Name</label>
+                  <label className="text-[10px] uppercase font-bold text-slate-300">Full Name</label>
                   <input
                     type="text"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
                     placeholder="e.g. Priya"
-                    className="w-full rounded-lg border border-border-brand bg-bg-tertiary/20 px-3 py-2 text-xs text-text-primary outline-none focus:border-[#8b6508]"
+                    className="w-full rounded-xl border border-white/10 bg-[#162033] px-3 py-2 text-xs text-white placeholder:text-slate-500 outline-none focus:border-[#ff6325] focus:ring-1 focus:ring-[#ff6325]/20"
                     required
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] uppercase font-bold text-text-secondary">Role Title</label>
+                  <label className="text-[10px] uppercase font-bold text-slate-300">Role Title</label>
                   <input
                     type="text"
                     value={newRole}
                     onChange={(e) => setNewRole(e.target.value)}
                     placeholder="e.g. Senior Nurse"
-                    className="w-full rounded-lg border border-border-brand bg-bg-tertiary/20 px-3 py-2 text-xs text-text-primary outline-none focus:border-[#8b6508]"
+                    className="w-full rounded-xl border border-white/10 bg-[#162033] px-3 py-2 text-xs text-white placeholder:text-slate-500 outline-none focus:border-[#ff6325] focus:ring-1 focus:ring-[#ff6325]/20"
                     required
                   />
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 bg-white/[0.02] p-3 rounded-xl border border-white/5">
+              <div className="flex items-center gap-2 bg-[#162033] p-3 rounded-xl border border-white/5">
                 <input
                   type="checkbox"
                   id="isDoctor"
                   checked={newIsDoctor}
                   onChange={(e) => setNewIsDoctor(e.target.checked)}
-                  className="rounded border-border-brand bg-transparent text-[#8b6508] focus:ring-[#8b6508]"
+                  className="rounded border-border-brand bg-transparent text-[#ff6325] focus:ring-[#ff6325] accent-[#ff6325]"
                 />
                 <label htmlFor="isDoctor" className="text-xs font-bold text-text-primary cursor-pointer">This staff member is a Lead/Manager</label>
               </div>
@@ -264,7 +264,7 @@ export default function StaffPage() {
                     value={subIdEmail}
                     onChange={(e) => setSubIdEmail(e.target.value)}
                     placeholder="e.g. nurse/hospital@bnxmail.com"
-                    className="w-full rounded-lg border border-border-brand bg-bg-tertiary/40 px-3 py-2 text-xs text-text-primary outline-none focus:border-[#8b6508]"
+                    className="w-full rounded-lg border border-border-brand bg-bg-tertiary/40 px-3 py-2 text-xs text-text-primary outline-none focus:border-[#ff6325]"
                     required
                   />
                 </div>
@@ -351,7 +351,7 @@ export default function StaffPage() {
                 </button>
                 <button
                   type="submit"
-                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#8b6508] to-[#d4af37] text-white font-bold text-xs uppercase tracking-wider hover:brightness-110 transition-all shadow-md cursor-pointer"
+                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-[#ff6325]/25 cursor-pointer"
                 >
                   Grant Access & Configure Permissions
                 </button>

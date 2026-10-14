@@ -107,6 +107,7 @@ export interface CatalogListing {
   participantCapacity?: number;
   isAddonsEnabled?: boolean;
   addOns?: Array<{ name: string; price: number }>;
+  isRulesEnabled?: boolean;
   isTipsEnabled?: boolean;
   tipsAndGuidelines?: string;
   isRestrictionsEnabled?: boolean;
@@ -223,6 +224,13 @@ export interface MerchantUser {
   gallery?: string[];
   about?: string;
   amenities?: string[];
+  
+  city?: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  aroundProperty?: Array<{ name: string; distance: string }>;
+  policies?: Record<string, any> | string[];
   
   // Custom auth info for sign up
   passwordHash?: string;
@@ -909,7 +917,15 @@ export const useVendorStore = create<VendorStoreState>()(
       if (profileData.about || profileData.aboutText) payload.description = profileData.about || profileData.aboutText;
       if (profileData.amenities || profileData.thingsToKnow) payload.amenities = profileData.amenities || profileData.thingsToKnow;
       if (profileData.gallery) payload.images = profileData.gallery;
-        if (profileData.policies) payload.metadata = { policies: profileData.policies };
+      if (profileData.address) payload.address = profileData.address;
+      if (profileData.city) payload.city = profileData.city;
+      if (profileData.latitude !== undefined) payload.latitude = Number(profileData.latitude);
+      if (profileData.longitude !== undefined) payload.longitude = Number(profileData.longitude);
+      
+      const meta: any = {};
+      if (profileData.policies) meta.policies = profileData.policies;
+      if (profileData.aroundProperty) meta.aroundProperty = profileData.aroundProperty;
+      if (Object.keys(meta).length > 0) payload.metadata = meta;
       
       const res = await fetch(`${baseUrl}/merchants/${merchantId}`, {
         method: 'PATCH',
@@ -953,10 +969,8 @@ export const useVendorStore = create<VendorStoreState>()(
         }
       },
       
-      bookings: [],
       services: [],
       staffAccounts: [],
-      customMerchants: {},
       registeredMerchants: [],
       
       setTheme: (theme) => set({ theme }),
@@ -1411,7 +1425,7 @@ export const useVendorStore = create<VendorStoreState>()(
             durationMinutes: Number(service.duration) || 60,
             basePrice: Number(service.price) || 0,
             maxCapacity: Number(service.maxCapacity) || 1,
-            images: [service.imageUrl || ''],
+            images: service.imageUrl ? [service.imageUrl] : [],
             metadata: { 
               ...(service.metadata || {}),
               merchantName: get().currentMerchant?.merchantName || service.merchant,
@@ -1543,7 +1557,7 @@ export const useVendorStore = create<VendorStoreState>()(
             durationMinutes: Number(source.duration) || 60,
             basePrice: Number(source.price) || 0,
             maxCapacity: Number((source as any).maxCapacity) || 1,
-            images: [updated.imageUrl || source.imageUrl || ''],
+            images: (updated.imageUrl || source.imageUrl) ? [updated.imageUrl || source.imageUrl] : [],
             metadata: { 
               ...(updated.metadata || {}),
               merchantName: get().currentMerchant?.merchantName || updated.merchant,

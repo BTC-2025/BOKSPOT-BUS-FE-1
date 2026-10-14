@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Calendar, BookOpen, Settings, QrCode, 
   Package, Menu, X, Bell, LogOut, Stethoscope, Dumbbell, Bed, 
   Scissors, Utensils, ShieldAlert, Check, Trash2, Info,
-  ChevronDown, Building, Film, Sparkles, LogOut as LogOutIcon, Laptop, User,
+  ChevronDown, Building, Building2, Film, Sparkles, LogOut as LogOutIcon, Laptop, User,
   Sun, Moon, Users, Mail, Search, UserCog, MapPin, Clock, ShieldCheck, MessageSquare, Calculator, Ticket, CheckCircle, Headset
 } from 'lucide-react';
 import { UtilityDrawer } from '@/components/UtilityDrawer';
@@ -342,9 +342,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     } 
     // WORKSPACE TAB (Management, Schedules, Settings)
     else {
+      const isHotel = currentMerchant?.archetype === 'Hotel' || currentMerchant?.archetype === 'ACCOMMODATION' || currentMerchant?.category?.toLowerCase().includes('hotel') || currentMerchant?.category?.toLowerCase().includes('room');
       const items = [
         { href: '/workspace/my-services', icon: Package, label: 'My Services' }
       ];
+      if (isHotel) {
+        items.push({ href: '/workspace/hotel-room-matrix', icon: Building2, label: 'Room Grid' });
+      }
       if (accessLink) items.push(accessLink);
       return items;
     }
@@ -402,7 +406,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {(pathname === '/home/dashboard-home' || pathname === '/home/verify-code') && (
                 <motion.div
                   layoutId="activeNavIndicatorAdmin"
-                  className="absolute inset-0 rounded-full bg-[#8b6508]/20 border border-[#8b6508]/45 shadow-[0_0_12px_rgba(255,215,0,0.15)] backdrop-blur-md -z-10 custom-nav-active-bg"
+                  className="absolute inset-0 rounded-full bg-[#ff6325] border border-white/30 shadow-[0_0_16px_rgba(255,99,37,0.45)] backdrop-blur-md -z-10 custom-nav-active-bg"
                   transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                 />
               )}
@@ -419,7 +423,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {(!['/home/dashboard-home', '/home/verify-code'].includes(pathname) && !pathname.startsWith('/tracks/bookings') && pathname !== '/tracks/customer-directory') && (
                 <motion.div
                   layoutId="activeNavIndicatorAdmin"
-                  className="absolute inset-0 rounded-full bg-[#8b6508]/20 border border-[#8b6508]/45 shadow-[0_0_12px_rgba(255,215,0,0.15)] backdrop-blur-md -z-10 custom-nav-active-bg"
+                  className="absolute inset-0 rounded-full bg-[#ff6325] border border-white/30 shadow-[0_0_16px_rgba(255,99,37,0.45)] backdrop-blur-md -z-10 custom-nav-active-bg"
                   transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                 />
               )}
@@ -436,7 +440,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {(pathname.startsWith('/tracks/bookings') || pathname === '/tracks/customer-directory') && (
                 <motion.div
                   layoutId="activeNavIndicatorAdmin"
-                  className="absolute inset-0 rounded-full bg-[#8b6508]/20 border border-[#8b6508]/45 shadow-[0_0_12px_rgba(255,215,0,0.15)] backdrop-blur-md -z-10 custom-nav-active-bg"
+                  className="absolute inset-0 rounded-full bg-[#ff6325] border border-white/30 shadow-[0_0_16px_rgba(255,99,37,0.45)] backdrop-blur-md -z-10 custom-nav-active-bg"
                   transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                 />
               )}
@@ -712,16 +716,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </header>
 
       {/* New Horizontal Navigation Bar */}
-      <div className={`bg-white/80 dark:bg-bg-secondary/90 backdrop-blur-md flex items-center px-6 py-2.5 shrink-0 shadow-sm border-b border-border-brand/40 relative z-40 transition-all duration-300 ${
+      <div className={`bg-white/95 dark:bg-[#0f1624]/95 backdrop-blur-md flex items-center px-6 py-2.5 shrink-0 shadow-sm border-b border-border-brand/40 relative z-40 transition-all duration-300 ${
         utilityDrawerOpen ? (activeUtilityTab ? 'lg:pr-[370px]' : 'lg:pr-[50px]') : ''
       }`}>
         {/* Left side subscription link */}
         <div className="flex-1 hidden md:flex items-center justify-start pl-2">
           <Link
             href="/workspace/subscription"
-            className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-[#946c07] dark:text-[#d4af37] hover:opacity-80 transition-opacity"
+            className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-[#0a3161] dark:text-[#ff6325] hover:opacity-80 transition-opacity"
           >
-            <CheckCircle className="h-[14px] w-[14px]" />
+            <CheckCircle className="h-[14px] w-[14px] text-[#ff6325]" />
             Subscription
           </Link>
         </div>
@@ -736,11 +740,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 href={item.href}
                 className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs uppercase tracking-wider font-extrabold transition-all whitespace-nowrap ${
                   active 
-                    ? 'bg-[#946c07]/10 dark:bg-[#d4af37]/15 text-[#946c07] dark:text-[#d4af37] border border-[#946c07]/25 dark:border-[#d4af37]/30 shadow-xs' 
-                    : 'text-slate-700 dark:text-slate-300 hover:text-[#946c07] dark:hover:text-[#d4af37] hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent'
+                    ? 'bg-[#0a3161] dark:bg-[#ff6325] text-white shadow-md' 
+                    : 'text-slate-700 dark:text-slate-300 hover:text-[#ff6325] dark:hover:text-[#ff6325] hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent'
                 }`}
               >
-                <item.icon className="h-4 w-4" />
+                <item.icon className={`h-4 w-4 ${active ? 'text-white' : 'text-slate-500 group-hover:text-[#ff6325]'}`} />
                 {item.label}
               </Link>
             );
@@ -752,10 +756,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="flex-1 hidden md:flex items-center justify-end gap-5 pl-4 pr-2 relative">
           <Link
             href="/workspace/contact-us"
-            className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-[#946c07] dark:hover:text-[#d4af37] transition-colors"
+            className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-[#ff6325] dark:hover:text-[#ff6325] transition-colors"
             title="Support"
           >
-            <Headset className="h-[15px] w-[15px]" />
+            <Headset className="h-[15px] w-[15px] text-[#ff6325]" />
             Support
           </Link>
           <Link

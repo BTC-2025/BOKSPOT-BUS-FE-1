@@ -78,7 +78,7 @@ export default function ContactPage() {
       <div className="rounded-xl border border-border-brand bg-bg-secondary p-6 shadow-xl relative overflow-hidden">
         <div className="space-y-4">
           <div className="flex items-center gap-2 border-b border-white/5 pb-3">
-            <MessageSquare size={16} className="text-[#8b6508]" />
+            <MessageSquare size={16} className="text-[#ff6325]" />
             <h3 className="text-sm font-bold uppercase tracking-wider text-text-primary">Create Support Ticket</h3>
           </div>
 
@@ -97,7 +97,7 @@ export default function ContactPage() {
                 placeholder="e.g. Services page loading delays or staff role updates"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                className="w-full rounded-lg border border-border-brand bg-bg-tertiary/20 px-3.5 py-2.5 text-xs text-text-primary outline-none focus:border-[#8b6508] transition-all"
+                className="w-full rounded-lg border border-border-brand bg-bg-tertiary/20 px-3.5 py-2.5 text-xs text-text-primary outline-none focus:border-[#ff6325] focus:ring-1 focus:ring-[#ff6325]/20 transition-all"
                 required
               />
             </div>
@@ -109,14 +109,14 @@ export default function ContactPage() {
                 placeholder="Please describe your query or problem in detail..."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="w-full rounded-lg border border-border-brand bg-bg-tertiary/20 px-3.5 py-2.5 text-xs text-text-primary outline-none focus:border-[#8b6508] transition-all resize-none"
+                className="w-full rounded-lg border border-border-brand bg-bg-tertiary/20 px-3.5 py-2.5 text-xs text-text-primary outline-none focus:border-[#ff6325] focus:ring-1 focus:ring-[#ff6325]/20 transition-all resize-none"
                 required
               />
             </div>
 
             <button 
               type="submit"
-              className="flex items-center justify-center gap-2 rounded-xl bg-[#8b6508] hover:bg-[#a67c1e] text-white px-5 py-2.5 text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer"
+              className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white px-6 py-2.5 text-xs font-bold transition-all shadow-lg shadow-[#ff6325]/25 active:scale-95 cursor-pointer"
             >
               <Send size={14} />
               <span>Submit Support Ticket</span>

@@ -111,8 +111,8 @@ export default function SettingsPage() {
     return (
       <div className="flex h-full min-h-[500px] items-center justify-center">
         <div className="flex flex-col items-center gap-4 animate-pulse">
-          <div className="h-16 w-16 rounded-full border-4 border-[#8b6508] border-t-transparent animate-spin" />
-          <p className="text-[#8b6508] font-bold tracking-widest uppercase text-xs">Initializing Secure Network...</p>
+          <div className="h-16 w-16 rounded-full border-4 border-[#ff6325] border-t-transparent animate-spin" />
+          <p className="text-[#0a3161] font-black tracking-widest uppercase text-xs">Initializing Secure Network...</p>
         </div>
       </div>
     );
@@ -126,7 +126,7 @@ export default function SettingsPage() {
     <div className="space-y-8 animate-fade-in pb-12 font-sans">
       {/* Dynamic Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-white border border-slate-200 p-8 rounded-3xl shadow-sm relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-[40%] h-full bg-gradient-to-l from-[#fdfcf8] to-transparent pointer-events-none" />
+        <div className="absolute right-0 top-0 w-[40%] h-full bg-gradient-to-l from-[#f8fafc] to-transparent pointer-events-none" />
         <div className="absolute right-10 top-1/2 -translate-y-1/2 opacity-5 pointer-events-none">
           <Settings size={200} />
         </div>
@@ -136,7 +136,7 @@ export default function SettingsPage() {
             {archetypeConfig?.hasOutdoorConditions ? 'Facility Settings' : isService ? 'Business Settings' : 'Clinic Settings'}
           </h1>
           <div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-slate-500">
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100"><Building2 size={14} className="text-blue-600" /> Business Profile</span>
+            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100"><Building2 size={14} className="text-[#0a3161]" /> Business Profile</span>
             <span>•</span>
             <span className="text-slate-700">{currentMerchant.merchantName}</span>
           </div>
@@ -158,7 +158,7 @@ export default function SettingsPage() {
           )}
           <button 
             onClick={handleSave}
-            className="px-5 py-2.5 rounded-xl bg-[#8b6508] hover:bg-[#6c4e06] text-white shadow-lg shadow-[#8b6508]/20 font-bold text-xs uppercase tracking-widest transition-colors flex items-center gap-2"
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white shadow-lg shadow-[#ff6325]/25 font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2"
           >
             {isSaved ? <CheckCircle2 size={16} /> : <Save size={16} />} 
             {isSaved ? 'Saved successfully' : 'Save Changes'}
@@ -172,13 +172,13 @@ export default function SettingsPage() {
         <div className="space-y-8">
           <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm relative overflow-hidden group">
             <h2 className="text-lg font-black text-slate-900 mb-6 flex items-center gap-2">
-              <Building2 size={18} className="text-[#8b6508]" /> Core Business Details
+              <Building2 size={18} className="text-[#0a3161]" /> Core Business Details
             </h2>
             
             <form onSubmit={handleSave} className="space-y-6">
               <div className="space-y-1.5">
                 <label className="text-[10px] uppercase font-bold tracking-wider text-slate-500">Business Name</label>
-                <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus-within:border-[#8b6508] focus-within:ring-1 focus-within:ring-[#8b6508] transition-all">
+                <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus-within:border-[#ff6325] focus-within:ring-1 focus-within:ring-[#ff6325] transition-all">
                   <Building2 className="h-4 w-4 text-slate-400 shrink-0" />
                   <input 
                     value={name} 
@@ -193,9 +193,9 @@ export default function SettingsPage() {
                 <div className="space-y-1.5">
                   <div className="flex justify-between items-center">
                     <label className="text-[10px] uppercase font-bold tracking-wider text-slate-500">Company Email</label>
-                    <span className="text-[8px] bg-blue-50 text-blue-600 font-black px-2 py-0.5 rounded uppercase tracking-wider">BNX Integrated</span>
+                    <span className="text-[8px] bg-blue-50 text-[#0a3161] font-black px-2 py-0.5 rounded uppercase tracking-wider">BNX Integrated</span>
                   </div>
-                  <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus-within:border-[#8b6508] focus-within:ring-1 focus-within:ring-[#8b6508] transition-all">
+                  <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus-within:border-[#ff6325] focus-within:ring-1 focus-within:ring-[#ff6325] transition-all">
                     <Mail className="h-4 w-4 text-slate-400 shrink-0" />
                     <input 
                       value={email} 
@@ -208,7 +208,7 @@ export default function SettingsPage() {
 
                 <div className="space-y-1.5">
                   <label className="text-[10px] uppercase font-bold tracking-wider text-slate-500">Telephone / Support Line</label>
-                  <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus-within:border-[#8b6508] focus-within:ring-1 focus-within:ring-[#8b6508] transition-all">
+                  <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus-within:border-[#ff6325] focus-within:ring-1 focus-within:ring-[#ff6325] transition-all">
                     <Phone className="h-4 w-4 text-slate-400 shrink-0" />
                     <input 
                       value={phone} 
@@ -223,7 +223,7 @@ export default function SettingsPage() {
               <div className="grid sm:grid-cols-2 gap-6">
                 <div className="space-y-1.5">
                   <label className="text-[10px] uppercase font-bold tracking-wider text-slate-500">Website URL</label>
-                  <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus-within:border-[#8b6508] focus-within:ring-1 focus-within:ring-[#8b6508] transition-all">
+                  <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus-within:border-[#ff6325] focus-within:ring-1 focus-within:ring-[#ff6325] transition-all">
                     <Globe className="h-4 w-4 text-slate-400 shrink-0" />
                     <input 
                       value={website} 
@@ -235,7 +235,7 @@ export default function SettingsPage() {
 
                 <div className="space-y-1.5">
                   <label className="text-[10px] uppercase font-bold tracking-wider text-slate-500">Address Coordinates</label>
-                  <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus-within:border-[#8b6508] focus-within:ring-1 focus-within:ring-[#8b6508] transition-all">
+                  <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus-within:border-[#ff6325] focus-within:ring-1 focus-within:ring-[#ff6325] transition-all">
                     <MapPin className="h-4 w-4 text-slate-400 shrink-0" />
                     <input 
                       value={address} 
@@ -249,7 +249,7 @@ export default function SettingsPage() {
 
               <div className="space-y-1.5">
                 <label className="text-[10px] uppercase font-bold tracking-wider text-slate-500">About Description</label>
-                <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus-within:border-[#8b6508] focus-within:ring-1 focus-within:ring-[#8b6508] transition-all">
+                <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus-within:border-[#ff6325] focus-within:ring-1 focus-within:ring-[#ff6325] transition-all">
                   <Info className="h-4 w-4 text-slate-400 shrink-0 mt-1" />
                   <textarea 
                     rows={4}
@@ -310,7 +310,7 @@ export default function SettingsPage() {
 
                   {(!archetypeConfig?.hasOutdoorConditions && !isHospital && !isService && !false) && (
                      <label className="flex items-center gap-3 p-4 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100 transition-all">
-                     <input type="checkbox" defaultChecked className="w-4 h-4 accent-[#8b6508]" />
+                     <input type="checkbox" defaultChecked className="w-4 h-4 accent-[#ff6325]" />
                      <span className="text-sm font-bold text-slate-700">Enable Walk-in Bookings</span>
                    </label>
                   )}

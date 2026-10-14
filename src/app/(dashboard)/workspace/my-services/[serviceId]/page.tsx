@@ -19,7 +19,7 @@ export default function ServiceListingsPage() {
   if (!mounted || !currentMerchant) {
     return (
       <div className="flex h-full min-h-[500px] items-center justify-center">
-        <div className="h-16 w-16 rounded-full border-4 border-[#8b6508] border-t-transparent animate-spin" />
+        <div className="h-16 w-16 rounded-full border-4 border-[#ff6325] border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -30,7 +30,7 @@ export default function ServiceListingsPage() {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <h2 className="text-2xl font-bold text-slate-900 mb-4">Category Not Found</h2>
-        <button onClick={() => router.push('/workspace/my-services')} className="px-6 py-2 bg-[#8b6508] hover:bg-[#6c4e06] text-white rounded-xl">Go Back</button>
+        <button onClick={() => router.push('/workspace/my-services')} className="px-6 py-2 bg-gradient-to-r from-[#0a3161] to-[#124b8f] text-white rounded-xl font-bold shadow-lg shadow-[#0a3161]/20">Go Back</button>
       </div>
     );
   }
@@ -54,25 +54,25 @@ export default function ServiceListingsPage() {
     <div className="space-y-12 animate-fade-in pb-12 font-sans">
       
       {/* Header section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-white/[0.08]">
         <div>
           <button 
             onClick={() => router.push('/workspace/my-services')}
-            className="flex items-center gap-2 text-slate-500 hover:text-slate-900 font-bold text-sm mb-4 transition-colors"
+            className="flex items-center gap-2 text-slate-400 hover:text-[#ff6325] font-bold text-sm mb-4 transition-colors cursor-pointer"
           >
             <ArrowLeft size={16} /> Back to Categories
           </button>
-          <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+          <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight flex items-center gap-3">
             {category.name} Listings
           </h1>
-          <p className="text-sm text-slate-500 font-medium mt-2 max-w-2xl">
-            Manage individual items (listings) inside the {category.name} category.
+          <p className="text-sm text-slate-400 font-medium mt-2 max-w-2xl">
+            Manage individual items (listings) inside the <span className="text-white font-bold">{category.name}</span> category.
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button 
             onClick={() => router.push(`/workspace/my-services/${serviceId}/listing/new`)}
-            className="flex items-center gap-2 px-5 py-3 rounded-xl bg-[#8b6508] hover:bg-[#6c4e06] text-white shadow-lg shadow-[#8b6508]/20 font-bold text-xs uppercase tracking-widest transition-colors"
+            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white shadow-lg shadow-[#ff6325]/25 font-bold text-xs uppercase tracking-widest transition-all cursor-pointer"
           >
             <Plus size={16} /> Add Listing
           </button>
@@ -86,67 +86,70 @@ export default function ServiceListingsPage() {
             <div 
               key={list.id} 
               onClick={() => router.push(`/workspace/my-services/${serviceId}/listing/${list.id}`)}
-              className="bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col cursor-pointer group"
+              className="bg-[#0f1624] rounded-3xl border border-white/10 hover:border-[#ff6325]/50 shadow-lg hover:shadow-2xl hover:shadow-[#ff6325]/10 hover:-translate-y-1.5 transition-all duration-300 relative overflow-hidden flex flex-col cursor-pointer group backdrop-blur-sm"
             >
-              <div className="h-32 w-full bg-slate-100 relative">
+              <div className="h-36 w-full bg-[#162033] relative overflow-hidden">
                 {list.imageUrl ? (
-                  <img src={list.imageUrl} alt={list.name} className="h-full w-full object-cover" />
+                  <img src={list.imageUrl} alt={list.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : (
-                  <img src={getFallbackImage(list.name)} alt={list.name} className="h-full w-full object-cover" />
+                  <img src={getFallbackImage(list.name)} alt={list.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 )}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0f1624] via-transparent to-black/20" />
                 <div className="absolute top-2 right-2 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={(e) => handleDeleteListing(e, list.id)} className="h-8 w-8 bg-white/90 hover:bg-red-50 hover:text-red-600 rounded-full flex items-center justify-center text-slate-700 shadow-sm transition-colors">
-                    <Trash2 size={14} />
+                  <button onClick={(e) => handleDeleteListing(e, list.id)} className="h-8 w-8 bg-black/60 hover:bg-red-600 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/20 shadow-md transition-colors">
+                    <Trash2 size={13} />
                   </button>
                 </div>
               </div>
-              <div className="p-4">
-                <div className="flex justify-between items-start gap-2">
-                  <h3 className="font-extrabold text-base text-slate-900 leading-tight">{list.name}</h3>
-                  {list.price !== undefined && list.price > 0 && (
-                    <span className="text-xs font-bold text-[#8b6508] bg-[#8b6508]/10 px-2 py-1 rounded-md shrink-0">
-                      ₹{list.price}
-                    </span>
-                  )}
+              <div className="p-5 flex-1 flex flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-start gap-2">
+                    <h3 className="font-extrabold text-base text-white leading-tight group-hover:text-[#ff6325] transition-colors">{list.name}</h3>
+                    {list.price !== undefined && list.price > 0 && (
+                      <span className="text-xs font-bold text-[#ff6325] bg-[#ff6325]/10 px-2 py-1 rounded-md shrink-0 border border-[#ff6325]/20">
+                        ₹{list.price}
+                      </span>
+                    )}
+                  </div>
+                  {list.description && <p className="text-sm text-slate-400 mt-2 line-clamp-2 leading-relaxed">{list.description}</p>}
+                  
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {list.isTimingEnabled && <span className="px-2 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-bold rounded">Timing</span>}
+                    {list.isAddonsEnabled && <span className="px-2 py-1 bg-orange-500/10 text-[#ff6325] border border-orange-500/20 text-[10px] font-bold rounded">Add-ons</span>}
+                    {list.isRulesEnabled && <span className="px-2 py-1 bg-white/10 text-slate-300 border border-white/10 text-[10px] font-bold rounded">Rules</span>}
+                    {list.isOffersEnabled && <span className="px-2 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold rounded">Offers</span>}
+                  </div>
                 </div>
-                {list.description && <p className="text-sm text-slate-500 mt-2 line-clamp-2">{list.description}</p>}
                 
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {list.isTimingEnabled && <span className="px-2 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold rounded">Timing</span>}
-                  {list.isAddonsEnabled && <span className="px-2 py-1 bg-purple-50 text-purple-700 text-[10px] font-bold rounded">Add-ons</span>}
-                  {list.isRulesEnabled && <span className="px-2 py-1 bg-orange-50 text-orange-700 text-[10px] font-bold rounded">Rules</span>}
-                  {list.isOffersEnabled && <span className="px-2 py-1 bg-green-50 text-green-700 text-[10px] font-bold rounded">Offers</span>}
-                </div>
-                
-                <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+                <div className="mt-6 pt-4 border-t border-white/[0.08] flex items-center justify-between">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       router.push(`/workspace/my-services/${serviceId}/listing/${list.id}/slots`);
                     }}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#8b6508] hover:bg-[#6c4e06] text-white text-xs font-bold rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-3.5 py-1.5 bg-[#162033] hover:bg-[#1f2d47] text-white text-xs font-bold rounded-lg transition-all border border-white/10 shadow-sm"
                   >
-                    <Calendar size={14} />
-                    Calendar & Slots
+                    <Calendar size={13} className="text-[#ff6325]" />
+                    Slots
                   </button>
-                  <span className="text-xs font-bold text-[#8b6508]">Edit Info &rarr;</span>
+                  <span className="text-xs font-bold text-[#ff6325] group-hover:translate-x-1 transition-transform">Edit Info &rarr;</span>
                 </div>
               </div>
             </div>
           ))}
 
           {listings.length === 0 && (
-            <div className="col-span-full py-20 px-6 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 flex flex-col items-center justify-center text-center">
-              <div className="h-16 w-16 bg-slate-200 rounded-2xl flex items-center justify-center mb-4 text-slate-400 rotate-3">
+            <div className="col-span-full py-20 px-6 rounded-3xl border-2 border-dashed border-white/10 bg-[#0f1624]/60 flex flex-col items-center justify-center text-center backdrop-blur-sm">
+              <div className="h-16 w-16 bg-[#162033] rounded-2xl flex items-center justify-center mb-4 text-[#ff6325] rotate-3 border border-white/10">
                 <ImageIcon size={32} />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">No Listings Yet</h3>
-              <p className="text-slate-500 max-w-md text-sm mb-6">
-                Click the button below to create the first listing for {category.name}.
+              <h3 className="text-xl font-bold text-white mb-2">No Listings Yet</h3>
+              <p className="text-slate-400 max-w-md text-sm mb-6 leading-relaxed">
+                Click the button below to create the first listing for <strong className="text-white">{category.name}</strong>.
               </p>
               <button 
                 onClick={() => router.push(`/workspace/my-services/${serviceId}/listing/new`)}
-                className="px-6 py-3 rounded-xl bg-[#8b6508] hover:bg-[#6c4e06] text-white font-bold text-sm transition-colors shadow-lg shadow-[#8b6508]/20"
+                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-bold text-sm transition-all shadow-lg shadow-[#ff6325]/25 cursor-pointer"
               >
                 + Add First Listing
               </button>

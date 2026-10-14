@@ -18,94 +18,106 @@
 }
 
 :root {
-  --primary: #c99719;
-  --primary-dark: #a3760a;
-  --accent: #f97316;
+  --primary: #0a3161;           /* Bokspot Navy Blue from logo */
+  --primary-dark: #072346;
+  --secondary: #ff6325;         /* Bokspot Bright Orange from logo */
+  --secondary-dark: #e04e13;
+  --accent: #ff6325;            /* Bokspot Orange accent */
+  --gold: #d4af37;              /* Bokspot Gold accent */
+  --gold-dark: #a3760a;
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
-  --border: rgba(212, 175, 55, 0.18);
+  --border: rgba(10, 49, 97, 0.14);
   
-  /* Defaults to Dark theme variable values */
-  --bg-primary: #0a0b0e;
-  --bg-secondary: #12141a;
-  --bg-tertiary: #191c24;
+  /* Defaults to Obsidian Dark theme variable values */
+  --bg-primary: #080c14;        /* Deep obsidian-navy canvas */
+  --bg-secondary: #0f1624;      /* Elevated navy card */
+  --bg-tertiary: #162033;       /* Interactive surface */
   
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
   
-  --sidebar-bg: #12141a;
+  --sidebar-bg: #0f1624;
   --sidebar-text: #94a3b8;
 }
 
 .light {
-  --primary: #946c07;
-  --primary-dark: #745404;
-  --accent: #ea580c;
+  --primary: #0a3161;           /* Deep Bokspot Navy */
+  --primary-dark: #061e3d;
+  --secondary: #ff6325;         /* Vibrant Bokspot Orange */
+  --secondary-dark: #d84d12;
+  --accent: #ff6325;
+  --gold: #c99719;
   
-  --bg-primary: #f8fafc;      /* sleek crisp slate-50 canvas */
-  --bg-secondary: #ffffff;    /* pure white elevation */
-  --bg-tertiary: #f1f5f9;     /* soft slate-100 card */
+  --bg-primary: #f8fafc;        /* Crisp slate-50 canvas */
+  --bg-secondary: #ffffff;      /* Pure white elevation */
+  --bg-tertiary: #f1f5f9;       /* Soft slate-100 card */
   
-  --text-primary: #0f172a;    /* deep rich slate-900 */
-  --text-secondary: #475569;  /* readable slate-600 */
-  --text-muted: #64748b;      /* subtle slate-500 */
+  --text-primary: #091a30;      /* Ultra crisp navy-slate */
+  --text-secondary: #475569;    /* Readable slate-600 */
+  --text-muted: #64748b;        /* Subtle slate-500 */
   
-  --border: rgba(148, 108, 7, 0.18);
+  --border: rgba(10, 49, 97, 0.12);
   --sidebar-bg: #ffffff;
-  --sidebar-text: #334155;
+  --sidebar-text: #1e293b;
 }
 
 .dark {
-  --primary: #d4af37;
-  --primary-dark: #b89324;
-  --accent: #f97316;
+  --primary: #ff6325;           /* Orange highlight in dark mode */
+  --primary-dark: #e04e13;
+  --secondary: #0a3161;
+  --accent: #ff6325;
+  --gold: #d4af37;
   
-  --bg-primary: #0a0b0e;      /* obsidian ultra-dark */
-  --bg-secondary: #12141a;    /* deep charcoal card */
-  --bg-tertiary: #191c24;     /* layered surface */
+  --bg-primary: #080c14;        /* Midnight obsidian-navy */
+  --bg-secondary: #0f1624;      /* Deep navy surface */
+  --bg-tertiary: #162033;       /* Layered card */
   
-  --text-primary: #f8fafc;    /* brilliant off-white */
-  --text-secondary: #cbd5e1;  /* crisp slate-300 */
-  --text-muted: #94a3b8;      /* clear slate-400 */
+  --text-primary: #f8fafc;      /* Brilliant off-white */
+  --text-secondary: #cbd5e1;    /* Crisp slate-300 */
+  --text-muted: #94a3b8;        /* Clear slate-400 */
   
-  --border: rgba(212, 175, 55, 0.2);
-  --sidebar-bg: #12141a;
+  --border: rgba(255, 99, 37, 0.18);
+  --sidebar-bg: #0f1624;
   --sidebar-text: #cbd5e1;
 }
 
 .theme-medical {
-  --primary: #0284c7;
-  --primary-dark: #0369a1;
+  --primary: #0a3161;
+  --primary-dark: #061e3d;
+  --accent: #ff6325;
   --bg-primary: #f8fafc;
   --bg-secondary: #ffffff;
-  --bg-tertiary: #f0f9ff;
-  --border: rgba(2, 132, 199, 0.2);
+  --bg-tertiary: #f0f7ff;
+  --border: rgba(10, 49, 97, 0.15);
   --sidebar-bg: #ffffff;
 }
 
 .theme-hotel {
-  --primary: #946c07;
-  --primary-dark: #745404;
+  --primary: #0a3161;
+  --primary-dark: #061e3d;
+  --accent: #ff6325;
   --bg-primary: #faf8f5;
   --bg-secondary: #ffffff;
-  --bg-tertiary: #f5f0e6;
-  --border: rgba(148, 108, 7, 0.2);
+  --bg-tertiary: #fff7ed;
+  --border: rgba(255, 99, 37, 0.16);
   --sidebar-bg: #ffffff;
 }
 
 .theme-turf {
   --primary: #16a34a;
   --primary-dark: #15803d;
-  --bg-primary: #0a0f0d;
-  --bg-secondary: #111a15;
-  --bg-tertiary: #18261e;
+  --accent: #ff6325;
+  --bg-primary: #080f0c;
+  --bg-secondary: #0f1b16;
+  --bg-tertiary: #162921;
   --text-primary: #f0fdf4;
   --text-secondary: #bbf7d0;
   --text-muted: #86efac;
   --border: rgba(22, 163, 74, 0.25);
-  --sidebar-bg: #111a15;
+  --sidebar-bg: #0f1b16;
   --sidebar-text: #bbf7d0;
 }
 
@@ -114,18 +126,18 @@
 .bg-\[\#061528\] { background-color: var(--bg-secondary) !important; }
 .bg-\[\#0d1120\] { background-color: var(--bg-tertiary) !important; }
 
-/* Map old gold color class (#8b6508) to new variable primary color */
-.text-\[\#8b6508\] { color: var(--primary) !important; }
-.bg-\[\#8b6508\] { background-color: var(--primary) !important; }
-.border-\[\#8b6508\] { border-color: var(--primary) !important; }
+/* Map old gold color class (#8b6508) to Bokspot logo Navy & Orange */
+.text-\[\#8b6508\] { color: #ff6325 !important; }
+.bg-\[\#8b6508\] { background-color: #ff6325 !important; }
+.border-\[\#8b6508\] { border-color: #ff6325 !important; }
 
-.bg-\[\#8b6508\]\/10 { background-color: color-mix(in srgb, var(--primary) 10%, transparent) !important; }
-.bg-\[\#8b6508\]\/15 { background-color: color-mix(in srgb, var(--primary) 15%, transparent) !important; }
-.bg-\[\#8b6508\]\/20 { background-color: color-mix(in srgb, var(--primary) 20%, transparent) !important; }
+.bg-\[\#8b6508\]\/10 { background-color: rgba(255, 99, 37, 0.1) !important; }
+.bg-\[\#8b6508\]\/15 { background-color: rgba(255, 99, 37, 0.15) !important; }
+.bg-\[\#8b6508\]\/20 { background-color: rgba(255, 99, 37, 0.2) !important; }
 
-.border-\[\#8b6508\]\/20 { border-color: color-mix(in srgb, var(--primary) 20%, transparent) !important; }
-.border-\[\#8b6508\]\/30 { border-color: color-mix(in srgb, var(--primary) 30%, transparent) !important; }
-.border-\[\#8b6508\]\/15 { border-color: color-mix(in srgb, var(--primary) 15%, transparent) !important; }
+.border-\[\#8b6508\]\/20 { border-color: rgba(255, 99, 37, 0.2) !important; }
+.border-\[\#8b6508\]\/30 { border-color: rgba(255, 99, 37, 0.3) !important; }
+.border-\[\#8b6508\]\/15 { border-color: rgba(255, 99, 37, 0.15) !important; }
 
 * { font-family: 'Inter', sans-serif; }
 body {
@@ -134,34 +146,34 @@ body {
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* Top Header Navbar - Original Yellow Brand Navbar with Clear Legible Text */
+/* Top Header Navbar - Premium Bokspot Deep Navy + Orange Accent */
 .vendor-navbar {
-  background: #d4a729 !important;
-  border-bottom: 1px solid rgba(252, 238, 167, 0.45) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12) !important;
+  background: linear-gradient(135deg, #071f3d 0%, #0a3161 65%, #0f407a 100%) !important;
+  border-bottom: 2px solid rgba(255, 99, 37, 0.4) !important;
+  box-shadow: 0 4px 25px rgba(10, 49, 97, 0.35) !important;
 }
 
 .vendor-navbar button,
 .vendor-navbar a,
 .vendor-navbar span,
 .vendor-navbar svg {
-  color: #1a1506 !important;
+  color: #ffffff !important;
 }
 
 .vendor-navbar .relative > button {
-  background-color: rgba(26, 21, 6, 0.12) !important;
-  border: 1px solid rgba(26, 21, 6, 0.22) !important;
-  color: #1a1506 !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  color: #ffffff !important;
 }
 
 .vendor-navbar .relative > button:hover {
-  background-color: rgba(26, 21, 6, 0.2) !important;
-  border-color: rgba(26, 21, 6, 0.35) !important;
+  background-color: rgba(255, 99, 37, 0.25) !important;
+  border-color: rgba(255, 99, 37, 0.5) !important;
 }
 
 .vendor-navbar .relative > button svg,
 .vendor-navbar .relative > button span {
-  color: #1a1506 !important;
+  color: #ffffff !important;
 }
 
 /* Ensure profile dropdown avatar and contents remain properly colored */
@@ -171,7 +183,7 @@ body {
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #8b6508, #d4af37);
+  background: linear-gradient(135deg, #0a3161, #ff6325);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -270,14 +282,14 @@ body {
 
 /* Sidebar Active & Inactive Links Theme Alignment */
 .sidebar-link-active {
-  background-color: color-mix(in srgb, var(--primary) 12%, transparent) !important;
-  border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent) !important;
-  color: var(--primary) !important;
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 6%, transparent) !important;
+  background-color: rgba(255, 99, 37, 0.12) !important;
+  border: 1px solid rgba(255, 99, 37, 0.3) !important;
+  color: #ff6325 !important;
+  box-shadow: 0 4px 12px rgba(255, 99, 37, 0.1) !important;
 }
 
 .sidebar-link-active svg {
-  color: var(--primary) !important;
+  color: #ff6325 !important;
 }
 
 .sidebar-link-inactive {
@@ -301,9 +313,9 @@ body {
 
 /* Sidebar Badge (PARTNER / SUPERVISOR) */
 .sidebar-badge {
-  background-color: color-mix(in srgb, var(--primary) 15%, transparent) !important;
-  border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent) !important;
-  color: var(--primary) !important;
+  background-color: rgba(10, 49, 97, 0.25) !important;
+  border: 1px solid rgba(255, 99, 37, 0.4) !important;
+  color: #ff6325 !important;
 }
 
 /* Sidebar Footer Details Container and Keys/Values */
@@ -313,7 +325,7 @@ body {
 }
 
 .sidebar-footer-val {
-  color: var(--primary) !important;
+  color: #ff6325 !important;
 }
 
 /* Capsule Menu Styling (from customer page navbar) */
@@ -321,17 +333,17 @@ body {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 6px;
+  padding: 5px;
   border-radius: 9999px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
 }
 
 .dark .custom-nav-capsule, .light .custom-nav-capsule, .vendor-navbar .custom-nav-capsule {
-  background-color: #2b1f02 !important;
-  border: 1px solid rgba(252, 238, 167, 0.15) !important;
+  background-color: rgba(5, 23, 46, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
 }
 
 /* Link Items */
@@ -340,7 +352,7 @@ body {
 }
 
 .dark .custom-nav-link-inactive, .light .custom-nav-link-inactive, .vendor-navbar .custom-nav-link-inactive {
-  color: rgba(252, 238, 167, 0.72) !important;
+  color: rgba(255, 255, 255, 0.75) !important;
 }
 .dark .custom-nav-link-inactive:hover, .light .custom-nav-link-inactive:hover, .vendor-navbar .custom-nav-link-inactive:hover {
   color: #ffffff !important;
@@ -354,9 +366,9 @@ body {
 
 /* Active indicator background */
 .vendor-navbar .custom-nav-active-bg {
-  background-color: #8b6508 !important;
-  border: 1px solid rgba(252, 238, 167, 0.35) !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2) !important;
+  background-color: #ff6325 !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 4px 14px rgba(255, 99, 37, 0.45) !important;
 }
 
 /* Fix profile dropdown menu option colors - make them high contrast dark black in light mode */

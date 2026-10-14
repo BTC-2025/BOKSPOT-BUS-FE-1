@@ -65,7 +65,7 @@ export default function WorkspacePage() {
   if (!currentMerchant || !mounted) {
     return (
       <div className="flex h-full min-h-[500px] items-center justify-center">
-        <div className="h-16 w-16 rounded-full border-4 border-[#8b6508] border-t-transparent animate-spin" />
+        <div className="h-16 w-16 rounded-full border-4 border-[#ff6325] border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -185,12 +185,12 @@ export default function WorkspacePage() {
     <div className="space-y-12 animate-fade-in pb-12 font-sans">
       
       {/* Header section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-white/[0.06]">
         <div>
-          <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+          <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight flex items-center gap-3">
             {selectedGroup ? `${selectedGroup} Categories` : 'My Services'}
           </h1>
-          <p className="text-sm text-slate-500 font-medium mt-2 max-w-2xl">
+          <p className="text-sm text-slate-400 font-medium mt-2 max-w-2xl leading-relaxed">
             {selectedGroup 
               ? `Manage your ${selectedGroup} categories and their specific listings.`
               : 'Add main booking types (like Hotel Booking), then click them to add specific categories (like Deluxe Room) and listings.'}
@@ -204,9 +204,9 @@ export default function WorkspacePage() {
                 setBookingTypeImage('');
                 setShowBookingTypeModal(true);
               }}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#8b6508] hover:bg-[#6c4e06] text-white font-bold tracking-wide transition-all shadow-md active:scale-95"
+              className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-bold text-sm tracking-wide transition-all shadow-lg shadow-[#ff6325]/25 active:scale-95 cursor-pointer"
             >
-              <Plus size={18} /> Add Booking Type
+              <Plus size={18} className="text-white" /> Add Booking Type
             </button>
           ) : (
             <>
@@ -218,13 +218,13 @@ export default function WorkspacePage() {
                   setCategoryDesc('');
                   setShowCategoryModal(true);
                 }}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#8b6508] hover:bg-[#6c4e06] text-white font-bold tracking-wide transition-all shadow-md active:scale-95"
+                className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-bold text-sm tracking-wide transition-all shadow-lg shadow-[#ff6325]/25 active:scale-95 cursor-pointer"
               >
                 <Plus size={18} /> Add Category
               </button>
               <button
                 onClick={() => router.push('/workspace/about')}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold tracking-wide transition-all shadow-sm active:scale-95 border border-slate-200"
+                className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#0f1624] hover:bg-[#162033] text-white font-bold text-sm tracking-wide transition-all shadow-sm active:scale-95 border border-white/10 hover:border-[#ff6325]/40 cursor-pointer"
               >
                 Venue Profile
               </button>
@@ -243,15 +243,16 @@ export default function WorkspacePage() {
                 <div 
                   key={cat} 
                   onClick={() => setSelectedGroup(cat)}
-                  className="bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative group overflow-hidden flex flex-col cursor-pointer"
+                  className="bg-[#0f1624] rounded-3xl border border-white/10 hover:border-[#ff6325]/50 shadow-lg hover:shadow-2xl hover:shadow-[#ff6325]/10 hover:-translate-y-1.5 transition-all duration-300 relative group overflow-hidden flex flex-col cursor-pointer backdrop-blur-sm"
                 >
-                  <div className="h-36 w-full bg-slate-100 relative">
+                  <div className="h-40 w-full bg-[#162033] relative overflow-hidden">
                     <img 
                       src={info.mainImage || getFallbackImage(cat)} 
                       alt={cat} 
-                      className="h-full w-full object-cover" 
+                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" 
                       onError={(e) => { e.currentTarget.src = getFallbackImage(cat); }}
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0f1624] via-transparent to-black/20" />
                     {info.serviceId && (
                       <div className="absolute top-2 right-2 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={(e) => {
@@ -262,36 +263,35 @@ export default function WorkspacePage() {
                             setBookingTypeImage(srv.metadata?.mainImageUrl || srv.imageUrl || '');
                             setShowBookingTypeModal(true);
                           }
-                        }} className="h-8 w-8 bg-white/90 hover:bg-white rounded-full flex items-center justify-center text-slate-700 shadow-sm transition-colors">
-                          <Edit size={14} />
+                        }} className="h-8 w-8 bg-black/60 hover:bg-[#0a3161] backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/20 shadow-md transition-colors">
+                          <Edit size={13} />
                         </button>
-                        <button onClick={(e) => handleDeleteService(e, info.serviceId)} className="h-8 w-8 bg-white/90 hover:bg-red-50 hover:text-red-600 rounded-full flex items-center justify-center text-slate-700 shadow-sm transition-colors">
-                          <Trash2 size={14} />
+                        <button onClick={(e) => handleDeleteService(e, info.serviceId)} className="h-8 w-8 bg-black/60 hover:bg-red-600 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/20 shadow-md transition-colors">
+                          <Trash2 size={13} />
                         </button>
                       </div>
                     )}
                   </div>
-                  <div className="p-4 flex-1 flex flex-col">
-                    <div className="flex items-start justify-between gap-3 mb-1">
-                      <div className="flex flex-col">
-                        <h3 className="font-extrabold text-base text-slate-900 leading-tight">{cat}</h3>
-                        {info.createdAt && (
-                          <span className="text-[10px] text-slate-400 font-medium mt-1 uppercase tracking-wider">
-                            Added: {new Date(info.createdAt).toLocaleDateString()} {new Date(info.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true})}
-                          </span>
-                        )}
-                        {info.city && (
-                          <span className="text-[10px] text-[#8b6508] font-bold mt-1 uppercase tracking-wider flex items-center gap-1">
-                            📍 {info.city}
-                          </span>
-                        )}
-                      </div>
+                  <div className="p-5 flex-1 flex flex-col justify-between">
+                    <div>
+                      <h3 className="font-extrabold text-lg text-white leading-tight group-hover:text-[#ff6325] transition-colors">{cat}</h3>
+                      {info.createdAt && (
+                        <span className="text-[10px] text-slate-400 font-medium mt-1.5 uppercase tracking-wider block">
+                          Added: {new Date(info.createdAt).toLocaleDateString()} {new Date(info.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true})}
+                        </span>
+                      )}
+                      {info.city && (
+                        <span className="text-[11px] text-[#ff6325] font-bold mt-2 uppercase tracking-wider flex items-center gap-1.5 bg-[#ff6325]/10 px-2 py-0.5 rounded-md w-fit border border-[#ff6325]/20">
+                          📍 {info.city}
+                        </span>
+                      )}
                     </div>
-                    <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">
-                      <div className="flex items-center gap-2 text-slate-500">
-                        <Package size={14} className="text-[#8b6508]" />
+                    <div className="mt-5 flex items-center justify-between border-t border-white/[0.08] pt-3.5">
+                      <div className="flex items-center gap-2 text-slate-300">
+                        <Package size={15} className="text-[#ff6325]" />
                         <span className="text-xs font-bold">{info.count} Categories inside</span>
                       </div>
+                      <span className="text-xs font-bold text-[#ff6325] opacity-0 group-hover:opacity-100 transition-opacity">View →</span>
                     </div>
                   </div>
                 </div>
@@ -299,7 +299,7 @@ export default function WorkspacePage() {
             </div>
             {Object.keys(groupedCategories).length === 0 && (
               <div className="col-span-full py-20 px-6 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 flex flex-col items-center justify-center text-center">
-                <div className="h-16 w-16 bg-slate-200 rounded-2xl flex items-center justify-center mb-4 text-slate-400 rotate-3">
+                <div className="h-16 w-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4 text-[#ff6325] rotate-3 shadow-sm border border-slate-200">
                   <Package size={32} />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 mb-2">No Booking Types Yet</h3>
@@ -308,7 +308,7 @@ export default function WorkspacePage() {
                 </p>
                 <button 
                   onClick={() => setShowBookingTypeModal(true)}
-                  className="px-6 py-3 rounded-xl bg-[#8b6508] hover:bg-[#6c4e06] text-white font-bold text-sm transition-colors"
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-105 text-white font-bold text-sm transition-all shadow-md shadow-[#ff6325]/25"
                 >
                   Add First Booking Type
                 </button>
@@ -319,7 +319,7 @@ export default function WorkspacePage() {
           // LEVEL 2: CATEGORIES & LISTINGS
           <div>
             <div className="flex items-center justify-between mb-4">
-              <button onClick={() => setSelectedGroup(null)} className="text-sm font-bold text-[#8b6508] hover:text-[#6c4e06] flex items-center gap-1">
+              <button onClick={() => setSelectedGroup(null)} className="text-sm font-bold text-[#ff6325] hover:underline flex items-center gap-1 transition-all">
                 ← Back to Booking Types
               </button>
             </div>
@@ -328,55 +328,55 @@ export default function WorkspacePage() {
                 <div 
                   key={srv.id} 
                   onClick={() => openCategoryPage(srv)}
-                  className="bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative group overflow-hidden flex flex-col cursor-pointer"
+                  className="bg-[#0f1624] rounded-3xl border border-white/10 hover:border-[#ff6325]/50 shadow-lg hover:shadow-2xl hover:shadow-[#ff6325]/10 hover:-translate-y-1.5 transition-all duration-300 relative group overflow-hidden flex flex-col cursor-pointer backdrop-blur-sm"
                 >
-                  <div className="h-36 w-full bg-slate-100 relative">
+                  <div className="h-40 w-full bg-[#162033] relative overflow-hidden">
                     <img 
                       src={srv.imageUrl || getFallbackImage(srv.name)} 
                       alt={srv.name} 
-                      className="h-full w-full object-cover" 
+                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" 
                       onError={(e) => { e.currentTarget.src = getFallbackImage(srv.name); }}
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0f1624] via-transparent to-black/20" />
                     <div className="absolute top-2 right-2 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={(e) => openEditCategory(e, srv)} className="h-8 w-8 bg-white/90 hover:bg-white rounded-full flex items-center justify-center text-slate-700 shadow-sm transition-colors">
-                        <Edit size={14} />
+                      <button onClick={(e) => openEditCategory(e, srv)} className="h-8 w-8 bg-black/60 hover:bg-[#0a3161] backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/20 shadow-md transition-colors">
+                        <Edit size={13} />
                       </button>
-                      <button onClick={(e) => handleDeleteService(e, srv.id)} className="h-8 w-8 bg-white/90 hover:bg-red-50 hover:text-red-600 rounded-full flex items-center justify-center text-slate-700 shadow-sm transition-colors">
-                        <Trash2 size={14} />
+                      <button onClick={(e) => handleDeleteService(e, srv.id)} className="h-8 w-8 bg-black/60 hover:bg-red-600 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/20 shadow-md transition-colors">
+                        <Trash2 size={13} />
                       </button>
                     </div>
                   </div>
-                  <div className="p-4 flex-1 flex flex-col">
-                    <div className="flex items-start justify-between gap-3 mb-1">
-                      <div className="flex flex-col">
-                        <h3 className="font-extrabold text-base text-slate-900 leading-tight">{srv.name}</h3>
-                      </div>
+                  <div className="p-5 flex-1 flex flex-col justify-between">
+                    <div>
+                      <h3 className="font-extrabold text-lg text-white leading-tight group-hover:text-[#ff6325] transition-colors">{srv.name}</h3>
+                      {srv.description && (
+                        <p className="text-sm text-slate-400 mt-2 line-clamp-2 leading-relaxed">{srv.description}</p>
+                      )}
                     </div>
-                    {srv.description && (
-                      <p className="text-sm text-slate-500 mt-1 line-clamp-2 leading-relaxed">{srv.description}</p>
-                    )}
-                    <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">
-                      <div className="flex items-center gap-2 text-slate-500">
-                        <List size={14} className="text-[#8b6508]" />
+                    <div className="mt-5 flex items-center justify-between border-t border-white/[0.08] pt-3.5">
+                      <div className="flex items-center gap-2 text-slate-300">
+                        <List size={15} className="text-[#ff6325]" />
                         <span className="text-xs font-bold">{srv.listings?.length || 0} Listings inside</span>
                       </div>
+                      <span className="text-xs font-bold text-[#ff6325] opacity-0 group-hover:opacity-100 transition-opacity">Manage →</span>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
             {currentGroupCategories.length === 0 && (
-              <div className="mt-12 py-16 px-6 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 flex flex-col items-center justify-center text-center">
-                <div className="h-16 w-16 bg-slate-200 rounded-2xl flex items-center justify-center mb-4 text-slate-400 rotate-3">
+              <div className="mt-12 py-16 px-6 rounded-3xl border-2 border-dashed border-white/10 bg-[#0f1624]/60 flex flex-col items-center justify-center text-center backdrop-blur-sm">
+                <div className="h-16 w-16 bg-[#162033] rounded-2xl flex items-center justify-center mb-4 text-[#ff6325] rotate-3 border border-white/10">
                   <Package size={32} />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">No Categories Here</h3>
-                <p className="text-slate-500 max-w-md text-sm mb-6">
+                <h3 className="text-xl font-bold text-white mb-2">No Categories Here</h3>
+                <p className="text-slate-400 max-w-md text-sm mb-6 leading-relaxed">
                   You haven't added any categories (like Deluxe Room) to {selectedGroup} yet.
                 </p>
                 <button 
                   onClick={() => setShowCategoryModal(true)}
-                  className="px-6 py-3 rounded-xl bg-[#8b6508] hover:bg-[#6c4e06] text-white font-bold text-sm transition-colors"
+                  className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-bold text-sm transition-all shadow-lg shadow-[#ff6325]/25"
                 >
                   Add First Category & Listing
                 </button>
@@ -388,24 +388,29 @@ export default function WorkspacePage() {
 
       {/* LEVEL 1 MODAL: BOOKING TYPE */}
       {showBookingTypeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between p-6 border-b border-slate-100">
-              <h2 className="text-xl font-black text-slate-900">Add Booking Type</h2>
-              <button onClick={() => setShowBookingTypeModal(false)} className="h-8 w-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+          <div className="bg-[#0f1624] border border-white/10 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between p-6 border-b border-white/[0.08]">
+              <h2 className="text-xl font-black text-white">Add Booking Type</h2>
+              <button onClick={() => setShowBookingTypeModal(false)} className="h-8 w-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer">
                 <X size={16} />
               </button>
             </div>
             <div className="p-6 overflow-y-auto flex-1">
               <form id="bookingTypeForm" onSubmit={handleSaveBookingType} className="space-y-5">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Service Type (BokSpot Category)</label>
-                  <select value={bookingTypeCategory} onChange={(e) => setBookingTypeCategory(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#8b6508] focus:ring-2 focus:ring-[#8b6508]/20 transition-all font-medium" required>
-                    <option value="" disabled>Select a service type</option>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Service Type (BokSpot Category)</label>
+                  <select 
+                    value={bookingTypeCategory} 
+                    onChange={(e) => setBookingTypeCategory(e.target.value)} 
+                    className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#162033] text-white focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium cursor-pointer" 
+                    required
+                  >
+                    <option value="" disabled className="bg-[#162033] text-slate-400">Select a service type</option>
                     {Object.entries(GROUPED_CATEGORIES).map(([groupName, categories]) => (
-                      <optgroup key={groupName} label={groupName} className="font-bold text-slate-800 bg-slate-50">
+                      <optgroup key={groupName} label={groupName} className="font-bold text-[#ff6325] bg-[#0f1624]">
                         {categories.map(cat => (
-                          <option key={cat} value={cat} className="font-normal text-slate-700 bg-white">{cat}</option>
+                          <option key={cat} value={cat} className="font-normal text-white bg-[#162033] py-1">{cat}</option>
                         ))}
                       </optgroup>
                     ))}
@@ -413,17 +418,17 @@ export default function WorkspacePage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Main Cover Image (User App Front Page)</label>
-                  <div onClick={() => document.getElementById('booking-image-upload')?.click()} className="w-full h-32 rounded-xl border-2 border-dashed border-slate-300 hover:border-[#8b6508] bg-slate-50 flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden group mb-3">
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Main Cover Image (User App Front Page)</label>
+                  <div onClick={() => document.getElementById('booking-image-upload')?.click()} className="w-full h-32 rounded-xl border-2 border-dashed border-white/15 hover:border-[#ff6325] bg-[#162033]/50 flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden group mb-3">
                     {bookingTypeImage ? (
                       <>
                         <img src={bookingTypeImage} alt="Preview" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                           <span className="text-white font-bold text-sm flex items-center gap-2">Change Image</span>
                         </div>
                       </>
                     ) : (
-                      <div className="flex flex-col items-center text-slate-500 group-hover:text-[#8b6508] transition-colors">
+                      <div className="flex flex-col items-center text-slate-400 group-hover:text-[#ff6325] transition-colors">
                         <span className="font-bold text-sm">Click to choose image</span>
                         <span className="text-xs mt-1 opacity-70">PNG, JPG up to 5MB</span>
                       </div>
@@ -443,9 +448,9 @@ export default function WorkspacePage() {
                 </div>
               </form>
             </div>
-            <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 shrink-0">
-              <button type="button" onClick={() => setShowBookingTypeModal(false)} className="px-5 py-2.5 rounded-xl text-slate-600 font-bold hover:bg-slate-200 transition-colors">Cancel</button>
-              <button type="submit" form="bookingTypeForm" className="px-6 py-2.5 rounded-xl bg-[#8b6508] hover:bg-[#6c4e06] text-white font-bold transition-colors shadow-lg shadow-[#8b6508]/20">Save Booking Type</button>
+            <div className="p-6 border-t border-white/[0.08] bg-[#0a101b] flex justify-end gap-3 shrink-0">
+              <button type="button" onClick={() => setShowBookingTypeModal(false)} className="px-5 py-2.5 rounded-xl text-slate-300 font-bold hover:bg-white/5 transition-colors cursor-pointer">Cancel</button>
+              <button type="submit" form="bookingTypeForm" className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-bold transition-all shadow-lg shadow-[#ff6325]/25 cursor-pointer">Save Booking Type</button>
             </div>
           </div>
         </div>
@@ -453,29 +458,29 @@ export default function WorkspacePage() {
 
       {/* LEVEL 2 MODAL: CATEGORY & LISTING */}
       {showCategoryModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between p-6 border-b border-slate-100">
-              <h2 className="text-xl font-black text-slate-900">{editingServiceId ? 'Edit Category' : 'Add Category'}</h2>
-              <button onClick={() => setShowCategoryModal(false)} className="h-8 w-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors"><X size={16} /></button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+          <div className="bg-[#0f1624] border border-white/10 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between p-6 border-b border-white/[0.08]">
+              <h2 className="text-xl font-black text-white">{editingServiceId ? 'Edit Category' : 'Add Category'}</h2>
+              <button onClick={() => setShowCategoryModal(false)} className="h-8 w-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"><X size={16} /></button>
             </div>
             <div className="p-6 overflow-y-auto flex-1">
               <form id="categoryListingForm" onSubmit={handleSaveCategory} className="space-y-5">
-                  <h3 className="text-lg font-black text-slate-800 border-b border-slate-100 pb-2 mb-4">Category Details</h3>
+                  <h3 className="text-base font-black text-slate-200 border-b border-white/[0.08] pb-2 mb-4">Category Details</h3>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Category Name</label>
-                    <input type="text" value={categoryName} onChange={(e) => setCategoryName(e.target.value)} placeholder="e.g. Deluxe Room" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#8b6508] focus:ring-2 focus:ring-[#8b6508]/20 transition-all font-medium" required />
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Category Name</label>
+                    <input type="text" value={categoryName} onChange={(e) => setCategoryName(e.target.value)} placeholder="e.g. Deluxe Room" className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#162033] text-white focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium placeholder:text-slate-500" required />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Category Image</label>
-                    <div onClick={() => document.getElementById('cat-image-upload')?.click()} className="w-full h-32 rounded-xl border-2 border-dashed border-slate-300 hover:border-[#8b6508] bg-slate-50 flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden group mb-3">
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Category Image</label>
+                    <div onClick={() => document.getElementById('cat-image-upload')?.click()} className="w-full h-32 rounded-xl border-2 border-dashed border-white/15 hover:border-[#ff6325] bg-[#162033]/50 flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden group mb-3">
                       {categoryImage ? (
                         <>
                           <img src={categoryImage} alt="Preview" className="w-full h-full object-cover" />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"><span className="text-white font-bold text-sm flex items-center gap-2">Change Image</span></div>
+                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"><span className="text-white font-bold text-sm flex items-center gap-2">Change Image</span></div>
                         </>
                       ) : (
-                        <div className="flex flex-col items-center text-slate-500 group-hover:text-[#8b6508] transition-colors"><span className="font-bold text-sm">Click to choose image</span></div>
+                        <div className="flex flex-col items-center text-slate-400 group-hover:text-[#ff6325] transition-colors"><span className="font-bold text-sm">Click to choose image</span></div>
                       )}
                     </div>
                     <input id="cat-image-upload" type="file" className="hidden" onChange={async (e) => {
@@ -491,16 +496,16 @@ export default function WorkspacePage() {
                     }} accept="image/*" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Description</label>
-                    <textarea value={categoryDesc} onChange={(e) => setCategoryDesc(e.target.value)} placeholder="Short description..." className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#8b6508] focus:ring-2 focus:ring-[#8b6508]/20 transition-all font-medium min-h-[80px]" />
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Description</label>
+                    <textarea value={categoryDesc} onChange={(e) => setCategoryDesc(e.target.value)} placeholder="Short description..." className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#162033] text-white focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium min-h-[80px] placeholder:text-slate-500" />
                   </div>
               </form>
             </div>
-            <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end items-center gap-3 shrink-0">
-              <button type="button" onClick={() => setShowCategoryModal(false)} className="px-5 py-2.5 rounded-xl text-slate-600 font-bold hover:bg-slate-200 transition-colors">
+            <div className="p-6 border-t border-white/[0.08] bg-[#0a101b] flex justify-end items-center gap-3 shrink-0">
+              <button type="button" onClick={() => setShowCategoryModal(false)} className="px-5 py-2.5 rounded-xl text-slate-300 font-bold hover:bg-white/5 transition-colors cursor-pointer">
                 Cancel
               </button>
-              <button type="submit" form="categoryListingForm" className="px-6 py-2.5 rounded-xl bg-[#8b6508] hover:bg-[#6c4e06] text-white font-bold transition-colors shadow-lg shadow-[#8b6508]/20">
+              <button type="submit" form="categoryListingForm" className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-bold transition-all shadow-lg shadow-[#ff6325]/25 cursor-pointer">
                 Save Category
               </button>
             </div>

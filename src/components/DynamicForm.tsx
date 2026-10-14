@@ -30,10 +30,10 @@ export default function DynamicForm({ archetype, initialData = {}, onSubmit, onC
   };
 
   return (
-    <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl overflow-hidden">
-      <div className="px-6 py-4 border-b border-[var(--border-subtle)] bg-[var(--bg-base)]">
-        <h3 className="text-lg font-bold text-[var(--text-primary)]">{schema.title}</h3>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">
+    <div className="bg-[#0f1624] border border-white/10 rounded-2xl overflow-hidden text-white">
+      <div className="px-6 py-4 border-b border-white/10 bg-[#162033]/70">
+        <h3 className="text-lg font-bold text-white">{schema.title}</h3>
+        <p className="text-sm text-slate-300 mt-1">
           Fill in the details for this {archetype.toLowerCase()} service.
         </p>
       </div>
@@ -42,7 +42,7 @@ export default function DynamicForm({ archetype, initialData = {}, onSubmit, onC
         {schema.fields.map((field: any, idx: number) => {
           return (
             <div key={idx} className="space-y-1.5">
-              <label className="block text-sm font-semibold text-[var(--text-primary)]">
+              <label className="block text-sm font-bold text-slate-200">
                 {field.label} {field.required && <span className="text-red-500">*</span>}
               </label>
 
@@ -53,7 +53,7 @@ export default function DynamicForm({ archetype, initialData = {}, onSubmit, onC
                   required={field.required}
                   value={formData[field.name] || ''}
                   onChange={(e) => handleChange(field.name, e.target.value)}
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] transition-colors"
+                  className="w-full bg-[#162033] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-[#ff6325] focus:ring-1 focus:ring-[#ff6325] transition-colors"
                   placeholder={`Enter ${field.label.toLowerCase()}`}
                 />
               )}
@@ -65,7 +65,7 @@ export default function DynamicForm({ archetype, initialData = {}, onSubmit, onC
                   required={field.required}
                   value={formData[field.name] || ''}
                   onChange={(e) => handleChange(field.name, Number(e.target.value))}
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] transition-colors"
+                  className="w-full bg-[#162033] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-[#ff6325] focus:ring-1 focus:ring-[#ff6325] transition-colors"
                   placeholder={`0`}
                 />
               )}
@@ -76,7 +76,7 @@ export default function DynamicForm({ archetype, initialData = {}, onSubmit, onC
                   required={field.required}
                   value={formData[field.name] || ''}
                   onChange={(e) => handleChange(field.name, e.target.value)}
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] transition-colors min-h-[100px]"
+                  className="w-full bg-[#162033] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-[#ff6325] focus:ring-1 focus:ring-[#ff6325] transition-colors min-h-[100px]"
                   placeholder={`Enter details...`}
                 />
               )}
@@ -88,7 +88,7 @@ export default function DynamicForm({ archetype, initialData = {}, onSubmit, onC
                   required={field.required}
                   value={formData[field.name] || ''}
                   onChange={(e) => handleChange(field.name, e.target.value)}
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] transition-colors"
+                  className="w-full bg-[#162033] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff6325] focus:ring-1 focus:ring-[#ff6325] transition-colors [color-scheme:dark]"
                 />
               )}
 
@@ -99,7 +99,7 @@ export default function DynamicForm({ archetype, initialData = {}, onSubmit, onC
                   required={field.required}
                   value={formData[field.name] || ''}
                   onChange={(e) => handleChange(field.name, e.target.value)}
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] transition-colors"
+                  className="w-full bg-[#162033] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff6325] focus:ring-1 focus:ring-[#ff6325] transition-colors [color-scheme:dark]"
                 />
               )}
 
@@ -114,10 +114,10 @@ export default function DynamicForm({ archetype, initialData = {}, onSubmit, onC
                       const val = e.target.value.split(',').map((s: string) => s.trim());
                       handleChange(field.name, val);
                     }}
-                    className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] transition-colors"
-                    placeholder={`Comma separated values (e.g. Item 1, Item 2)`}
+                    className="w-full bg-[#162033] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-[#ff6325] focus:ring-1 focus:ring-[#ff6325] transition-colors"
+                    placeholder={`Comma separated values (e.g. WiFi, Air Conditioning, TV)`}
                   />
-                  <p className="text-[10px] text-[var(--text-secondary)] mt-1 uppercase tracking-wider">
+                  <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-wider">
                     Separate items with commas
                   </p>
                 </div>
@@ -125,12 +125,12 @@ export default function DynamicForm({ archetype, initialData = {}, onSubmit, onC
 
               {/* Image Array */}
               {field.type === 'image-array' && (
-                <div className="p-4 border-2 border-dashed border-[var(--border-subtle)] rounded-xl bg-[var(--bg-base)] text-center">
-                  <span className="text-sm font-semibold text-[var(--primary)] cursor-pointer">
+                <div className="p-4 border-2 border-dashed border-white/20 rounded-xl bg-[#162033] text-center">
+                  <span className="text-sm font-semibold text-[#ff6325] cursor-pointer">
                     Click to upload images
                   </span>
-                  <p className="text-xs text-[var(--text-secondary)] mt-1">
-                    (Mock implementation: URLs will be simulated)
+                  <p className="text-xs text-slate-400 mt-1">
+                    (Paste URLs below or upload files)
                   </p>
                   <input
                     type="text"
@@ -139,7 +139,7 @@ export default function DynamicForm({ archetype, initialData = {}, onSubmit, onC
                       const val = e.target.value.split(',').map((s: string) => s.trim());
                       handleChange(field.name, val);
                     }}
-                    className="w-full mt-3 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-xs text-[var(--text-primary)]"
+                    className="w-full mt-3 bg-[#0f1624] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-400"
                     placeholder={`Or paste image URLs (comma separated)`}
                   />
                 </div>
@@ -148,12 +148,12 @@ export default function DynamicForm({ archetype, initialData = {}, onSubmit, onC
           );
         })}
 
-        <div className="pt-6 border-t border-[var(--border-subtle)] flex items-center justify-end gap-3">
+        <div className="pt-6 border-t border-white/10 flex items-center justify-end gap-3">
           {onCancel && (
             <button
               type="button"
               onClick={onCancel}
-              className="px-6 py-2.5 rounded-xl text-sm font-bold text-[var(--text-secondary)] hover:bg-[var(--bg-base)] transition-colors"
+              className="px-6 py-2.5 rounded-xl text-sm font-bold text-slate-300 hover:bg-white/5 transition-colors"
             >
               Cancel
             </button>
@@ -161,14 +161,14 @@ export default function DynamicForm({ archetype, initialData = {}, onSubmit, onC
           <button
             type="submit"
             disabled={isLoading}
-            className="flex items-center gap-2 bg-[var(--primary)] text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-70"
+            className="flex items-center gap-2 bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white px-8 py-3 rounded-xl text-sm font-bold shadow-lg shadow-[#ff6325]/25 transition-all disabled:opacity-70 cursor-pointer"
           >
             {isLoading ? (
               <span className="animate-pulse">Saving...</span>
             ) : (
               <>
                 <Save size={16} />
-                Save Details
+                Save & Proceed to Review
               </>
             )}
           </button>
