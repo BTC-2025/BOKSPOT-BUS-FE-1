@@ -287,10 +287,10 @@ export default function DashboardPage() {
 
         <div className="bg-white dark:bg-[#0f1624] rounded-3xl p-5 border border-slate-200/80 dark:border-white/10 shadow-sm relative overflow-hidden group hover:border-[#ff6325]/50 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-3">
-            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-[#0a3161] to-[#124b8f] flex items-center justify-center text-white shadow-md shadow-[#0a3161]/30">
+            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-blue-500 to-sky-500 flex items-center justify-center text-white shadow-md shadow-blue-500/25">
               <Calendar size={20} />
             </div>
-            <span className="flex items-center gap-1 text-[10px] font-bold text-[#0a3161] dark:text-[#90b8f0] bg-blue-50 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-800/40 px-2.5 py-1 rounded-full">
+            <span className="flex items-center gap-1 text-[10px] font-bold text-blue-600 dark:text-sky-400 bg-blue-50 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-800/40 px-2.5 py-1 rounded-full">
               <ArrowUpRight size={12} /> +4.2%
             </span>
           </div>
