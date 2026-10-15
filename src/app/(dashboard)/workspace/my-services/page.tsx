@@ -388,29 +388,29 @@ export default function WorkspacePage() {
 
       {/* LEVEL 1 MODAL: BOOKING TYPE */}
       {showBookingTypeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
-          <div className="bg-[#0f1624] border border-white/10 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between p-6 border-b border-white/[0.08]">
-              <h2 className="text-xl font-black text-white">Add Booking Type</h2>
-              <button onClick={() => setShowBookingTypeModal(false)} className="h-8 w-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="bg-white dark:bg-[#0f1624] border border-slate-200 dark:border-white/10 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-white/[0.08]">
+              <h2 className="text-xl font-black text-slate-900 dark:text-white">Add Booking Type</h2>
+              <button onClick={() => setShowBookingTypeModal(false)} className="h-8 w-8 rounded-full bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
                 <X size={16} />
               </button>
             </div>
             <div className="p-6 overflow-y-auto flex-1">
               <form id="bookingTypeForm" onSubmit={handleSaveBookingType} className="space-y-5">
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Service Type (BokSpot Category)</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Service Type (BokSpot Category)</label>
                   <select 
                     value={bookingTypeCategory} 
                     onChange={(e) => setBookingTypeCategory(e.target.value)} 
-                    className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#162033] text-white focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium cursor-pointer" 
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium cursor-pointer" 
                     required
                   >
-                    <option value="" disabled className="bg-[#162033] text-slate-400">Select a service type</option>
+                    <option value="" disabled className="bg-white dark:bg-[#162033] text-slate-400">Select a service type</option>
                     {Object.entries(GROUPED_CATEGORIES).map(([groupName, categories]) => (
-                      <optgroup key={groupName} label={groupName} className="font-bold text-[#ff6325] bg-[#0f1624]">
+                      <optgroup key={groupName} label={groupName} className="font-bold text-[#ff6325] bg-slate-100 dark:bg-[#0f1624]">
                         {categories.map(cat => (
-                          <option key={cat} value={cat} className="font-normal text-white bg-[#162033] py-1">{cat}</option>
+                          <option key={cat} value={cat} className="font-normal text-slate-900 dark:text-white bg-white dark:bg-[#162033] py-1">{cat}</option>
                         ))}
                       </optgroup>
                     ))}
@@ -418,8 +418,8 @@ export default function WorkspacePage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Main Cover Image (User App Front Page)</label>
-                  <div onClick={() => document.getElementById('booking-image-upload')?.click()} className="w-full h-32 rounded-xl border-2 border-dashed border-white/15 hover:border-[#ff6325] bg-[#162033]/50 flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden group mb-3">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Main Cover Image (User App Front Page)</label>
+                  <div onClick={() => document.getElementById('booking-image-upload')?.click()} className="w-full h-32 rounded-xl border-2 border-dashed border-slate-200 dark:border-white/15 hover:border-[#ff6325] bg-slate-50 dark:bg-[#162033]/50 flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden group mb-3">
                     {bookingTypeImage ? (
                       <>
                         <img src={bookingTypeImage} alt="Preview" className="w-full h-full object-cover" />
@@ -448,8 +448,8 @@ export default function WorkspacePage() {
                 </div>
               </form>
             </div>
-            <div className="p-6 border-t border-white/[0.08] bg-[#0a101b] flex justify-end gap-3 shrink-0">
-              <button type="button" onClick={() => setShowBookingTypeModal(false)} className="px-5 py-2.5 rounded-xl text-slate-300 font-bold hover:bg-white/5 transition-colors cursor-pointer">Cancel</button>
+            <div className="p-6 border-t border-slate-100 dark:border-white/[0.08] bg-slate-50 dark:bg-[#0a101b] flex justify-end gap-3 shrink-0">
+              <button type="button" onClick={() => setShowBookingTypeModal(false)} className="px-5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:bg-white/5 transition-colors cursor-pointer">Cancel</button>
               <button type="submit" form="bookingTypeForm" className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-bold transition-all shadow-lg shadow-[#ff6325]/25 cursor-pointer">Save Booking Type</button>
             </div>
           </div>
@@ -458,22 +458,22 @@ export default function WorkspacePage() {
 
       {/* LEVEL 2 MODAL: CATEGORY & LISTING */}
       {showCategoryModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
-          <div className="bg-[#0f1624] border border-white/10 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between p-6 border-b border-white/[0.08]">
-              <h2 className="text-xl font-black text-white">{editingServiceId ? 'Edit Category' : 'Add Category'}</h2>
-              <button onClick={() => setShowCategoryModal(false)} className="h-8 w-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"><X size={16} /></button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="bg-white dark:bg-[#0f1624] border border-slate-200 dark:border-white/10 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-white/[0.08]">
+              <h2 className="text-xl font-black text-slate-900 dark:text-white">{editingServiceId ? 'Edit Category' : 'Add Category'}</h2>
+              <button onClick={() => setShowCategoryModal(false)} className="h-8 w-8 rounded-full bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"><X size={16} /></button>
             </div>
             <div className="p-6 overflow-y-auto flex-1">
               <form id="categoryListingForm" onSubmit={handleSaveCategory} className="space-y-5">
-                  <h3 className="text-base font-black text-slate-200 border-b border-white/[0.08] pb-2 mb-4">Category Details</h3>
+                  <h3 className="text-base font-black text-slate-900 dark:text-slate-200 border-b border-slate-100 dark:border-white/[0.08] pb-2 mb-4">Category Details</h3>
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Category Name</label>
-                    <input type="text" value={categoryName} onChange={(e) => setCategoryName(e.target.value)} placeholder="e.g. Deluxe Room" className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#162033] text-white focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium placeholder:text-slate-500" required />
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Category Name</label>
+                    <input type="text" value={categoryName} onChange={(e) => setCategoryName(e.target.value)} placeholder="e.g. Deluxe Room" className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500" required />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Category Image</label>
-                    <div onClick={() => document.getElementById('cat-image-upload')?.click()} className="w-full h-32 rounded-xl border-2 border-dashed border-white/15 hover:border-[#ff6325] bg-[#162033]/50 flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden group mb-3">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Category Image</label>
+                    <div onClick={() => document.getElementById('cat-image-upload')?.click()} className="w-full h-32 rounded-xl border-2 border-dashed border-slate-200 dark:border-white/15 hover:border-[#ff6325] bg-slate-50 dark:bg-[#162033]/50 flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden group mb-3">
                       {categoryImage ? (
                         <>
                           <img src={categoryImage} alt="Preview" className="w-full h-full object-cover" />
@@ -496,13 +496,13 @@ export default function WorkspacePage() {
                     }} accept="image/*" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Description</label>
-                    <textarea value={categoryDesc} onChange={(e) => setCategoryDesc(e.target.value)} placeholder="Short description..." className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#162033] text-white focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium min-h-[80px] placeholder:text-slate-500" />
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Description</label>
+                    <textarea value={categoryDesc} onChange={(e) => setCategoryDesc(e.target.value)} placeholder="Short description..." className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium min-h-[80px] placeholder:text-slate-400 dark:placeholder:text-slate-500" />
                   </div>
               </form>
             </div>
-            <div className="p-6 border-t border-white/[0.08] bg-[#0a101b] flex justify-end items-center gap-3 shrink-0">
-              <button type="button" onClick={() => setShowCategoryModal(false)} className="px-5 py-2.5 rounded-xl text-slate-300 font-bold hover:bg-white/5 transition-colors cursor-pointer">
+            <div className="p-6 border-t border-slate-100 dark:border-white/[0.08] bg-slate-50 dark:bg-[#0a101b] flex justify-end items-center gap-3 shrink-0">
+              <button type="button" onClick={() => setShowCategoryModal(false)} className="px-5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:bg-white/5 transition-colors cursor-pointer">
                 Cancel
               </button>
               <button type="submit" form="categoryListingForm" className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-bold transition-all shadow-lg shadow-[#ff6325]/25 cursor-pointer">
