@@ -151,8 +151,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       try {
         const res = await fetch('/api/v1/bookings/sync');
         if (!res.ok) return;
-        const data = await res.json();
-        if (Array.isArray(data)) {
+        const raw = await res.json();
+        const data = Array.isArray(raw?.data) ? raw.data : (Array.isArray(raw) ? raw : []);
+        if (data.length > 0) {
           const currentBookings = useVendorStore.getState().bookings;
           let changed = false;
           const merged = [...currentBookings];
@@ -162,7 +163,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             if (index === -1) {
               merged.unshift({
                 ...syncB,
-                status: syncB.status === 'CONFIRMED' ? 'CONFIRMED' : syncB.status,
+                merchantName: syncB.merchantName || currentMerchant.merchantName,
+                merchantId: syncB.merchantId || currentMerchant.id,
+                status: syncB.status === 'CONFIRMED' ? 'CONFIRMED' : (syncB.status || 'PENDING'),
               });
               changed = true;
             } else {
@@ -342,7 +345,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     } 
     // WORKSPACE TAB (Management, Schedules, Settings)
     else {
-      const isHotel = currentMerchant?.archetype === 'Hotel' || currentMerchant?.archetype === 'ACCOMMODATION' || currentMerchant?.category?.toLowerCase().includes('hotel') || currentMerchant?.category?.toLowerCase().includes('room');
+      const currentArch = (currentMerchant?.archetype || '').toLowerCase();
+      const isHotel = currentArch === 'hotel' || currentArch === 'accommodation' || (currentMerchant?.category?.toLowerCase() || '').includes('hotel') || (currentMerchant?.category?.toLowerCase() || '').includes('room');
       const items = [
         { href: '/workspace/my-services', icon: Package, label: 'My Services' }
       ];
@@ -474,7 +478,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
 
             {showNotifications && (
-              <div className="absolute right-0 mt-3 w-80 rounded-xl border border-border-brand bg-bg-tertiary p-4 shadow-2xl z-50 space-y-3 animate-fade-in">
+              <div className="absolute right-0 mt-3 w-80 rounded-xl border border-border-brand bg-bg-tertiary p-4 shadow-2xl z-50 space-y-3 animate-fade-in notification-dropdown-card">
                 <div className="flex items-center justify-between border-b border-white/5 pb-2">
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs font-bold text-white">Notifications</span>
@@ -644,30 +648,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       onClick={() => setTheme('light')}
                       className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                         theme === 'light'
-                          ? 'bg-white text-slate-900 shadow-sm'
-                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                          ? 'bg-white !text-slate-900 shadow-sm'
+                          : '!text-slate-600 dark:!text-slate-400 hover:!text-slate-900 dark:hover:!text-white'
                       }`}
                     >
-                      <Sun size={13} /> Light
+                      <Sun size={13} className={theme === 'light' ? '!text-amber-500' : ''} /> Light
                     </button>
                     <button
                       type="button"
                       onClick={() => setTheme('dark')}
                       className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                         theme === 'dark'
-                          ? 'bg-slate-900 text-white shadow-sm'
-                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                          ? 'bg-slate-900 !text-white shadow-sm'
+                          : '!text-slate-600 dark:!text-slate-400 hover:!text-slate-900 dark:hover:!text-white'
                       }`}
                     >
-                      <Moon size={13} /> Dark
+                      <Moon size={13} className={theme === 'dark' ? '!text-blue-400' : ''} /> Dark
                     </button>
                     <button
                       type="button"
                       onClick={() => setTheme('system')}
                       className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                         theme === 'system'
-                          ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
-                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                          ? 'bg-white dark:bg-slate-900 !text-slate-900 dark:!text-white shadow-sm'
+                          : '!text-slate-600 dark:!text-slate-400 hover:!text-slate-900 dark:hover:!text-white'
                       }`}
                     >
                       <Laptop size={13} /> Auto
@@ -676,9 +680,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
 
                 <div className="border-t border-border-brand py-1">
-                  <button className="w-full flex items-center gap-4 px-6 py-2 hover:bg-slate-500/ dark:hover:bg-white/5 transition-colors text-left cursor-pointer">
+                  <button className="w-full flex items-center gap-4 px-6 py-2 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-left cursor-pointer">
                     <User className="h-5 w-5 text-slate-500 shrink-0" />
-                    <span className="text-[13px] font-semibold text-slate-700 dark:text-slate-200">Add another account</span>
+                    <span className="text-[13px] font-semibold !text-slate-700 dark:!text-slate-200">Add another account</span>
                   </button>
                 </div>
 
@@ -740,12 +744,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 href={item.href}
                 className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs uppercase tracking-wider font-extrabold transition-all whitespace-nowrap ${
                   active 
-                    ? 'bg-[#0a3161] dark:bg-[#ff6325] text-white shadow-md' 
+                    ? 'bg-[#0a3161] dark:bg-[#ff6325] !text-white shadow-md' 
                     : 'text-slate-700 dark:text-slate-300 hover:text-[#ff6325] dark:hover:text-[#ff6325] hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent'
                 }`}
               >
-                <item.icon className={`h-4 w-4 ${active ? 'text-white' : 'text-slate-500 group-hover:text-[#ff6325]'}`} />
-                {item.label}
+                <item.icon className={`h-4 w-4 ${active ? '!text-white' : 'text-slate-500 group-hover:text-[#ff6325]'}`} />
+                <span className={active ? '!text-white' : ''}>{item.label}</span>
               </Link>
             );
           })}

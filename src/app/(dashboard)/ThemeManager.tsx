@@ -8,27 +8,28 @@ export function ThemeManager() {
 
   useEffect(() => {
     const root = document.documentElement;
+    const body = document.body;
 
     const applyTheme = (currentTheme: 'system' | 'light' | 'dark') => {
-      if (currentTheme === 'light') {
+      const isLight = 
+        currentTheme === 'light' || 
+        (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: light)').matches);
+
+      if (isLight) {
         root.classList.add('light');
         root.classList.remove('dark');
         root.setAttribute('data-theme', 'light');
-      } else if (currentTheme === 'dark') {
+        if (body) {
+          body.classList.add('light');
+          body.classList.remove('dark');
+        }
+      } else {
         root.classList.remove('light');
         root.classList.add('dark');
         root.setAttribute('data-theme', 'dark');
-      } else {
-        // system theme
-        const isSystemLight = window.matchMedia('(prefers-color-scheme: light)').matches;
-        if (isSystemLight) {
-          root.classList.add('light');
-          root.classList.remove('dark');
-          root.setAttribute('data-theme', 'light');
-        } else {
-          root.classList.remove('light');
-          root.classList.add('dark');
-          root.setAttribute('data-theme', 'dark');
+        if (body) {
+          body.classList.remove('light');
+          body.classList.add('dark');
         }
       }
     };
@@ -37,17 +38,9 @@ export function ThemeManager() {
 
     // Listen to changes in system preferences if theme is system
     const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
-    const handleSystemChange = (e: MediaQueryListEvent) => {
+    const handleSystemChange = () => {
       if (theme === 'system') {
-        if (e.matches) {
-          root.classList.add('light');
-          root.classList.remove('dark');
-          root.setAttribute('data-theme', 'light');
-        } else {
-          root.classList.remove('light');
-          root.classList.add('dark');
-          root.setAttribute('data-theme', 'dark');
-        }
+        applyTheme('system');
       }
     };
 

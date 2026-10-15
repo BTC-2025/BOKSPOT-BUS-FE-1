@@ -4,11 +4,22 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const res = await fetch('http://localhost:9000/api/v1/bookings/sync');
+    const res = await fetch('http://localhost:9000/api/v1/bookings/sync', {
+      cache: 'no-store',
+    });
+    if (!res.ok) {
+      throw new Error(`Local backend returned ${res.status}`);
+    }
     const data = await res.json();
     return NextResponse.json(data);
   } catch (err) {
-    return NextResponse.json([], { status: 200 });
+    try {
+      const resRemote = await fetch('https://bokspot-be.onrender.com/api/v1/bookings/sync', { cache: 'no-store' });
+      const dataRemote = await resRemote.json();
+      return NextResponse.json(dataRemote);
+    } catch (e) {
+      return NextResponse.json([], { status: 200 });
+    }
   }
 }
 

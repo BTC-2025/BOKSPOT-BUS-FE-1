@@ -37,6 +37,7 @@ export interface PersistedBooking {
   serviceId: string;
   serviceName: string;
   merchantName: string;
+  merchantId?: string;
   category: string;
   date: string;
   time: string;
@@ -209,6 +210,7 @@ export interface MerchantUser {
   merchantName: string;
   category: string;
   logoLetter: string;
+  logoUrl?: string;
   aboutText: string;
   vendorId?: string;
   email?: string;

@@ -94,12 +94,15 @@ export const ARCHETYPE_SCHEMAS: Record<Archetype, any> = {
   ACCOMMODATION: {
     title: "Accommodation Details",
     fields: [
-      { name: "roomType", type: "text", label: "Room Type", required: true },
+      { name: "roomType", type: "text", label: "Room Type / Suite Title", required: true },
       { name: "totalUnits", type: "number", label: "Number of Rooms Available (Inventory)", required: true },
-      { name: "maxGuests", type: "number", label: "Max Guests per Room", required: true },
+      { name: "maxGuests", type: "number", label: "Max Guests / Adults", required: true },
+      { name: "bedType", type: "text", label: "Bed Type (e.g., King / Queen Beds, Twin Beds)", required: false },
+      { name: "bathroomType", type: "text", label: "Bathroom Spec (e.g., Private Ensuite Bathrooms, Jacuzzi)", required: false },
       { name: "checkInTime", type: "time", label: "Standard Check-in Time", required: true },
       { name: "checkOutTime", type: "time", label: "Standard Check-out Time", required: true },
-      { name: "amenities", type: "multi-select", label: "Room Amenities (e.g. WiFi, AC, Pool View)", required: false }
+      { name: "perks", type: "array", label: "Special Offers & Deals", placeholder: "e.g., Happy Hours 1+1, 20% Off F&B, Free Breakfast, Early Check-in", required: false },
+      { name: "amenities", type: "multi-select", label: "Room Facilities & Amenities", placeholder: "e.g., Free Wi-Fi, Air Conditioning, Smart TV, Mini Bar, Balcony", required: false }
     ]
   },
   TRANSPORT: {

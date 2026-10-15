@@ -30,10 +30,10 @@ export default function DynamicForm({ archetype, initialData = {}, onSubmit, onC
   };
 
   return (
-    <div className="bg-[#0f1624] border border-white/10 rounded-2xl overflow-hidden text-white">
-      <div className="px-6 py-4 border-b border-white/10 bg-[#162033]/70">
-        <h3 className="text-lg font-bold text-white">{schema.title}</h3>
-        <p className="text-sm text-slate-300 mt-1">
+    <div className="bg-bg-tertiary/50 border border-border-brand/50 rounded-2xl overflow-hidden text-text-primary">
+      <div className="px-6 py-4 border-b border-border-brand/40 bg-bg-tertiary/80">
+        <h3 className="text-base font-bold text-text-primary">{schema.title}</h3>
+        <p className="text-xs text-text-secondary mt-0.5">
           Fill in the details for this {archetype.toLowerCase()} service.
         </p>
       </div>
@@ -42,7 +42,7 @@ export default function DynamicForm({ archetype, initialData = {}, onSubmit, onC
         {schema.fields.map((field: any, idx: number) => {
           return (
             <div key={idx} className="space-y-1.5">
-              <label className="block text-sm font-bold text-slate-200">
+              <label className="block text-sm font-bold text-text-secondary">
                 {field.label} {field.required && <span className="text-red-500">*</span>}
               </label>
 
@@ -115,7 +115,7 @@ export default function DynamicForm({ archetype, initialData = {}, onSubmit, onC
                       handleChange(field.name, val);
                     }}
                     className="w-full bg-[#162033] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-[#ff6325] focus:ring-1 focus:ring-[#ff6325] transition-colors"
-                    placeholder={`Comma separated values (e.g. WiFi, Air Conditioning, TV)`}
+                    placeholder={field.placeholder || `Comma separated values (e.g., item 1, item 2)`}
                   />
                   <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-wider">
                     Separate items with commas

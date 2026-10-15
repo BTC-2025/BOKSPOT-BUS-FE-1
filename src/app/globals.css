@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-primary-brand: var(--primary);
   --color-primary-dark: var(--primary-dark);
@@ -51,15 +53,15 @@
   --accent: #ff6325;
   --gold: #c99719;
   
-  --bg-primary: #f8fafc;        /* Crisp slate-50 canvas */
-  --bg-secondary: #ffffff;      /* Pure white elevation */
-  --bg-tertiary: #f1f5f9;       /* Soft slate-100 card */
+  --bg-primary: #f4f6fa;        /* Clean, executive light grey-blue canvas */
+  --bg-secondary: #ffffff;      /* Pure crisp white cards */
+  --bg-tertiary: #edf1f7;       /* Soft interactive surface */
   
-  --text-primary: #091a30;      /* Ultra crisp navy-slate */
-  --text-secondary: #475569;    /* Readable slate-600 */
+  --text-primary: #0f172a;      /* Rich dark slate for high legibility */
+  --text-secondary: #475569;    /* Balanced slate-600 */
   --text-muted: #64748b;        /* Subtle slate-500 */
   
-  --border: rgba(10, 49, 97, 0.12);
+  --border: rgba(15, 23, 42, 0.08); /* Clean modern border */
   --sidebar-bg: #ffffff;
   --sidebar-text: #1e293b;
 }
@@ -84,41 +86,32 @@
   --sidebar-text: #cbd5e1;
 }
 
-.theme-medical {
-  --primary: #0a3161;
-  --primary-dark: #061e3d;
-  --accent: #ff6325;
+/* Archetype contextual accents for light mode */
+:root:not(.dark) .theme-medical {
   --bg-primary: #f8fafc;
   --bg-secondary: #ffffff;
   --bg-tertiary: #f0f7ff;
-  --border: rgba(10, 49, 97, 0.15);
-  --sidebar-bg: #ffffff;
+  --border: rgba(10, 49, 97, 0.12);
 }
 
-.theme-hotel {
-  --primary: #0a3161;
-  --primary-dark: #061e3d;
-  --accent: #ff6325;
-  --bg-primary: #faf8f5;
+:root:not(.dark) .theme-hotel {
+  --bg-primary: #f8fafc;
   --bg-secondary: #ffffff;
   --bg-tertiary: #fff7ed;
-  --border: rgba(255, 99, 37, 0.16);
-  --sidebar-bg: #ffffff;
+  --border: rgba(255, 99, 37, 0.14);
 }
 
-.theme-turf {
+:root:not(.dark) .theme-turf {
   --primary: #16a34a;
   --primary-dark: #15803d;
   --accent: #ff6325;
-  --bg-primary: #080f0c;
-  --bg-secondary: #0f1b16;
-  --bg-tertiary: #162921;
-  --text-primary: #f0fdf4;
-  --text-secondary: #bbf7d0;
-  --text-muted: #86efac;
-  --border: rgba(22, 163, 74, 0.25);
-  --sidebar-bg: #0f1b16;
-  --sidebar-text: #bbf7d0;
+  --bg-primary: #f0fdf4;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #dcfce7;
+  --text-primary: #14532d;
+  --text-secondary: #166534;
+  --text-muted: #15803d;
+  --border: rgba(22, 163, 74, 0.2);
 }
 
 /* Global overrides for hardcoded Tailwind backgrounds and brand colors */
@@ -146,29 +139,46 @@ body {
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* Top Header Navbar - Premium Bokspot Deep Navy + Orange Accent */
+/* Top Header Navbar - Ultra-Luxury Obsidian Glass with Vivid Orange Glow (Aligned with Customer App) */
 .vendor-navbar {
-  background: linear-gradient(135deg, #071f3d 0%, #0a3161 65%, #0f407a 100%) !important;
-  border-bottom: 2px solid rgba(255, 99, 37, 0.4) !important;
-  box-shadow: 0 4px 25px rgba(10, 49, 97, 0.35) !important;
+  background: linear-gradient(180deg, rgba(8, 26, 50, 0.94) 0%, rgba(6, 19, 38, 0.96) 100%) !important;
+  border-bottom: 1px solid rgba(255, 99, 37, 0.35) !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.08) inset !important;
+  backdrop-filter: blur(32px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(180%) !important;
 }
 
-.vendor-navbar button,
-.vendor-navbar a,
-.vendor-navbar span,
-.vendor-navbar svg {
+.dark .vendor-navbar {
+  background: linear-gradient(180deg, rgba(7, 16, 30, 0.95) 0%, rgba(5, 12, 24, 0.98) 100%) !important;
+  border-bottom: 1px solid rgba(255, 99, 37, 0.32) !important;
+  box-shadow: 0 6px 32px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.06) inset !important;
+}
+
+.light .vendor-navbar {
+  background: linear-gradient(180deg, rgba(10, 37, 72, 0.95) 0%, rgba(8, 28, 56, 0.98) 100%) !important;
+  border-bottom: 1px solid rgba(255, 99, 37, 0.38) !important;
+  box-shadow: 0 4px 25px rgba(10, 49, 97, 0.35), 0 1px 0 rgba(255, 255, 255, 0.1) inset !important;
+}
+
+.vendor-navbar > div button,
+.vendor-navbar > div a,
+.vendor-navbar > div span,
+.vendor-navbar > div svg {
   color: #ffffff !important;
 }
 
 .vendor-navbar .relative > button {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 9999px !important;
   color: #ffffff !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .vendor-navbar .relative > button:hover {
-  background-color: rgba(255, 99, 37, 0.25) !important;
+  background: rgba(255, 99, 37, 0.22) !important;
   border-color: rgba(255, 99, 37, 0.5) !important;
+  box-shadow: 0 0 15px rgba(255, 99, 37, 0.25) !important;
 }
 
 .vendor-navbar .relative > button svg,
@@ -185,6 +195,7 @@ body {
 .gradient-text {
   background: linear-gradient(135deg, #0a3161, #ff6325);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -214,41 +225,64 @@ body {
  * LIGHT MODE OVERRIDES FOR HARDCODED TAILWIND CLASSES
  * ================================================================ */
 .light {
-  /* Backgrounds */
+  /* Backgrounds & Cards */
   .bg-\[\#030c17\] { background-color: var(--bg-primary) !important; }
   .bg-\[\#061528\] { background-color: var(--bg-secondary) !important; }
   .bg-\[\#0d1120\] { background-color: var(--bg-tertiary) !important; }
+  .bg-\[\#0f1624\] { background-color: #ffffff !important; }
+  .bg-\[\#0f1624\]\/60 { background-color: #ffffff !important; }
+  .bg-\[\#162033\] { background-color: #f1f5f9 !important; }
+  .bg-\[\#162033\]\/80 { background-color: #f8fafc !important; }
+  .bg-\[\#070b13\] { background-color: var(--bg-primary) !important; }
+  .bg-\[\#070d18\] { background-color: var(--bg-primary) !important; }
+  .bg-\[\#080c14\] { background-color: var(--bg-primary) !important; }
+  .bg-\[\#0f1728\] { background-color: #ffffff !important; }
+  .bg-\[\#0d1424\] { background-color: #ffffff !important; }
+  .bg-\[\#0e1628\] { background-color: #ffffff !important; }
+  .bg-\[\#121c33\] { background-color: #f1f5f9 !important; }
+  .bg-\[\#121c32\] { background-color: #f8fafc !important; }
+  .bg-\[\#121a2c\] { background-color: #eef2ff !important; }
+  .bg-\[\#0f1d24\] { background-color: #f0fdf4 !important; }
+  .bg-\[\#1a1c17\] { background-color: #fefce8 !important; }
+  .bg-\[\#15223d\] { background-color: #fff7ed !important; }
+  
   .bg-white\/\[0\.01\] { background-color: rgba(0, 0, 0, 0.02) !important; }
-  .bg-white\/\[0\.02\] { background-color: rgba(0, 0, 0, 0.04) !important; }
-  .bg-white\/5 { background-color: rgba(0, 0, 0, 0.05) !important; }
-  .bg-white\/\[0\.04\] { background-color: rgba(0, 0, 0, 0.06) !important; }
+  .bg-white\/\[0\.02\] { background-color: rgba(0, 0, 0, 0.03) !important; }
+  .bg-white\/5 { background-color: rgba(0, 0, 0, 0.04) !important; }
+  .bg-white\/\[0\.04\] { background-color: rgba(0, 0, 0, 0.05) !important; }
+  .bg-white\/10 { background-color: rgba(0, 0, 0, 0.06) !important; }
   
   /* Hover states */
-  .hover\:bg-white\/5:hover { background-color: rgba(0, 0, 0, 0.06) !important; }
+  .hover\:bg-white\/5:hover { background-color: rgba(0, 0, 0, 0.05) !important; }
   .hover\:bg-white\/\[0\.01\]:hover { background-color: rgba(0, 0, 0, 0.02) !important; }
-  .hover\:bg-white\/\[0\.02\]:hover { background-color: rgba(0, 0, 0, 0.04) !important; }
-  .hover\:bg-white\/\[0\.05\]:hover { background-color: rgba(0, 0, 0, 0.08) !important; }
-  .hover\:bg-white\/10:hover { background-color: rgba(0, 0, 0, 0.1) !important; }
+  .hover\:bg-white\/\[0\.02\]:hover { background-color: rgba(0, 0, 0, 0.03) !important; }
+  .hover\:bg-white\/\[0\.05\]:hover { background-color: rgba(0, 0, 0, 0.06) !important; }
+  .hover\:bg-white\/10:hover { background-color: rgba(0, 0, 0, 0.08) !important; }
   .hover\:bg-slate-800:hover { background-color: #f1f5f9 !important; }
   
   /* Borders */
-  .border-white\/5 { border-color: var(--border) !important; }
-  .border-white\/10 { border-color: rgba(139, 101, 8, 0.25) !important; }
-  .border-white\/15 { border-color: rgba(139, 101, 8, 0.3) !important; }
-  .border-b-white\/5 { border-bottom-color: var(--border) !important; }
-  .border-r-white\/5 { border-right-color: var(--border) !important; }
-  .divide-white\/5 > :not([hidden]) ~ :not([hidden]) { border-color: var(--border) !important; }
-  .divide-y { border-color: var(--border) !important; }
-  .border-t { border-color: var(--border) !important; }
-  .border-b { border-color: var(--border) !important; }
+  .border-white\/5 { border-color: rgba(15, 23, 42, 0.08) !important; }
+  .border-white\/10 { border-color: rgba(15, 23, 42, 0.08) !important; }
+  .border-white\/15 { border-color: rgba(15, 23, 42, 0.12) !important; }
+  .border-white\/20 { border-color: rgba(15, 23, 42, 0.14) !important; }
+  .border-b-white\/5 { border-bottom-color: rgba(15, 23, 42, 0.08) !important; }
+  .border-r-white\/5 { border-right-color: rgba(15, 23, 42, 0.08) !important; }
+  .border-t-white\/5 { border-top-color: rgba(15, 23, 42, 0.08) !important; }
+  .border-l-white\/5 { border-left-color: rgba(15, 23, 42, 0.08) !important; }
+  .border-b-white\/10 { border-bottom-color: rgba(15, 23, 42, 0.08) !important; }
+  .divide-white\/5 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(15, 23, 42, 0.08) !important; }
+  .divide-white\/10 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(15, 23, 42, 0.08) !important; }
+  .divide-y { border-color: rgba(15, 23, 42, 0.08) !important; }
+  .border-t { border-color: rgba(15, 23, 42, 0.08) !important; }
+  .border-b { border-color: rgba(15, 23, 42, 0.08) !important; }
   
   /* Text colors */
-  .text-white { color: var(--text-primary) !important; }
-  .text-slate-100 { color: var(--text-primary) !important; }
-  .text-slate-200 { color: var(--text-primary) !important; }
-  .text-slate-300 { color: var(--text-primary) !important; }
-  .text-slate-400 { color: var(--text-secondary) !important; }
-  .text-slate-500 { color: var(--text-muted) !important; }
+  .text-white { color: #0f172a !important; }
+  .text-slate-100 { color: #0f172a !important; }
+  .text-slate-200 { color: #1e293b !important; }
+  .text-slate-300 { color: #334155 !important; }
+  .text-slate-400 { color: #64748b !important; }
+  .text-slate-500 { color: #64748b !important; }
   
   /* Yellow/gold text converted to bronze gold for readability */
   .text-\[\#fceea7\] { color: #8b6508 !important; }
@@ -256,27 +290,213 @@ body {
   
   /* Inputs placeholder text */
   .placeholder-slate-600::placeholder { color: #94a3b8 !important; }
+  .placeholder-slate-400::placeholder { color: #94a3b8 !important; }
   
-  /* Buttons and badges with colored backgrounds keep clear white text */
+  /* Buttons, links and badges with SOLID dark/brand backgrounds keep clear white text */
   button.text-white,
-  button.bg-\[\#8b6508\],
-  .bg-\[\#8b6508\] button,
-  .bg-\[\#8b6508\] .text-white,
-  .bg-blue-600,
-  .bg-blue-700,
-  .bg-emerald-500,
-  .bg-emerald-600,
-  .bg-indigo-600,
-  .bg-rose-500,
-  .bg-red-500,
-  .bg-purple-600,
-  .bg-amber-600 {
+  a.text-white,
+  .bg-\[\#0a3161\]:not(input):not(textarea):not(select),
+  .bg-\[\#0a3161\] *:not(input):not(textarea):not(select),
+  .bg-\[\#ff6325\]:not(input):not(textarea):not(select):not([class*="/10"]):not([class*="/15"]):not([class*="/20"]),
+  .bg-\[\#ff6325\] *:not(input):not(textarea):not(select):not([class*="/10"]):not([class*="/15"]):not([class*="/20"]),
+  .bg-blue-600:not(input):not(textarea):not(select),
+  .bg-blue-600 *:not(input):not(textarea):not(select),
+  .bg-blue-700:not(input):not(textarea):not(select),
+  .bg-blue-700 *:not(input):not(textarea):not(select),
+  .bg-emerald-500:not(input):not(textarea):not(select),
+  .bg-emerald-500 *:not(input):not(textarea):not(select),
+  .bg-emerald-600:not(input):not(textarea):not(select),
+  .bg-emerald-600 *:not(input):not(textarea):not(select),
+  .bg-indigo-600:not(input):not(textarea):not(select),
+  .bg-indigo-600 *:not(input):not(textarea):not(select),
+  .bg-rose-500:not(input):not(textarea):not(select),
+  .bg-rose-500 *:not(input):not(textarea):not(select),
+  .bg-red-500:not(input):not(textarea):not(select),
+  .bg-red-500 *:not(input):not(textarea):not(select),
+  .bg-purple-600:not(input):not(textarea):not(select),
+  .bg-purple-600 *:not(input):not(textarea):not(select),
+  .bg-amber-600:not(input):not(textarea):not(select),
+  .bg-amber-600 *:not(input):not(textarea):not(select),
+  .custom-nav-active-bg,
+  .vendor-navbar:not(input):not(textarea):not(select),
+  .vendor-navbar *:not(.profile-dropdown-card):not(.profile-dropdown-card *):not(.notification-dropdown-card):not(.notification-dropdown-card *):not(input):not(textarea):not(select) {
+    color: #ffffff !important;
+  }
+  
+  /* Buttons and badges with light opacity tint backgrounds retain their accent color */
+  .bg-\[\#ff6325\]\/10,
+  .bg-\[\#ff6325\]\/10 *,
+  .bg-\[\#ff6325\]\/15,
+  .bg-\[\#ff6325\]\/20 {
+    color: #ff6325 !important;
+  }
+  .bg-\[\#ff6325\]\/10 svg,
+  .bg-\[\#ff6325\]\/20 svg {
+    color: #ff6325 !important;
+    stroke: #ff6325 !important;
+  }
+  
+  /* Delete/trash/cross action buttons */
+  .text-red-400,
+  .text-red-500,
+  .hover\:text-red-400:hover,
+  .hover\:text-red-500:hover {
+    color: #ef4444 !important;
+  }
+  .text-red-400 svg,
+  .text-red-500 svg {
+    color: #ef4444 !important;
+    stroke: #ef4444 !important;
+  }
+  
+  /* Ensure SVG icons inside dark/colored buttons also stay white */
+  [class*="bg-[#0a3161]"] svg,
+  [class*="bg-[#ff6325]"] svg,
+  .bg-\[\#0a3161\] svg,
+  .bg-\[\#ff6325\] svg,
+  .bg-blue-600 svg,
+  .bg-emerald-500 svg {
+    color: #ffffff !important;
+    stroke: currentColor !important;
+  }
+  
+  /* Vendor navbar top-level elements remain crisp white */
+  .vendor-navbar > div button,
+  .vendor-navbar > div a,
+  .vendor-navbar > div span,
+  .vendor-navbar > div svg {
     color: #ffffff !important;
   }
   
   /* Keep quick login credentials readable in light mode */
   .font-mono.text-slate-500 {
     color: #475569 !important;
+  }
+  
+  /* Room Matrix Light Mode Enhancements */
+  .bg-\[\#121a2c\] {
+    background-color: #f1f5fd !important;
+    border-color: rgba(99, 102, 241, 0.25) !important;
+  }
+  .bg-\[\#121a2c\]:hover {
+    border-color: rgba(99, 102, 241, 0.5) !important;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.12) !important;
+  }
+  .bg-\[\#121a2c\] .text-white {
+    color: #1e1b4b !important;
+  }
+  .bg-\[\#121a2c\] .text-indigo-300 {
+    color: #4338ca !important;
+  }
+
+  .bg-\[\#0f1d24\] {
+    background-color: #f0fdf4 !important;
+    border-color: rgba(16, 185, 129, 0.25) !important;
+  }
+  .bg-\[\#0f1d24\]:hover {
+    border-color: rgba(16, 185, 129, 0.5) !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.12) !important;
+  }
+  .bg-\[\#0f1d24\] .text-white {
+    color: #064e3b !important;
+  }
+  .bg-\[\#0f1d24\] .text-emerald-400 {
+    color: #059669 !important;
+  }
+
+  .bg-\[\#1a1c17\] {
+    background-color: #fffbeb !important;
+    border-color: rgba(245, 158, 11, 0.3) !important;
+  }
+  .bg-\[\#1a1c17\]:hover {
+    border-color: rgba(245, 158, 11, 0.5) !important;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.12) !important;
+  }
+  .bg-\[\#1a1c17\] .text-white {
+    color: #78350f !important;
+  }
+  .bg-\[\#1a1c17\] .text-amber-400 {
+    color: #d97706 !important;
+  }
+
+  .bg-\[\#15223d\] {
+    background-color: #fff7ed !important;
+    border-color: #ff6325 !important;
+    box-shadow: 0 4px 16px rgba(255, 99, 37, 0.15) !important;
+  }
+  .bg-\[\#15223d\] .text-white {
+    color: #7c2d12 !important;
+  }
+
+  /* Filter buttons in light mode */
+  .bg-white\/5 {
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+  }
+  .hover\:bg-white\/10:hover {
+    background-color: #e2e8f0 !important;
+    color: #0f172a !important;
+  }
+  
+  /* Filter pill active text remains white */
+  button.bg-\[\#ff6325\] {
+    color: #ffffff !important;
+  }
+  
+  /* Search input inside dark/light containers */
+  .bg-\[\#121c33\] input {
+    color: #0f172a !important;
+  }
+  .bg-\[\#121c33\] input::placeholder {
+    color: #94a3b8 !important;
+  }
+  
+  /* Table Header in Light Mode */
+  thead tr {
+    background-color: #f8fafc !important;
+    border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+  }
+  thead th {
+    color: #475569 !important;
+    font-weight: 800 !important;
+  }
+  
+  /* Input fields and textareas inside cards in light mode */
+  input,
+  textarea,
+  select,
+  option {
+    background-color: #f8fafc !important;
+    border-color: rgba(15, 23, 42, 0.14) !important;
+    color: #0f172a !important;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: #94a3b8 !important;
+  }
+  
+  input:focus,
+  textarea:focus,
+  select:focus {
+    background-color: #ffffff !important;
+    border-color: #ff6325 !important;
+    color: #0f172a !important;
+  }
+  
+  /* Upload / File picker dropzone in light mode */
+  .border-dashed.border-white\/20,
+  .border-dashed.border-white\/10 {
+    background-color: #f8fafc !important;
+    border-color: rgba(15, 23, 42, 0.15) !important;
+  }
+  .border-dashed:hover {
+    border-color: #ff6325 !important;
+  }
+  
+  /* Addons item row in light mode */
+  .animate-fade-in.bg-\[\#162033\] {
+    background-color: #f8fafc !important;
+    border-color: rgba(15, 23, 42, 0.1) !important;
   }
 }
 
@@ -328,34 +548,36 @@ body {
   color: #ff6325 !important;
 }
 
-/* Capsule Menu Styling (from customer page navbar) */
+/* Capsule Menu Styling (aligned with customer page navbar) */
 .custom-nav-capsule {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 5px;
+  padding: 3px !important;
   border-radius: 9999px;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) inset, 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dark .custom-nav-capsule, .light .custom-nav-capsule, .vendor-navbar .custom-nav-capsule {
-  background-color: rgba(5, 23, 46, 0.85) !important;
-  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  background: rgba(5, 17, 34, 0.75) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
 }
 
 /* Link Items */
 .custom-nav-link-inactive {
-  transition: color 0.2s ease;
+  transition: all 0.2s ease;
+  border-radius: 9999px;
 }
 
 .dark .custom-nav-link-inactive, .light .custom-nav-link-inactive, .vendor-navbar .custom-nav-link-inactive {
-  color: rgba(255, 255, 255, 0.75) !important;
+  color: rgba(255, 255, 255, 0.72) !important;
 }
 .dark .custom-nav-link-inactive:hover, .light .custom-nav-link-inactive:hover, .vendor-navbar .custom-nav-link-inactive:hover {
   color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /* Active Nav Link */
@@ -366,47 +588,66 @@ body {
 
 /* Active indicator background */
 .vendor-navbar .custom-nav-active-bg {
-  background-color: #ff6325 !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
-  box-shadow: 0 4px 14px rgba(255, 99, 37, 0.45) !important;
+  background: linear-gradient(135deg, #ff6325 0%, #ea580c 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 0 4px 16px rgba(255, 99, 37, 0.45), 0 1px 0 rgba(255, 255, 255, 0.3) inset !important;
+  border-radius: 9999px !important;
 }
 
-/* Fix profile dropdown menu option colors - make them high contrast dark black in light mode */
 .profile-dropdown-card span,
 .profile-dropdown-card button,
-.profile-dropdown-card a {
+.profile-dropdown-card a,
+.profile-dropdown-card p,
+.profile-dropdown-card h1,
+.profile-dropdown-card h2,
+.profile-dropdown-card h3 {
   color: var(--text-primary) !important;
 }
 
 .light .profile-dropdown-card {
   background-color: #ffffff !important;
-  border-color: rgba(139, 101, 8, 0.25) !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
 }
 
-.light .profile-dropdown-card span,
-.light .profile-dropdown-card button,
-.light .profile-dropdown-card a {
-  color: #000000 !important;
+.light .profile-dropdown-card span:not(.text-red-500):not(.text-emerald-500),
+.light .profile-dropdown-card a,
+.light .profile-dropdown-card button:not(.bg-slate-900) {
+  color: #0f172a !important;
 }
 
-.light .profile-dropdown-card .text-slate-500 {
-  color: #555555 !important;
+.light .profile-dropdown-card .text-slate-500,
+.light .profile-dropdown-card .text-slate-400 {
+  color: #64748b !important;
 }
 
-.light .profile-dropdown-card a:hover,
-.light .profile-dropdown-card button:hover {
-  background-color: rgba(0, 0, 0, 0.05) !important;
+.light .profile-dropdown-card .text-red-500 {
+  color: #ef4444 !important;
 }
 
-/* Custom Animated Light Background */
-@keyframes lightGradientScroll {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+.light .profile-dropdown-card a:hover {
+  background-color: rgba(15, 23, 42, 0.05) !important;
 }
 
-.light body {
-  background: linear-gradient(120deg, #ffffff, #fff5ee, #fff8f5, #fff0ea, #ffffff);
-  background-size: 400% 400%;
-  animation: lightGradientScroll 25s ease infinite;
+.light body,
+.light .bg-bg-primary {
+  background-color: #f1f4f9 !important;
+}
+
+.light main {
+  background-color: #f1f4f9 !important;
+}
+
+/* Card elevated shadows in light mode */
+.light .shadow-sm {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05) !important;
+}
+.light .shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.05) !important;
+}
+.light .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -4px rgba(0, 0, 0, 0.05) !important;
+}
+.light .shadow-2xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04) !important;
 }

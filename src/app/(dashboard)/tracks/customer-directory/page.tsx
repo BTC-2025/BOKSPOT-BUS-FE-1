@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useVendorStore } from '@/lib/store';
 import { getArchetypeConfig } from '@/lib/businessDictionary';
 import { 
@@ -26,10 +26,54 @@ export default function CustomersPage() {
   const baseConfig = getArchetypeConfig(currentMerchant?.archetype || 'Service');
   const archetypeConfig = { ...baseConfig, ...(currentMerchant?.customDictionary || {}) };
   const [searchTerm, setSearchTerm] = useState('');
+  const [liveBookings, setLiveBookings] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchSync = async () => {
+      try {
+        let res = await fetch(`/api/v1/bookings/sync?t=${Date.now()}`, { cache: 'no-store' });
+        if (!res.ok) {
+          res = await fetch(`http://localhost:9000/api/v1/bookings/sync?t=${Date.now()}`, { cache: 'no-store' });
+        }
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) setLiveBookings(data);
+        }
+      } catch (e) {
+        try {
+          const resDirect = await fetch(`http://localhost:9000/api/v1/bookings/sync?t=${Date.now()}`, { cache: 'no-store' });
+          if (resDirect.ok) {
+            const dataDirect = await resDirect.json();
+            if (Array.isArray(dataDirect)) setLiveBookings(dataDirect);
+          }
+        } catch (err2) {}
+      }
+    };
+    fetchSync();
+    const interval = setInterval(fetchSync, 2000);
+    return () => clearInterval(interval);
+  }, []);
   
   const customers = useMemo(() => {
     if (!currentMerchant) return [];
-    const merchantBookings = bookings.filter(b => b.merchantName === currentMerchant.merchantName);
+    const allBookings = [...bookings];
+    liveBookings.forEach((lb: any) => {
+      if (!allBookings.some(b => b.ref === lb.ref || b.id === lb.id)) {
+        allBookings.unshift(lb);
+      }
+    });
+
+    const curName = (currentMerchant.merchantName || '').toLowerCase().trim();
+    let merchantBookings = allBookings.filter(b => {
+      const bName = (b.merchantName || '').toLowerCase().trim();
+      const matchesName = bName === curName || bName.includes(curName) || curName.includes(bName);
+      const matchesId = b.merchantId && currentMerchant.id && String(b.merchantId) === String(currentMerchant.id);
+      return matchesName || matchesId;
+    });
+
+    if (merchantBookings.length === 0 && allBookings.length > 0) {
+      merchantBookings = allBookings;
+    }
     const customersMap = new Map<string, CustomerRecord>();
     
     merchantBookings.forEach((b) => {
