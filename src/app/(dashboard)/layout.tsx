@@ -556,11 +556,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               aria-label="Toggle profile menu"
               title="Partner Profile Settings"
             >
-              <div className="h-5 w-5 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
+              <div className="h-6 w-6 rounded-full bg-gradient-to-br from-[#ff6325] to-[#ea580c] flex items-center justify-center shrink-0 shadow-sm overflow-hidden text-white font-black text-[11px] border border-white/30">
                 {currentMerchant?.logoUrl ? (
                   <img src={currentMerchant.logoUrl} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
-                  <User size={12} strokeWidth={2.5} className="text-[#0a3161]" />
+                  <span>{(loginRole === 'supervisor' ? supervisorId : currentMerchant?.username || 'P').charAt(0).toUpperCase()}</span>
                 )}
               </div>
               <span>{loginRole === 'supervisor' ? (supervisorId || 'Supervisor') : (currentMerchant.username || 'Partner')}</span>
