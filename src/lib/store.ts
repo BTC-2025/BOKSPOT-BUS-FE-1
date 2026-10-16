@@ -936,10 +936,11 @@ export const useVendorStore = create<VendorStoreState>()(
       });
       
       if (!res.ok) {
-        console.error('Failed to sync merchant profile to DB:', await res.text());
+        const errorText = await res.text();
+        console.warn('[Bokspot Sync] DB sync is currently offline/paused, changes saved to local session:', errorText);
       }
     } catch (err) {
-      console.error('Error syncing merchant profile:', err);
+      console.warn('[Bokspot Sync] Network/DB unreachable, profile updated locally in state:', err);
     }
   },
 

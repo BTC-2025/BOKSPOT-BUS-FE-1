@@ -3,7 +3,7 @@
 import { useVendorStore, CatalogService } from '@/lib/store';
 import { getArchetypeConfig } from '@/lib/businessDictionary';
 import { compressImage } from '@/lib/imageUtils';
-import { Plus, Trash2, Edit, X, Package, List } from 'lucide-react';
+import { Plus, Trash2, Edit, X, Package, List, Building2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -20,7 +20,7 @@ export default function WorkspacePage() {
   // Modals state
   const [showBookingTypeModal, setShowBookingTypeModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
-  
+
   // Navigation State
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
 
@@ -30,7 +30,7 @@ export default function WorkspacePage() {
 
   // Category Form State
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
-  
+
   const [categoryName, setCategoryName] = useState('');
   const [categoryImage, setCategoryImage] = useState('');
   const [categoryDesc, setCategoryDesc] = useState('');
@@ -94,7 +94,7 @@ export default function WorkspacePage() {
     };
 
     addService(newService);
-    
+
     setShowBookingTypeModal(false);
     setBookingTypeCategory('');
     setBookingTypeImage('');
@@ -132,7 +132,7 @@ export default function WorkspacePage() {
     } else {
       addService(newService);
     }
-    
+
     setShowCategoryModal(false);
     setEditingServiceId(null);
     setCategoryName('');
@@ -165,7 +165,7 @@ export default function WorkspacePage() {
   const groupedCategories = merchantServices.reduce((acc: any, srv: any) => {
     const cat = srv.category || 'Uncategorized';
     if (!acc[cat]) acc[cat] = { category: cat, mainImage: null, count: 0, serviceId: null, createdAt: srv.createdAt, city: srv.city };
-    
+
     if (srv.name === '__BOKSPOT_GROUP__') {
       acc[cat].mainImage = srv.metadata?.mainImageUrl || srv.imageUrl || acc[cat].mainImage;
       acc[cat].serviceId = srv.id;
@@ -183,7 +183,7 @@ export default function WorkspacePage() {
 
   return (
     <div className="space-y-12 animate-fade-in pb-12 font-sans">
-      
+
       {/* Header section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-white/[0.06]">
         <div>
@@ -191,14 +191,14 @@ export default function WorkspacePage() {
             {selectedGroup ? `${selectedGroup} Categories` : 'My Services'}
           </h1>
           <p className="text-sm text-slate-400 font-medium mt-2 max-w-2xl leading-relaxed">
-            {selectedGroup 
+            {selectedGroup
               ? `Manage your ${selectedGroup} categories and their specific listings.`
               : 'Add main booking types (like Hotel Booking), then click them to add specific categories (like Deluxe Room) and listings.'}
           </p>
         </div>
         <div className="flex items-center gap-3 w-full md:w-auto">
           {!selectedGroup ? (
-            <button 
+            <button
               onClick={() => {
                 setBookingTypeCategory('');
                 setBookingTypeImage('');
@@ -210,7 +210,7 @@ export default function WorkspacePage() {
             </button>
           ) : (
             <>
-              <button 
+              <button
                 onClick={() => {
                   setEditingServiceId(null);
                   setCategoryName('');
@@ -224,9 +224,11 @@ export default function WorkspacePage() {
               </button>
               <button
                 onClick={() => router.push('/workspace/about')}
-                className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#0f1624] hover:bg-[#162033] text-white font-bold text-sm tracking-wide transition-all shadow-sm active:scale-95 border border-white/10 hover:border-[#ff6325]/40 cursor-pointer"
+                className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#0f1624] hover:bg-[#162033] text-slate-100 hover:text-white font-bold text-sm tracking-wide transition-all shadow-md active:scale-95 border border-white/20 hover:border-[#ff6325]/60 cursor-pointer"
+                title="Manage Venue Profile, Photos & Location"
               >
-                Venue Profile
+                <Building2 size={16} className="text-[#ff6325]" />
+                <span>Venue Profile</span>
               </button>
             </>
           )}
@@ -240,16 +242,16 @@ export default function WorkspacePage() {
           <>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
               {Object.entries(groupedCategories).map(([cat, info]: any) => (
-                <div 
-                  key={cat} 
+                <div
+                  key={cat}
                   onClick={() => setSelectedGroup(cat)}
                   className="bg-[#0f1624] rounded-3xl border border-white/10 hover:border-[#ff6325]/50 shadow-lg hover:shadow-2xl hover:shadow-[#ff6325]/10 hover:-translate-y-1.5 transition-all duration-300 relative group overflow-hidden flex flex-col cursor-pointer backdrop-blur-sm"
                 >
                   <div className="h-40 w-full bg-[#162033] relative overflow-hidden">
-                    <img 
-                      src={info.mainImage || getFallbackImage(cat)} 
-                      alt={cat} 
-                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                    <img
+                      src={info.mainImage || getFallbackImage(cat)}
+                      alt={cat}
+                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                       onError={(e) => { e.currentTarget.src = getFallbackImage(cat); }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0f1624] via-transparent to-black/20" />
@@ -277,7 +279,7 @@ export default function WorkspacePage() {
                       <h3 className="font-extrabold text-lg text-white leading-tight group-hover:text-[#ff6325] transition-colors">{cat}</h3>
                       {info.createdAt && (
                         <span className="text-[10px] text-slate-400 font-medium mt-1.5 uppercase tracking-wider block">
-                          Added: {new Date(info.createdAt).toLocaleDateString()} {new Date(info.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true})}
+                          Added: {new Date(info.createdAt).toLocaleDateString()} {new Date(info.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
                         </span>
                       )}
                       {info.city && (
@@ -306,7 +308,7 @@ export default function WorkspacePage() {
                 <p className="text-slate-500 max-w-md text-sm mb-6">
                   Start by adding a main Booking Type (like Hotel Booking or Turf Booking).
                 </p>
-                <button 
+                <button
                   onClick={() => setShowBookingTypeModal(true)}
                   className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-105 text-white font-bold text-sm transition-all shadow-md shadow-[#ff6325]/25"
                 >
@@ -325,16 +327,16 @@ export default function WorkspacePage() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
               {currentGroupCategories.map(srv => (
-                <div 
-                  key={srv.id} 
+                <div
+                  key={srv.id}
                   onClick={() => openCategoryPage(srv)}
                   className="bg-[#0f1624] rounded-3xl border border-white/10 hover:border-[#ff6325]/50 shadow-lg hover:shadow-2xl hover:shadow-[#ff6325]/10 hover:-translate-y-1.5 transition-all duration-300 relative group overflow-hidden flex flex-col cursor-pointer backdrop-blur-sm"
                 >
                   <div className="h-40 w-full bg-[#162033] relative overflow-hidden">
-                    <img 
-                      src={srv.imageUrl || getFallbackImage(srv.name)} 
-                      alt={srv.name} 
-                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                    <img
+                      src={srv.imageUrl || getFallbackImage(srv.name)}
+                      alt={srv.name}
+                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                       onError={(e) => { e.currentTarget.src = getFallbackImage(srv.name); }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0f1624] via-transparent to-black/20" />
@@ -374,7 +376,7 @@ export default function WorkspacePage() {
                 <p className="text-slate-400 max-w-md text-sm mb-6 leading-relaxed">
                   You haven't added any categories (like Deluxe Room) to {selectedGroup} yet.
                 </p>
-                <button 
+                <button
                   onClick={() => setShowCategoryModal(true)}
                   className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-bold text-sm transition-all shadow-lg shadow-[#ff6325]/25"
                 >
@@ -400,10 +402,10 @@ export default function WorkspacePage() {
               <form id="bookingTypeForm" onSubmit={handleSaveBookingType} className="space-y-5">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Service Type (BokSpot Category)</label>
-                  <select 
-                    value={bookingTypeCategory} 
-                    onChange={(e) => setBookingTypeCategory(e.target.value)} 
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium cursor-pointer" 
+                  <select
+                    value={bookingTypeCategory}
+                    onChange={(e) => setBookingTypeCategory(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium cursor-pointer"
                     required
                   >
                     <option value="" disabled className="bg-white dark:bg-[#162033] text-slate-400">Select a service type</option>
@@ -466,39 +468,39 @@ export default function WorkspacePage() {
             </div>
             <div className="p-6 overflow-y-auto flex-1">
               <form id="categoryListingForm" onSubmit={handleSaveCategory} className="space-y-5">
-                  <h3 className="text-base font-black text-slate-900 dark:text-slate-200 border-b border-slate-100 dark:border-white/[0.08] pb-2 mb-4">Category Details</h3>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Category Name</label>
-                    <input type="text" value={categoryName} onChange={(e) => setCategoryName(e.target.value)} placeholder="e.g. Deluxe Room" className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500" required />
+                <h3 className="text-base font-black text-slate-900 dark:text-slate-200 border-b border-slate-100 dark:border-white/[0.08] pb-2 mb-4">Category Details</h3>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Category Name</label>
+                  <input type="text" value={categoryName} onChange={(e) => setCategoryName(e.target.value)} placeholder="e.g. Deluxe Room" className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Category Image</label>
+                  <div onClick={() => document.getElementById('cat-image-upload')?.click()} className="w-full h-32 rounded-xl border-2 border-dashed border-slate-200 dark:border-white/15 hover:border-[#ff6325] bg-slate-50 dark:bg-[#162033]/50 flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden group mb-3">
+                    {categoryImage ? (
+                      <>
+                        <img src={categoryImage} alt="Preview" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"><span className="text-white font-bold text-sm flex items-center gap-2">Change Image</span></div>
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center text-slate-400 group-hover:text-[#ff6325] transition-colors"><span className="font-bold text-sm">Click to choose image</span></div>
+                    )}
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Category Image</label>
-                    <div onClick={() => document.getElementById('cat-image-upload')?.click()} className="w-full h-32 rounded-xl border-2 border-dashed border-slate-200 dark:border-white/15 hover:border-[#ff6325] bg-slate-50 dark:bg-[#162033]/50 flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden group mb-3">
-                      {categoryImage ? (
-                        <>
-                          <img src={categoryImage} alt="Preview" className="w-full h-full object-cover" />
-                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"><span className="text-white font-bold text-sm flex items-center gap-2">Change Image</span></div>
-                        </>
-                      ) : (
-                        <div className="flex flex-col items-center text-slate-400 group-hover:text-[#ff6325] transition-colors"><span className="font-bold text-sm">Click to choose image</span></div>
-                      )}
-                    </div>
-                    <input id="cat-image-upload" type="file" className="hidden" onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        try {
-                          const compressed = await compressImage(file, 400, 400, 0.8);
-                          setCategoryImage(compressed);
-                        } catch (err) {
-                          console.error('Image compression failed', err);
-                        }
+                  <input id="cat-image-upload" type="file" className="hidden" onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      try {
+                        const compressed = await compressImage(file, 400, 400, 0.8);
+                        setCategoryImage(compressed);
+                      } catch (err) {
+                        console.error('Image compression failed', err);
                       }
-                    }} accept="image/*" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Description</label>
-                    <textarea value={categoryDesc} onChange={(e) => setCategoryDesc(e.target.value)} placeholder="Short description..." className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium min-h-[80px] placeholder:text-slate-400 dark:placeholder:text-slate-500" />
-                  </div>
+                    }
+                  }} accept="image/*" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Description</label>
+                  <textarea value={categoryDesc} onChange={(e) => setCategoryDesc(e.target.value)} placeholder="Short description..." className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium min-h-[80px] placeholder:text-slate-400 dark:placeholder:text-slate-500" />
+                </div>
               </form>
             </div>
             <div className="p-6 border-t border-slate-100 dark:border-white/[0.08] bg-slate-50 dark:bg-[#0a101b] flex justify-end items-center gap-3 shrink-0">

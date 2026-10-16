@@ -560,10 +560,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 {currentMerchant?.logoUrl ? (
                   <img src={currentMerchant.logoUrl} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
-                  <span>{(loginRole === 'supervisor' ? supervisorId : currentMerchant?.username || 'P').charAt(0).toUpperCase()}</span>
+                  <span>{(loginRole === 'supervisor' ? (supervisorId || 'S') : (currentMerchant?.username || 'P')).charAt(0).toUpperCase()}</span>
                 )}
               </div>
-              <span>{loginRole === 'supervisor' ? (supervisorId || 'Supervisor') : (currentMerchant.username || 'Partner')}</span>
+              <span>{loginRole === 'supervisor' ? (supervisorId || 'Supervisor') : (currentMerchant?.username || 'Partner')}</span>
               <ChevronDown className={`h-3 w-3 text-white transition-transform duration-200 ${profileOpen ? 'rotate-180' : ''}`} />
             </button>
 
@@ -576,7 +576,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       {currentMerchant?.logoUrl ? (
                         <img src={currentMerchant.logoUrl} alt="Avatar" className="w-full h-full object-cover" />
                       ) : (
-                        (currentMerchant.username || 'P').charAt(0).toUpperCase()
+                        (currentMerchant?.username || 'P').charAt(0).toUpperCase()
                       )}
                     </div>
                     <label className="absolute bottom-0 right-0 h-5 w-5 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 shadow-sm hover:bg-slate-50 cursor-pointer">
@@ -620,7 +620,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </label>
                   </div>
                   <span className="font-extrabold text-[15px] truncate max-w-full text-black dark:text-white capitalize">
-                    {currentMerchant.username || 'Partner'}
+                    {currentMerchant?.username || 'Partner'}
                   </span>
                   <span className="text-xs text-slate-500 mt-0.5 truncate max-w-full" title={getBnxMailId()}>
                     {getBnxMailId()}

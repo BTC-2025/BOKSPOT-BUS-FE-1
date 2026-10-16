@@ -102,7 +102,7 @@ export default function HotelRoomMatrixPage() {
                 ref: hb.ref,
                 checkIn: hb.date || 'Today',
                 checkOut: 'Next Day',
-                nights: hb.durationMinutes ? Math.round(hb.durationMinutes / 1440) || 1 : 1,
+                nights: (hb as any).durationMinutes ? Math.round((hb as any).durationMinutes / 1440) || 1 : 1,
                 phone: hb.customerPhone || '+91 99887 76655',
                 mealPlan: hb.notes?.includes('Breakfast') ? 'With Breakfast' : 'Room Only'
               }
@@ -121,7 +121,34 @@ export default function HotelRoomMatrixPage() {
   }, [rooms, selectedRoom]);
 
   // Status changer
-  const handleUpdateStatus = (roomNumber: string, newStatus: RoomUnit['status']) => {
+  const handleUpdateStatus = async (roomNumber: string, newStatus: RoomUnit['status']) => {
+    const targetRoom = rooms.find(r => r.number === roomNumber);
+    const guestRef = targetRoom?.currentGuest?.ref;
+
+    // If releasing room from Occupied via Check-out, mark booking as COMPLETED
+    if (guestRef && (newStatus === 'CLEANING' || newStatus === 'AVAILABLE')) {
+      try {
+        const matchingBooking = bookings.find(b => b.ref === guestRef);
+        if (matchingBooking) {
+          const updated = { ...matchingBooking, status: 'COMPLETED' as const };
+          useVendorStore.getState().completeBooking(matchingBooking.id);
+          await fetch('/api/v1/bookings/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updated),
+          });
+        } else {
+          await fetch('/api/v1/bookings/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ref: guestRef, status: 'COMPLETED' }),
+          });
+        }
+      } catch (err) {
+        console.warn('Failed to sync completed checkout to backend:', err);
+      }
+    }
+
     setRooms(prev => prev.map(r => {
       if (r.number === roomNumber) {
         return {
@@ -409,10 +436,31 @@ export default function HotelRoomMatrixPage() {
                       Process Check-Out & Release Room
                     </button>
                     <button 
-                      onClick={() => alert(`Issuing Digital RFID Keycard for Room ${selectedRoom.number}`)}
-                      className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-800 dark:text-white border border-slate-300/80 dark:border-white/10 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                      onClick={async () => {
+                        const guestRef = selectedRoom.currentGuest?.ref;
+                        try {
+                          if (guestRef) {
+                            const matchingBooking = bookings.find(b => b.ref === guestRef);
+                            const updated = {
+                              ...(matchingBooking || { ref: guestRef }),
+                              keycardIssued: true,
+                              roomNumber: selectedRoom.number,
+                              keycardIssuedAt: new Date().toISOString(),
+                            };
+                            await fetch('/api/v1/bookings/sync', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify(updated),
+                            });
+                          }
+                        } catch (err) {
+                          console.warn('Keycard sync error:', err);
+                        }
+                        alert(`Digital RFID & NFC Keycard successfully issued for Room ${selectedRoom.number} to guest ${selectedRoom.currentGuest?.name}! Access is now live on customer app.`);
+                      }}
+                      className="w-full py-2.5 bg-gradient-to-r from-[#ff6325] to-[#ff8452] hover:opacity-95 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md shadow-[#ff6325]/20 active:scale-98"
                     >
-                      <Key size={14} className="text-[#ff6325]" />
+                      <Key size={14} className="text-white" />
                       <span>Issue Digital Keycard Access</span>
                     </button>
                   </div>

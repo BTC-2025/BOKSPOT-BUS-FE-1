@@ -127,10 +127,10 @@ export default function ServiceListingsPage() {
                       e.stopPropagation();
                       router.push(`/workspace/my-services/${serviceId}/listing/${list.id}/slots`);
                     }}
-                    className="flex items-center gap-2 px-3.5 py-1.5 bg-[#162033] hover:bg-[#1f2d47] text-white text-xs font-bold rounded-lg transition-all border border-white/10 shadow-sm"
+                    className="flex items-center gap-2 px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#162033] dark:hover:bg-[#1f2d47] text-slate-800 dark:text-white text-xs font-bold rounded-lg transition-all border border-slate-200 dark:border-white/10 shadow-sm"
                   >
                     <Calendar size={13} className="text-[#ff6325]" />
-                    Slots
+                    <span>Slots</span>
                   </button>
                   <span className="text-xs font-bold text-[#ff6325] group-hover:translate-x-1 transition-transform">Edit Info &rarr;</span>
                 </div>
