@@ -193,6 +193,8 @@ export default function WorkspacePage() {
           <p className="text-sm text-slate-400 font-medium mt-2 max-w-2xl leading-relaxed">
             {selectedGroup
               ? `Manage your ${selectedGroup} categories and their specific listings.`
+              : (currentMerchant?.category?.toLowerCase().includes('turf') || currentMerchant?.category?.toLowerCase().includes('sport'))
+              ? 'Add main booking types (like Football Turf / Cricket Ground), then click them to add specific courts/slots (like 7s Turf A) and listings.'
               : 'Add main booking types (like Hotel Booking), then click them to add specific categories (like Deluxe Room) and listings.'}
           </p>
         </div>
@@ -374,7 +376,7 @@ export default function WorkspacePage() {
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">No Categories Here</h3>
                 <p className="text-slate-400 max-w-md text-sm mb-6 leading-relaxed">
-                  You haven't added any categories (like Deluxe Room) to {selectedGroup} yet.
+                  You haven't added any categories (like {(selectedGroup?.toLowerCase().includes('turf') || selectedGroup?.toLowerCase().includes('sport') || currentMerchant?.category?.toLowerCase().includes('turf') || currentMerchant?.category?.toLowerCase().includes('sport')) ? '7s Turf / Court 1' : 'Deluxe Room'}) to {selectedGroup} yet.
                 </p>
                 <button
                   onClick={() => setShowCategoryModal(true)}
@@ -471,7 +473,22 @@ export default function WorkspacePage() {
                 <h3 className="text-base font-black text-slate-900 dark:text-slate-200 border-b border-slate-100 dark:border-white/[0.08] pb-2 mb-4">Category Details</h3>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Category Name</label>
-                  <input type="text" value={categoryName} onChange={(e) => setCategoryName(e.target.value)} placeholder="e.g. Deluxe Room" className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500" required />
+                  <input 
+                    type="text" 
+                    value={categoryName} 
+                    onChange={(e) => setCategoryName(e.target.value)} 
+                    placeholder={
+                      (selectedGroup?.toLowerCase().includes('turf') || selectedGroup?.toLowerCase().includes('sport') || currentMerchant?.category?.toLowerCase().includes('turf') || currentMerchant?.category?.toLowerCase().includes('sport'))
+                        ? "e.g. 7s Football Turf / Court A / Box Cricket"
+                        : (selectedGroup?.toLowerCase().includes('doctor') || currentMerchant?.category?.toLowerCase().includes('doctor'))
+                        ? "e.g. General OPD Consultation"
+                        : (selectedGroup?.toLowerCase().includes('rental') || currentMerchant?.category?.toLowerCase().includes('rental'))
+                        ? "e.g. 350cc Cruiser Bike / Sedan Car"
+                        : "e.g. Deluxe Room"
+                    } 
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500" 
+                    required 
+                  />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Category Image</label>

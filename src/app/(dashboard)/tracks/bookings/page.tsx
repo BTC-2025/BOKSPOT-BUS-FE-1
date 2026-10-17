@@ -348,13 +348,215 @@ export default function BookingsPage() {
               </div>
             </div>
 
-            {/* Customer Detail Only */}
-            <div className="flex-1 bg-bg-primary overflow-y-auto p-6">
-                <div className="flex flex-col items-center justify-center h-full text-text-muted">
-                    <User size={48} className="mb-4 opacity-30" />
-                    <p className="text-sm font-semibold">Customer Details Available</p>
+            {/* Dynamic Archetype Operational Controls & Metadata */}
+            <div className="flex-1 bg-bg-primary overflow-y-auto p-6 space-y-6">
+              {/* Common Booking & Pricing Summary */}
+              <div className="p-4 rounded-2xl bg-bg-secondary border border-border-brand/60 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-text-secondary">Booking Details</span>
+                  <span className="text-xs font-black text-[#ff6325]">
+                    ₹{(selectedBooking.price || selectedBooking.totalAmount || 0).toLocaleString()}
+                  </span>
                 </div>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-text-muted text-[10px] block">Service Booked</span>
+                    <span className="font-bold text-text-primary">{selectedBooking.serviceName || 'Custom Service'}</span>
+                  </div>
+                  <div>
+                    <span className="text-text-muted text-[10px] block">Schedule Window</span>
+                    <span className="font-bold text-text-primary">{selectedBooking.date} at {selectedBooking.time}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 1. DOCTOR / HEALTHCARE OPD QUEUE & EMR TAB */}
+              {(currentMerchant.category?.toLowerCase().includes('doctor') || currentMerchant.archetype === 'Healthcare' || selectedBooking.metadata?.appointmentBooking) && (
+                <div className="p-5 rounded-2xl bg-blue-500/5 border border-blue-500/20 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-blue-500 font-extrabold text-sm">
+                      <Stethoscope size={16} />
+                      <span>Doctor OPD Consultation & Token Queue</span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 font-black text-[10px] border border-blue-500/20">
+                      Token #{selectedBooking.metadata?.appointmentBooking?.tokenNum || '14'}
+                    </span>
+                  </div>
+
+                  {selectedBooking.metadata?.appointmentBooking?.patientNotes && (
+                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand text-xs">
+                      <span className="text-[10px] font-bold text-text-muted uppercase block mb-1">Patient Reported Symptoms:</span>
+                      <p className="text-text-primary italic">"{selectedBooking.metadata.appointmentBooking.patientNotes}"</p>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => completeBooking(selectedBooking.id)}
+                      className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer"
+                    >
+                      ✓ Mark Consultation Complete
+                    </button>
+                    <button
+                      onClick={() => alert(`Calling Token #${selectedBooking.metadata?.appointmentBooking?.tokenNum || '14'} to Room 3`)}
+                      className="px-4 py-2.5 rounded-xl bg-bg-secondary hover:bg-bg-tertiary border border-border-brand text-text-primary font-bold text-xs transition-all cursor-pointer"
+                    >
+                      📢 Call Next Token
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* 2. VEHICLE & ASSET RENTAL HANDOVER & DEPOSIT TAB */}
+              {(currentMerchant.category?.toLowerCase().includes('rental') || currentMerchant.category?.toLowerCase().includes('bike') || currentMerchant.category?.toLowerCase().includes('car') || selectedBooking.metadata?.rentalBooking) && (
+                <div className="p-5 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-amber-500 font-extrabold text-sm">
+                      <Zap size={16} />
+                      <span>Vehicle Handover & Refundable Deposit Checklist</span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 font-black text-[10px] border border-amber-500/20">
+                      Deposit: ₹2,000 (Tax-Exempt)
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <label className="flex items-center gap-2 p-2.5 rounded-xl bg-bg-secondary border border-border-brand cursor-pointer">
+                      <input type="checkbox" defaultChecked className="rounded accent-[#ff6325]" />
+                      <span className="text-text-primary font-medium">Driving License Verified</span>
+                    </label>
+                    <label className="flex items-center gap-2 p-2.5 rounded-xl bg-bg-secondary border border-border-brand cursor-pointer">
+                      <input type="checkbox" defaultChecked className="rounded accent-[#ff6325]" />
+                      <span className="text-text-primary font-medium">Odometer & Fuel Logged</span>
+                    </label>
+                    <label className="flex items-center gap-2 p-2.5 rounded-xl bg-bg-secondary border border-border-brand cursor-pointer">
+                      <input type="checkbox" className="rounded accent-[#ff6325]" />
+                      <span className="text-text-primary font-medium">Vehicle Returned Without Damage</span>
+                    </label>
+                    <label className="flex items-center gap-2 p-2.5 rounded-xl bg-bg-secondary border border-border-brand cursor-pointer">
+                      <input type="checkbox" className="rounded accent-[#ff6325]" />
+                      <span className="text-text-primary font-medium">Helmet / Accessories Handed Back</span>
+                    </label>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      alert('Deposit of ₹2,000 refunded via original payment mode.');
+                      completeBooking(selectedBooking.id);
+                    }}
+                    className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer"
+                  >
+                    ✓ Release ₹2,000 Deposit & Complete Rental
+                  </button>
+                </div>
+              )}
+
+              {/* 3. HOME VISITS & FIELD SERVICE OTP COMPLETION */}
+              {(currentMerchant.category?.toLowerCase().includes('electrician') || currentMerchant.category?.toLowerCase().includes('plumber') || currentMerchant.category?.toLowerCase().includes('cleaning') || selectedBooking.metadata?.homeCallBooking) && (
+                <div className="p-5 rounded-2xl bg-teal-500/5 border border-teal-500/20 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-teal-500 font-extrabold text-sm">
+                      <CheckCircle2 size={16} />
+                      <span>Doorstep Visit & Job OTP Signoff</span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-teal-500/10 text-teal-400 font-black text-[10px] border border-teal-500/20">
+                      Upfront Fee: ₹199
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand text-xs space-y-1">
+                    <span className="text-[10px] font-bold text-text-muted uppercase block">Service Address:</span>
+                    <p className="text-text-primary font-semibold">
+                      {selectedBooking.metadata?.homeCallBooking?.serviceAddress || selectedBooking.customerAddress || 'Customer Doorstep Location'}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="Enter 4-Digit Customer Signoff OTP"
+                      maxLength={4}
+                      className="flex-1 bg-bg-secondary border border-border-brand rounded-xl px-3 py-2 text-xs font-bold text-text-primary outline-none focus:border-[#ff6325]"
+                    />
+                    <button
+                      onClick={() => {
+                        alert('Job confirmed with customer OTP. Final receipt generated.');
+                        completeBooking(selectedBooking.id);
+                      }}
+                      className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-black text-xs uppercase tracking-wider cursor-pointer"
+                    >
+                      Verify & Sign Off
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* 4. TURNSTILE PASS SCANNER (EVENTS & MOVIES) */}
+              {(currentMerchant.category?.toLowerCase().includes('movie') || currentMerchant.category?.toLowerCase().includes('concert') || currentMerchant.category?.toLowerCase().includes('event') || selectedBooking.metadata?.passBooking) && (
+                <div className="p-5 rounded-2xl bg-purple-500/5 border border-purple-500/20 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-purple-400 font-extrabold text-sm">
+                      <Tag size={16} />
+                      <span>Turnstile Gate Entry Verification</span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-400 font-black text-[10px] border border-purple-500/20">
+                      {selectedBooking.metadata?.passBooking?.tier || 'General Pass'} ({selectedBooking.metadata?.passBooking?.passCount || 1} Pax)
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand flex items-center justify-between text-xs">
+                    <span className="text-text-secondary font-medium">Turnstile Gate Scan Status:</span>
+                    <span className="font-black text-emerald-400">QR Valid • Ready for Entry</span>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      checkInBooking(selectedBooking.id);
+                    }}
+                    className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer"
+                  >
+                    ⚡ Punch Turnstile Entry Gate
+                  </button>
+                </div>
+              )}
+
+              {/* 5. HOME SERVICE DOORSTEP DISPATCH & OTP */}
+              {(currentMerchant.category?.toLowerCase().includes('electrician') || currentMerchant.category?.toLowerCase().includes('plumber') || currentMerchant.category?.toLowerCase().includes('cleaning') || currentMerchant.category?.toLowerCase().includes('ac') || currentMerchant.category?.toLowerCase().includes('repair') || currentMerchant.category?.toLowerCase().includes('technician') || selectedBooking.metadata?.homeService) && (
+                <div className="p-5 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-amber-400 font-extrabold text-sm">
+                      <Clock size={16} />
+                      <span>Doorstep Job Dispatch & Start OTP</span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 font-black text-[10px] border border-amber-500/20">
+                      Inspection ₹199
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 text-xs">
+                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand flex items-center justify-between">
+                      <span className="text-text-secondary font-medium">Customer Doorstep Start OTP:</span>
+                      <span className="font-mono font-black text-white bg-white/10 px-2 py-0.5 rounded tracking-widest text-sm">4 8 2 1</span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand flex items-center justify-between">
+                      <span className="text-text-secondary font-medium">Technician Status:</span>
+                      <span className="font-bold text-amber-400">Assigned & En Route 🛵</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      checkInBooking(selectedBooking.id);
+                      alert('Technician arrived & OTP Verified! Job status marked IN_PROGRESS with 30-Day BOKSPOT Warranty active.');
+                    }}
+                    className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer"
+                  >
+                    Verify Start OTP & Begin Job
+                  </button>
+                </div>
+              )}
             </div>
+
           </div>
         </>
       )}

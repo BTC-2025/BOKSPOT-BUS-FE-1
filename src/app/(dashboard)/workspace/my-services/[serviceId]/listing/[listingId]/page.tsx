@@ -153,7 +153,21 @@ export default function ListingEditorPage() {
                   type="text"
                   value={serviceName}
                   onChange={(e) => setServiceName(e.target.value)}
-                  placeholder="e.g. Deluxe AC Room, Presidential Suite, Standard King"
+                  placeholder={
+                    archetype === 'HOME_CALL'
+                      ? "e.g. Split AC Deep Cleaning & Foam Jet Wash, Switchboard & MCB Repair, Kitchen Sink Drain Unclog"
+                      : archetype === 'PASS_ENTRY'
+                      ? "e.g. VIP Standing Fan Pit, Audi 1 Dolby Atmos Recliner, Special Darshan Pass"
+                      : archetype === 'ASSET_RENTAL'
+                      ? "e.g. Royal Enfield Hunter 350 Dapper, Hyundai Creta Automatic, Sony FX3 Cinema Kit"
+                      : archetype === 'RENTAL' || category?.name?.toLowerCase().includes('turf') || category?.name?.toLowerCase().includes('cricket') || category?.name?.toLowerCase().includes('court')
+                      ? "e.g. 7-a-side Main Turf (Pitch 1), Indoor Box Cricket Arena, Badminton Court A"
+                      : archetype === 'APPOINTMENT'
+                      ? "e.g. Senior Doctor OPD Consultation, Hair Styling Session"
+                      : archetype === 'DINING'
+                      ? "e.g. Rooftop 4-Seater Table, Private Dining Room"
+                      : "e.g. Deluxe AC Room, Presidential Suite, Standard King"
+                  }
                   className="w-full px-4 py-3 rounded-xl border border-white/10 focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium bg-[#162033] text-white placeholder-slate-400"
                 />
               </div>
@@ -209,18 +223,22 @@ export default function ListingEditorPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">Base Price (₹) <span className="text-red-500">*</span></label>
+                  <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">
+                    {archetype === 'HOME_CALL' ? 'Inspection / Starting Rate (₹)' : archetype === 'PASS_ENTRY' ? 'Price per Pass / Ticket (₹)' : archetype === 'ASSET_RENTAL' ? 'Daily Rental Tariff (₹ / 24h)' : archetype === 'RENTAL' ? 'Base Hourly Rate (₹)' : archetype === 'APPOINTMENT' ? 'Doctor Consultation Fee (₹)' : 'Base Price (₹)'} <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="number"
                     value={basePrice}
                     onChange={(e) => setBasePrice(e.target.value)}
-                    placeholder="e.g. 500"
+                    placeholder={archetype === 'HOME_CALL' ? "e.g. 199" : archetype === 'PASS_ENTRY' ? "e.g. 599" : archetype === 'ASSET_RENTAL' ? "e.g. 1500" : archetype === 'RENTAL' ? "e.g. 1200" : archetype === 'APPOINTMENT' ? "e.g. 600" : "e.g. 500"}
                     min="0"
                     step="0.01"
                     className="w-full px-4 py-3 rounded-xl border border-white/10 focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium bg-[#162033] text-white placeholder-slate-400"
                     required
                   />
-                  <p className="text-[10px] text-text-secondary mt-1">The starting price shown to customers.</p>
+                  <p className="text-[10px] text-text-secondary mt-1">
+                    {archetype === 'HOME_CALL' ? 'Visiting inspection fee or package starting price.' : archetype === 'PASS_ENTRY' ? 'Single admission price per pass/ticket.' : archetype === 'ASSET_RENTAL' ? 'Per-day rental tariff (24 hours window).' : archetype === 'RENTAL' ? 'Hourly court rate charged to players.' : archetype === 'APPOINTMENT' ? 'Standard fee charged per patient consultation.' : 'The starting price shown to customers.'}
+                  </p>
                 </div>
               </div>
 
@@ -229,25 +247,90 @@ export default function ListingEditorPage() {
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe this listing (amenities, view, bedding details)..."
+                  placeholder={
+                    archetype === 'HOME_CALL'
+                      ? "Describe technician equipment, service process, guarantee terms, and safety precautions followed at doorstep..."
+                      : archetype === 'PASS_ENTRY'
+                      ? "Describe the show/event experience, gate timings, stage proximity, sound clarity, and special privileges included with this pass..."
+                      : archetype === 'ASSET_RENTAL'
+                      ? "Describe vehicle model year, transmission, fuel efficiency, included accessories (helmets, phone mount), and handover terms..."
+                      : archetype === 'RENTAL' || category?.name?.toLowerCase().includes('turf') || category?.name?.toLowerCase().includes('court')
+                      ? "Describe this court/pitch (e.g. FIFA-standard artificial turf with 8 floodlights, changing rooms, and complimentary drinking water)..."
+                      : archetype === 'APPOINTMENT'
+                      ? "Describe doctor's clinical background, treatment approach, and hospital affiliations..."
+                      : "Describe this listing (amenities, view, bedding details)..."
+                  }
                   className="w-full px-4 py-3 rounded-xl border border-white/10 focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium bg-[#162033] text-white placeholder-slate-400 min-h-[120px]"
                 />
               </div>
 
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider">Add-ons / Extras (Optional)</label>
-                  <button onClick={() => setAddons([...addons, { name: '', price: 0 }])} className="text-xs font-bold text-[#ff6325] flex items-center gap-1 hover:underline bg-[#ff6325]/10 px-3 py-1.5 rounded-lg border border-[#ff6325]/20"><Plus size={14} /> Add Option</button>
+                  <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider">
+                    {archetype === 'HOME_CALL' ? 'Spare Parts & Optional Add-on Additions' : archetype === 'PASS_ENTRY' ? 'F&B Combos & Merchandise Add-ons (Optional)' : archetype === 'ASSET_RENTAL' ? 'Add-on Gear / Excess Insurance (Optional)' : archetype === 'RENTAL' ? 'Equipment Add-ons & Surcharges (Optional)' : 'Add-ons / Extras (Optional)'}
+                  </label>
+                  <button 
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setAddons(prev => [...prev, { name: '', price: 0 }]);
+                    }} 
+                    className="text-xs font-bold text-[#ff6325] flex items-center gap-1 hover:brightness-110 bg-[#ff6325]/10 px-3 py-1.5 rounded-lg border border-[#ff6325]/20 cursor-pointer active:scale-95 transition-all"
+                  >
+                    <Plus size={14} /> Add Option
+                  </button>
                 </div>
                 {addons.length === 0 && <p className="text-sm text-text-secondary italic">No add-ons configured.</p>}
                 {addons.map((addon, idx) => (
                   <div key={idx} className="flex items-center gap-3 mb-3 bg-[#162033] p-3 rounded-xl border border-white/10 animate-fade-in">
-                    <input type="text" placeholder="Add-on Name (e.g. Extra Bed, Breakfast)" value={addon.name} onChange={(e) => { const newA = [...addons]; newA[idx].name = e.target.value; setAddons(newA); }} className="flex-1 px-4 py-2.5 rounded-lg border border-white/10 bg-[#0f1624] text-white text-sm font-medium focus:border-[#ff6325] focus:outline-none" />
+                    <input 
+                      type="text" 
+                      placeholder={
+                        archetype === 'HOME_CALL'
+                          ? "e.g. Outdoor Unit Foam Jet Cleaning, Antibacterial Spray Coat, Extra Drain Pipe"
+                          : archetype === 'PASS_ENTRY'
+                          ? "e.g. Large Tub Popcorn & Coke, VIP Lounge Pass, Souvenir T-Shirt"
+                          : archetype === 'ASSET_RENTAL'
+                          ? "e.g. Extra Pillion Helmet, Action Camera Mount, Riding Jacket"
+                          : archetype === 'RENTAL' 
+                          ? "e.g. Football / Bibs Rental, Floodlights Surcharge" 
+                          : "Add-on Name (e.g. Extra Bed, Breakfast)"
+                      } 
+                      value={addon.name} 
+                      onChange={(e) => {  
+                        const newA = [...addons]; 
+                        newA[idx].name = e.target.value; 
+                        setAddons(newA); 
+                      }} 
+                      className="flex-1 px-4 py-2.5 rounded-lg border border-white/10 bg-[#0f1624] text-white text-sm font-medium focus:border-[#ff6325] focus:outline-none" 
+                    />
                     <div className="relative w-28">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">₹</span>
-                      <input type="number" placeholder="Price" value={addon.price} onChange={(e) => { const newA = [...addons]; newA[idx].price = Number(e.target.value); setAddons(newA); }} className="w-full pl-7 pr-3 py-2.5 rounded-lg border border-white/10 bg-[#0f1624] text-white text-sm font-medium focus:border-[#ff6325] focus:outline-none" />
+                      <input 
+                        type="number" 
+                        placeholder="Price" 
+                        value={addon.price || ''} 
+                        onChange={(e) => { 
+                          const newA = [...addons]; 
+                          newA[idx].price = Number(e.target.value); 
+                          setAddons(newA); 
+                        }} 
+                        className="w-full pl-7 pr-3 py-2.5 rounded-lg border border-white/10 bg-[#0f1624] text-white text-sm font-medium focus:border-[#ff6325] focus:outline-none" 
+                      />
                     </div>
-                    <button onClick={() => setAddons(addons.filter((_, i) => i !== idx))} className="text-red-400 hover:bg-red-500/20 p-2.5 rounded-lg border border-transparent hover:border-red-500/30 transition-colors"><X size={16} strokeWidth={3} /></button>
+                    <button 
+                      type="button"
+                      title="Remove this add-on"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setAddons(prev => prev.filter((_, i) => i !== idx));
+                      }} 
+                      className="h-10 w-10 flex items-center justify-center text-red-500 hover:text-white bg-red-500/10 hover:bg-red-500 rounded-xl border border-red-500/20 hover:border-red-500 transition-all cursor-pointer shrink-0"
+                    >
+                      <X size={16} strokeWidth={2.5} />
+                    </button>
                   </div>
                 ))}
               </div>

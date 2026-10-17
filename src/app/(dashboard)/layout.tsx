@@ -20,7 +20,7 @@ import { getVerticalFromCategory } from '@/lib/categoryUtils';
 
 const staticNavItems = [
   { href: '/home/verify-code', icon: QrCode, label: 'Verify Code' },
-  { href: '/workspace/hotel-staff-roster', icon: Users, label: 'Staff Management' },
+  { href: '/workspace/staff-access', icon: Users, label: 'Staff Management' },
   { href: '/tracks/customer-directory', icon: User, label: 'Customer Directory' },
   { href: '/workspace/settings', icon: Settings, label: 'Settings' },
   { href: '/workspace/contact-us', icon: Mail, label: 'Contact Us' },
@@ -295,7 +295,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const searchPages = [
     { label: 'Dashboard Home', href: '/home/dashboard-home', description: 'Main overview & logs', type: 'page', icon: LayoutDashboard },
     { label: 'Verify Code', href: '/home/verify-code', description: 'Check-in ticket codes', type: 'page', icon: QrCode },
-    { label: 'Staff Management', href: '/workspace/hotel-staff-roster', description: 'Manage employee assignments', type: 'page', icon: Users },
+    { label: 'Staff Management', href: '/workspace/staff-access', description: 'Manage employee assignments', type: 'page', icon: Users },
     { label: 'Customer Directory', href: '/tracks/customer-directory', description: 'Diner database', type: 'page', icon: User },
     { label: 'Business Settings', href: '/workspace/settings', description: 'Working hours & profile details', type: 'page', icon: Settings },
     { label: 'Contact Us', href: '/workspace/contact-us', description: 'Support helpdesk & tickets', type: 'page', icon: Headset },
@@ -327,7 +327,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       }))
   ];  const getDynamicNavItems = () => {
     const isOwner = loginRole !== 'staff';
-    const accessLink = isOwner ? { href: '/workspace/hotel-staff-roster', icon: Users, label: archetypeConfig.staffRosterLabel } : null;
+    const accessLink = isOwner ? { href: '/workspace/staff-access', icon: Users, label: archetypeConfig.staffRosterLabel } : null;
 
     // HOME TAB (Dashboard & Quick Check-in)
     if (pathname === '/home/dashboard-home' || pathname === '/home/verify-code') {

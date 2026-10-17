@@ -89,6 +89,12 @@ export interface PersistedBooking {
   equipmentRentals?: { item: string; qty: number; price: number }[];
   matchNotes?: string;
   refereeAssigned?: string;
+
+  // Flexible archetype metadata & aliases
+  metadata?: Record<string, any>;
+  price?: number;
+  totalAmount?: number;
+  customerAddress?: string;
 }
 
 

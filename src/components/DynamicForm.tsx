@@ -54,7 +54,7 @@ export default function DynamicForm({ archetype, initialData = {}, onSubmit, onC
                   value={formData[field.name] || ''}
                   onChange={(e) => handleChange(field.name, e.target.value)}
                   className="w-full bg-[#162033] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-[#ff6325] focus:ring-1 focus:ring-[#ff6325] transition-colors"
-                  placeholder={`Enter ${field.label.toLowerCase()}`}
+                  placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
                 />
               )}
 
