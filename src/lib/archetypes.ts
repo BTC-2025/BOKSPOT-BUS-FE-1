@@ -1,4 +1,4 @@
-export type Archetype = 'EVENT' | 'RENTAL' | 'APPOINTMENT' | 'DINING' | 'ACCOMMODATION' | 'TRANSPORT' | 'ASSET_RENTAL' | 'PASS_ENTRY' | 'HOME_CALL';
+export type Archetype = 'EVENT' | 'RENTAL' | 'FACILITY_HOURLY' | 'APPOINTMENT' | 'DINING' | 'ACCOMMODATION' | 'TRANSPORT' | 'ASSET_RENTAL' | 'PASS_ENTRY' | 'HOME_CALL';
 
 export const CATEGORY_TO_ARCHETYPE_MAP: Record<string, Archetype> = {
   // Home Call & Doorstep Services (Electrician, Plumber, AC Repair, Cleaning, Pest Control)
@@ -18,6 +18,8 @@ export const CATEGORY_TO_ARCHETYPE_MAP: Record<string, Archetype> = {
   'painting': 'HOME_CALL',
   'babysitting': 'HOME_CALL',
   'elder-care': 'HOME_CALL',
+  'event-organizer': 'HOME_CALL',
+  'event-organizer-booking': 'HOME_CALL',
   'home-services': 'HOME_CALL',
 
   // Pass & Ticket Entry (Movies, Concerts, Theatre, Events, Darshan)
@@ -98,6 +100,12 @@ export const CATEGORY_TO_ARCHETYPE_MAP: Record<string, Archetype> = {
   'pet-grooming': 'APPOINTMENT',
   'pet-grooming-appointment': 'APPOINTMENT',
   'fitness-classes': 'APPOINTMENT',
+  'workshops': 'APPOINTMENT',
+  'workshops-classes': 'APPOINTMENT',
+  'pooja': 'APPOINTMENT',
+  'pooja-slot-booking': 'APPOINTMENT',
+  'training': 'APPOINTMENT',
+  'training-sessions': 'APPOINTMENT',
 
   // Dining
   'restaurants': 'DINING',
@@ -118,6 +126,8 @@ export const CATEGORY_TO_ARCHETYPE_MAP: Record<string, Archetype> = {
   'homestay-villa': 'ACCOMMODATION',
   'hostel-booking': 'ACCOMMODATION',
   'camping-booking': 'ACCOMMODATION',
+  'pilgrimage': 'ACCOMMODATION',
+  'pilgrimage-packages': 'ACCOMMODATION',
   'accommodation-hospitality': 'ACCOMMODATION',
   
   // Transport (Existing custom flows in BOKSPOT)
@@ -131,15 +141,17 @@ export const CATEGORY_TO_ARCHETYPE_MAP: Record<string, Archetype> = {
 // Blueprint schemas for the Dynamic Form Engine (Business App)
 export const ARCHETYPE_SCHEMAS: Record<Archetype, any> = {
   PASS_ENTRY: {
-    title: "Event Pass & Turnstile Entry Details",
+    title: "Pass, Ticket & Gate Schedule Details",
     fields: [
-      { name: "passTitle", type: "text", label: "Pass / Ticket Tier Title", placeholder: "e.g., General Silver, VIP Fan Pit, Platinum Balcony, Special Darshan", required: true },
-      { name: "venueScreenGate", type: "text", label: "Audi / Screen / Gate Entry Point", placeholder: "e.g., Audi 2 (Dolby Atmos) / Gate 4 Turnstile / East Gopuram Gate", required: true },
-      { name: "showEventTime", type: "text", label: "Doors Open & Show Timings", placeholder: "e.g., Doors Open: 06:30 PM | Event Starts: 07:15 PM", required: true },
-      { name: "passPrice", type: "number", label: "Price per Pass (₹)", placeholder: "e.g., 599", required: true },
-      { name: "totalSeatInventory", type: "number", label: "Total Available Passes / Seats", placeholder: "e.g., 250", required: true },
-      { name: "ageLimitRules", type: "text", label: "Age Limit & Guidelines", placeholder: "e.g., 5+ years require ticket • Traditional attire required for Darshan", required: false },
-      { name: "qrEntryEnabled", type: "text", label: "Turnstile Barcode / QR Format", placeholder: "e.g., BNX Encrypted Digital QR Pass with Turnstile scan", required: false }
+      { name: "passTitle", type: "text", label: "Pass / Ticket Tier Title", placeholder: "e.g., AC Sleeper Upper/Lower, Audi 1 Dolby Atmos, VIP Fan Pit, Special Darshan", required: true },
+      { name: "originDeparturePoint", type: "text", label: "Departure Point / Boarding Gate", placeholder: "e.g., Chennai CMBT Gate 3 / Screen 2 (Audi 2) / East Gopuram Gate", required: true },
+      { name: "destinationDropPoint", type: "text", label: "Arrival / Dropping Point / Zone", placeholder: "e.g., Bangalore Majestic / Row H Seat 12 / Main Sanctum", required: false },
+      { name: "scheduleTimings", type: "text", label: "Departure / Showtime & Boarding Window", placeholder: "e.g., Dep: 09:30 PM (Boarding closes 15m prior)", required: true },
+      { name: "passPrice", type: "number", label: "Price per Seat / Pass (₹)", placeholder: "e.g., 750", required: true },
+      { name: "seatLayoutCapacity", type: "text", label: "Seat Layout / Capacity Tier", placeholder: "e.g., 2+1 Sleeper (36 Berths), Screen 2 (240 Seats), Hourly Quota (100)", required: true },
+      { name: "amenitiesIncluded", type: "text", label: "Included Amenities & Perks", placeholder: "e.g., AC, Charging Port, Bottled Water, Blanket, WiFi, Prasadam", required: false },
+      { name: "mandatoryDocs", type: "text", label: "Mandatory Govt ID / Entry Rules", placeholder: "e.g., Original Aadhaar / Driving License mandatory at Turnstile", required: false },
+      { name: "qrFormat", type: "text", label: "Barcode / Turnstile Encryption Format", placeholder: "e.g., BNX-PNR-QR (Encrypted Turnstile Scannable)", required: false }
     ]
   },
   EVENT: {
@@ -166,14 +178,28 @@ export const ARCHETYPE_SCHEMAS: Record<Archetype, any> = {
     ]
   },
   RENTAL: {
-    title: "Facility & Turf Rental Details",
+    title: "Facility, Turf & Court Rental Details",
     fields: [
-      { name: "facilityName", type: "text", label: "Court / Pitch / Facility Name", placeholder: "e.g., 7s Main Turf A, Badminton Court 1, Indoor Box Cricket", required: true },
-      { name: "turfSize", type: "text", label: "Dimensions / Turf Size", placeholder: "e.g., 100ft x 65ft (7-a-side) or Regulation Badminton Size", required: false },
-      { name: "surfaceType", type: "text", label: "Surface / Flooring Type", placeholder: "e.g., FIFA Certified AstroTurf, Wooden Court, Synthetic Mat", required: false },
-      { name: "hourlyRate", type: "number", label: "Base Hourly Rate (₹)", placeholder: "e.g., 1200", required: true },
-      { name: "hasFloodlights", type: "text", label: "Night Floodlights Available?", placeholder: "e.g., Yes (₹200/hr extra after 6 PM)", required: false },
-      { name: "amenities", type: "multi-select", label: "Turf Amenities", placeholder: "e.g., Floodlights, Changing Rooms, Drinking Water, Parking, Shower", required: false }
+      { name: "facilityName", type: "text", label: "Court / Pitch / Room Name", placeholder: "e.g., 7s Main AstroTurf A, Court 1 (Teak Wood), Meeting Room 3", required: true },
+      { name: "turfSize", type: "text", label: "Court Dimensions & Geometry", placeholder: "e.g., 100ft x 65ft (7-a-side) / Full Court (Auto-locks Half Courts)", required: false },
+      { name: "surfaceType", type: "text", label: "Surface / Floor Type", placeholder: "e.g., FIFA Certified 50mm AstroTurf / Yonex Synthetic Mat", required: false },
+      { name: "hourlyRate", type: "number", label: "Standard Hourly Rate (₹)", placeholder: "e.g., 1200", required: true },
+      { name: "peakHourlyRate", type: "number", label: "Peak / Evening Hourly Rate (₹)", placeholder: "e.g., 1600 (Post 6:00 PM)", required: false },
+      { name: "floodlightsSurcharge", type: "number", label: "Night Floodlights Surcharge (₹ / Hour)", placeholder: "e.g., 200", required: false },
+      { name: "equipmentAddons", type: "text", label: "Rental Equipment & Gear Available", placeholder: "e.g., Bibs & Ball (Free), Professional Rackets (₹50/ea), Shuttles (₹100)", required: false },
+      { name: "refereeOrManager", type: "text", label: "Match Referee / Ground Manager In-charge", placeholder: "e.g., Certified KFA Referee / Ground Supervisor on duty", required: false }
+    ]
+  },
+  FACILITY_HOURLY: {
+    title: "Hourly Arena, Court & Facility Details",
+    fields: [
+      { name: "facilityName", type: "text", label: "Pitch / Court / Room Specification", placeholder: "e.g., Main Turf A, Box Cricket Arena, Podcast Pod 1", required: true },
+      { name: "turfSize", type: "text", label: "Capacity & Dimensions", placeholder: "e.g., 7-a-side / 12 Pax Conference / 4 Podmics", required: false },
+      { name: "surfaceType", type: "text", label: "Flooring / Soundproofing Spec", placeholder: "e.g., FIFA Turf, Wooden Court, Acoustic Studio Treatment", required: false },
+      { name: "hourlyRate", type: "number", label: "Base Hourly Slot Rate (₹)", placeholder: "e.g., 1200", required: true },
+      { name: "peakHourlyRate", type: "number", label: "Peak Evening Rate (₹)", placeholder: "e.g., 1500", required: false },
+      { name: "floodlightsSurcharge", type: "number", label: "Floodlights / Equipment Surcharge (₹)", placeholder: "e.g., 250", required: false },
+      { name: "equipmentAddons", type: "text", label: "Rental Gear & Refreshments", placeholder: "e.g., Match Balls, Rackets, Video Cam, Tea/Coffee", required: false }
     ]
   },
   APPOINTMENT: {

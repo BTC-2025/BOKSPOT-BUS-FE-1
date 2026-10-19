@@ -97,8 +97,8 @@ export default function BookingsPage() {
   let merchantBookings = allMergedBookings.filter((b) => {
     const curName = (currentMerchant.merchantName || '').toLowerCase().trim();
     const bName = (b.merchantName || '').toLowerCase().trim();
-    const matchesName = bName === curName || bName.includes(curName) || curName.includes(bName);
-    const matchesId = b.merchantId && currentMerchant.id && String(b.merchantId) === String(currentMerchant.id);
+    const matchesName = curName && bName && (bName === curName || bName.includes(curName) || curName.includes(bName));
+    const matchesId = b.merchantId && currentMerchant.id && String(b.merchantId).trim() === String(currentMerchant.id).trim();
     const matchesCategory = b.category && currentMerchant.category && (
       b.category.toLowerCase().includes(currentMerchant.category.toLowerCase()) ||
       currentMerchant.category.toLowerCase().includes(b.category.toLowerCase())

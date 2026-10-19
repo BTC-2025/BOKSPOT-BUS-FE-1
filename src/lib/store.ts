@@ -90,6 +90,47 @@ export interface PersistedBooking {
   matchNotes?: string;
   refereeAssigned?: string;
 
+  // PassEntry & Ticket specific fields
+  pnr?: string;
+  ticketBarcode?: string;
+  gateNumber?: string;
+  seatNumbers?: string[];
+  boardingPoint?: string;
+  droppingPoint?: string;
+  busRegNo?: string;
+  screenAudi?: string;
+  admittedAt?: string;
+
+  // AssetRental specific fields
+  assetRegistrationNo?: string;
+  securityDeposit?: number;
+  securityDepositStatus?: 'HELD' | 'REFUNDED' | 'DEDUCTED';
+  startOdometerKm?: number;
+  endOdometerKm?: number;
+  fuelLevelStart?: string;
+  fuelLevelEnd?: string;
+  drivingLicenseVerified?: boolean;
+  handoverAt?: string;
+  returnedAt?: string;
+
+  // HomeCall & Field Dispatch specific fields
+  assignedTechnicianName?: string;
+  assignedTechnicianPhone?: string;
+  serviceAddress?: string;
+  jobOtp?: string;
+  jobCompletionSigned?: boolean;
+  sparePartsCost?: number;
+  inspectionFee?: number;
+  warrantyValidDays?: number;
+
+  // District App Style: Group / Split Billing & Venue Pay
+  isSplitEnabled?: boolean;
+  splitCount?: number;
+  amountPaidByLeader?: number;
+  payMode?: 'FULL_ONLINE' | 'PARTIAL_ADVANCE';
+  advancePaid?: number;
+  balanceAtVenue?: number;
+
   // Flexible archetype metadata & aliases
   metadata?: Record<string, any>;
   price?: number;
@@ -225,7 +266,7 @@ export interface MerchantUser {
   supervisorPhone?: string;
   supervisorEmail?: string;
   supervisorAddress?: string;
-  archetype?: 'Healthcare' | 'ResourceBooking' | 'Service' | 'Dining' | 'Accommodation' | 'SportsFacility' | 'Fitness' | 'EventSpace' | 'Rental' | 'CareServices' | 'PersonalCare' | 'Sports' | 'Wellness' | 'Trade' | 'Workspace' | 'Events' | 'Rentals';
+  archetype?: 'Healthcare' | 'ResourceBooking' | 'Service' | 'Dining' | 'Accommodation' | 'SportsFacility' | 'Fitness' | 'EventSpace' | 'Rental' | 'CareServices' | 'PersonalCare' | 'Sports' | 'Wellness' | 'Trade' | 'Workspace' | 'Events' | 'Rentals' | 'PassEntry' | 'FacilityHourly' | 'OvernightStay' | 'TimeSlot' | 'AssetRental' | 'HomeCall';
   
   // Venue Profile (Global Business Details)
   thingsToKnow?: string[];
@@ -727,7 +768,205 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     vendorId: '20260035',
     email: 'b702@bnxmail.com',
     archetype: 'PersonalCare'
-  }
+  },
+  {
+    id: 'a5eacda5-073d-5c50-8fe3-be622bcd4db6',
+    username: 'B101',
+    merchantName: 'Royal Express Travels',
+    category: 'Bus Booking',
+    logoLetter: 'R',
+    aboutText: 'Welcome to Royal Express Travels. We provide professional Bus Booking services.',
+    vendorId: '20260001',
+    email: 'b101@bnxmail.com',
+    archetype: 'PassEntry'
+  },
+  {
+    id: '06e4edae-3fa5-5944-bc80-49cc2dd64a97',
+    username: 'B102',
+    merchantName: 'Bharat Rail Connect',
+    category: 'Train Booking',
+    logoLetter: 'B',
+    aboutText: 'Welcome to Bharat Rail Connect. We provide professional Train Booking services.',
+    vendorId: '20260002',
+    email: 'b102@bnxmail.com',
+    archetype: 'PassEntry'
+  },
+  {
+    id: '58e793b5-598a-5b83-8a75-6c3e0f57751d',
+    username: 'B103',
+    merchantName: 'SkyWings Airlines',
+    category: 'Flight Booking',
+    logoLetter: 'S',
+    aboutText: 'Welcome to SkyWings Airlines. We provide professional Flight Booking services.',
+    vendorId: '20260003',
+    email: 'b103@bnxmail.com',
+    archetype: 'PassEntry'
+  },
+  {
+    id: '60e0b6dd-e603-57c2-bbbf-a6d8603ba76f',
+    username: 'B104',
+    merchantName: 'Coastal Island Ferry',
+    category: 'Ferry / Boat Booking',
+    logoLetter: 'C',
+    aboutText: 'Welcome to Coastal Island Ferry. We provide professional Ferry / Boat Booking services.',
+    vendorId: '20260004',
+    email: 'b104@bnxmail.com',
+    archetype: 'PassEntry'
+  },
+  {
+    id: 'a143abec-b111-52cd-8a59-563c77ad5058',
+    username: 'B105',
+    merchantName: 'Metro City Shuttles',
+    category: 'Shuttle / Van Booking',
+    logoLetter: 'M',
+    aboutText: 'Welcome to Metro City Shuttles. We provide professional Shuttle / Van Booking services.',
+    vendorId: '20260005',
+    email: 'b105@bnxmail.com',
+    archetype: 'PassEntry'
+  },
+  {
+    id: '659d3f65-c7a6-5fa9-af5c-0e34aa512aef',
+    username: 'B106',
+    merchantName: 'AeroGlide HeliTours',
+    category: 'Helicopter Booking',
+    logoLetter: 'A',
+    aboutText: 'Welcome to AeroGlide HeliTours. We provide professional Helicopter Booking services.',
+    vendorId: '20260006',
+    email: 'b106@bnxmail.com',
+    archetype: 'PassEntry'
+  },
+  {
+    id: '3ff80916-084c-5656-85c1-58143c92c3eb',
+    username: 'C201',
+    merchantName: 'GoCity Cabs',
+    category: 'Cab / Taxi Booking',
+    logoLetter: 'G',
+    aboutText: 'Welcome to GoCity Cabs. We provide professional Cab / Taxi Booking services.',
+    vendorId: '20260007',
+    email: 'c201@bnxmail.com',
+    archetype: 'Rental'
+  },
+  {
+    id: '3169534f-0d6e-5f83-9471-8888d35f2cd4',
+    username: 'V403',
+    merchantName: 'Zoom2Wheelers',
+    category: 'Bike Rental',
+    logoLetter: 'Z',
+    aboutText: 'Welcome to Zoom2Wheelers. We provide professional Bike Rental services.',
+    vendorId: '20260008',
+    email: 'v403@bnxmail.com',
+    archetype: 'Rental'
+  },
+  {
+    id: '82e436b6-169b-56bc-ab00-1d1d3bee335f',
+    username: 'V404',
+    merchantName: 'DriveEasy SelfDrive',
+    category: 'Self-Drive Car Rental',
+    logoLetter: 'D',
+    aboutText: 'Welcome to DriveEasy SelfDrive. We provide professional Self-Drive Car Rental services.',
+    vendorId: '20260009',
+    email: 'v404@bnxmail.com',
+    archetype: 'Rental'
+  },
+  {
+    id: '635bce5c-6d3a-56b4-b7ed-9320ea055dae',
+    username: 'M101',
+    merchantName: 'CineMax Multiplex',
+    category: 'Cinema / Movie Tickets',
+    logoLetter: 'C',
+    aboutText: 'Welcome to CineMax Multiplex. We provide professional Cinema / Movie Tickets services.',
+    vendorId: '20260015',
+    email: 'm101@bnxmail.com',
+    archetype: 'PassEntry'
+  },
+  {
+    id: 'e4a69557-1b75-5404-9257-01419210fba0',
+    username: 'M102',
+    merchantName: 'Nataka Kala Rangam',
+    category: 'Theatre Shows',
+    logoLetter: 'N',
+    aboutText: 'Welcome to Nataka Kala Rangam. We provide professional Theatre Shows services.',
+    vendorId: '20260016',
+    email: 'm102@bnxmail.com',
+    archetype: 'PassEntry'
+  },
+  {
+    id: '6043fd64-f325-5583-8946-e0bbb75f26ce',
+    username: 'M103',
+    merchantName: 'VibeNation Live Events',
+    category: 'Concert Tickets',
+    logoLetter: 'V',
+    aboutText: 'Welcome to VibeNation Live Events. We provide professional Concert Tickets services.',
+    vendorId: '20260017',
+    email: 'm103@bnxmail.com',
+    archetype: 'PassEntry'
+  },
+  {
+    id: '992e0ecc-caa7-52c5-9cb8-eb151d8048bd',
+    username: 'M104',
+    merchantName: 'Grand Fiesta Carnival',
+    category: 'Events & Festivals',
+    logoLetter: 'G',
+    aboutText: 'Welcome to Grand Fiesta Carnival. We provide professional Events & Festivals services.',
+    vendorId: '20260018',
+    email: 'm104@bnxmail.com',
+    archetype: 'PassEntry'
+  },
+  {
+    id: '23c3e74f-1cdd-5a44-9756-76afcafd8e36',
+    username: 'M105',
+    merchantName: 'Pragati Trade Expo',
+    category: 'Exhibition Entry',
+    logoLetter: 'P',
+    aboutText: 'Welcome to Pragati Trade Expo. We provide professional Exhibition Entry services.',
+    vendorId: '20260019',
+    email: 'm105@bnxmail.com',
+    archetype: 'PassEntry'
+  },
+  {
+    id: '4d4ba8c4-4b45-54ab-89e0-3f89606bd1e9',
+    username: 'M106',
+    merchantName: 'Creative Canvas Hub',
+    category: 'Workshops / Classes',
+    logoLetter: 'C',
+    aboutText: 'Welcome to Creative Canvas Hub. We provide professional Workshops / Classes services.',
+    vendorId: '20260020',
+    email: 'm106@bnxmail.com',
+    archetype: 'Service'
+  },
+  {
+    id: '8fb54c57-d208-5aad-a260-5440ffea4fd0',
+    username: 'R501',
+    merchantName: 'Tirumala Balaji Darshan',
+    category: 'Temple Darshan Booking',
+    logoLetter: 'T',
+    aboutText: 'Welcome to Tirumala Balaji Darshan. We provide professional Temple Darshan Booking services.',
+    vendorId: '20260043',
+    email: 'r501@bnxmail.com',
+    archetype: 'PassEntry'
+  },
+  {
+    id: 'ba9e2c2c-f7e1-5e7a-95ba-d5b7c546f146',
+    username: 'R502',
+    merchantName: 'Vedic Purohit Services',
+    category: 'Pooja Slot Booking',
+    logoLetter: 'V',
+    aboutText: 'Welcome to Vedic Purohit Services. We provide professional Pooja Slot Booking services.',
+    vendorId: '20260044',
+    email: 'r502@bnxmail.com',
+    archetype: 'Service'
+  },
+  {
+    id: '4d8183bb-47df-5ffc-ba8e-a775b484dc50',
+    username: 'R503',
+    merchantName: 'Sacred Yatra Tours',
+    category: 'Pilgrimage Packages',
+    logoLetter: 'S',
+    aboutText: 'Welcome to Sacred Yatra Tours. We provide professional Pilgrimage Packages services.',
+    vendorId: '20260045',
+    email: 'r503@bnxmail.com',
+    archetype: 'Accommodation'
+  },
 ];
 
 const INITIAL_SERVICES: CatalogService[] = [];
@@ -870,7 +1109,25 @@ export const SUB_ACCOUNTS: SubAccount[] = [
   { subId: 'M503', merchantId: '8ca6acea-f6bf-dfa4-28f8-3e0bb5045924', passwordHash: 'pass503' },
   { subId: 'P601', merchantId: 'c26fec4d-6ff6-5b1e-fc3a-294596b2f346', passwordHash: 'pass601' },
   { subId: 'B701', merchantId: 'd3f460f8-bf3c-3e72-f822-f1ce090935de', passwordHash: 'pass701' },
-  { subId: 'B702', merchantId: '17dca546-8456-d5e1-9006-254fea58d4ea', passwordHash: 'pass702' }
+  { subId: 'B702', merchantId: '17dca546-8456-d5e1-9006-254fea58d4ea', passwordHash: 'pass702' },
+  { subId: 'B101', merchantId: 'a5eacda5-073d-5c50-8fe3-be622bcd4db6', passwordHash: 'pass101' },
+  { subId: 'B102', merchantId: '06e4edae-3fa5-5944-bc80-49cc2dd64a97', passwordHash: 'pass102' },
+  { subId: 'B103', merchantId: '58e793b5-598a-5b83-8a75-6c3e0f57751d', passwordHash: 'pass103' },
+  { subId: 'B104', merchantId: '60e0b6dd-e603-57c2-bbbf-a6d8603ba76f', passwordHash: 'pass104' },
+  { subId: 'B105', merchantId: 'a143abec-b111-52cd-8a59-563c77ad5058', passwordHash: 'pass105' },
+  { subId: 'B106', merchantId: '659d3f65-c7a6-5fa9-af5c-0e34aa512aef', passwordHash: 'pass106' },
+  { subId: 'C201', merchantId: '3ff80916-084c-5656-85c1-58143c92c3eb', passwordHash: 'pass201' },
+  { subId: 'V403', merchantId: '3169534f-0d6e-5f83-9471-8888d35f2cd4', passwordHash: 'pass403' },
+  { subId: 'V404', merchantId: '82e436b6-169b-56bc-ab00-1d1d3bee335f', passwordHash: 'pass404' },
+  { subId: 'M101', merchantId: '635bce5c-6d3a-56b4-b7ed-9320ea055dae', passwordHash: 'pass101' },
+  { subId: 'M102', merchantId: 'e4a69557-1b75-5404-9257-01419210fba0', passwordHash: 'pass102' },
+  { subId: 'M103', merchantId: '6043fd64-f325-5583-8946-e0bbb75f26ce', passwordHash: 'pass103' },
+  { subId: 'M104', merchantId: '992e0ecc-caa7-52c5-9cb8-eb151d8048bd', passwordHash: 'pass104' },
+  { subId: 'M105', merchantId: '23c3e74f-1cdd-5a44-9756-76afcafd8e36', passwordHash: 'pass105' },
+  { subId: 'M106', merchantId: '4d4ba8c4-4b45-54ab-89e0-3f89606bd1e9', passwordHash: 'pass106' },
+  { subId: 'R501', merchantId: '8fb54c57-d208-5aad-a260-5440ffea4fd0', passwordHash: 'pass501' },
+  { subId: 'R502', merchantId: 'ba9e2c2c-f7e1-5e7a-95ba-d5b7c546f146', passwordHash: 'pass502' },
+  { subId: 'R503', merchantId: '4d8183bb-47df-5ffc-ba8e-a775b484dc50', passwordHash: 'pass503' },
 ];
 
 export const VENDOR_ACCOUNTS = [

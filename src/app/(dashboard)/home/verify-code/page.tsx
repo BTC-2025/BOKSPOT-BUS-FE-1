@@ -22,21 +22,25 @@ export default function CheckinPage() {
     return <div className="text-center text-[color:var(--text-muted)] py-12">Loading check-in console...</div>;
   }
 
-  // Filter bookings for this merchant + travel bookings (cabs, flights, trains, buses)
+  // Filter bookings for this merchant
   const merchantBookings = bookings.filter(
     (b) =>
+      (b.merchantId && currentMerchant.id && String(b.merchantId) === String(currentMerchant.id)) ||
       b.merchantName.toLowerCase() === currentMerchant.merchantName.toLowerCase() ||
-      ['cabs', 'flights', 'trains', 'buses', 'travel'].includes(b.category?.toLowerCase() || '')
+      (currentMerchant.archetype === 'PassEntry' && ['cabs', 'flights', 'trains', 'buses', 'travel', 'movies', 'concerts', 'events', 'exhibitions'].includes(b.category?.toLowerCase() || ''))
   );
 
   const handleVerifyCode = (code: string) => {
     setVerificationResult(null);
     if (!code.trim()) return;
 
+    const query = code.trim().toLowerCase();
     const matched = merchantBookings.find(
       (b) =>
-        b.ref.toLowerCase() === code.trim().toLowerCase() ||
-        (b.otp && b.otp.trim() === code.trim())
+        b.ref.toLowerCase() === query ||
+        (b.otp && b.otp.trim().toLowerCase() === query) ||
+        (b.metadata?.pnr && String(b.metadata.pnr).toLowerCase() === query) ||
+        (b.metadata?.ticketBarcode && String(b.metadata.ticketBarcode).toLowerCase() === query)
     );
 
     if (matched) {
@@ -217,11 +221,22 @@ export default function CheckinPage() {
                   <div className="text-xs font-bold leading-snug">{verificationResult.message}</div>
                   
                   {verificationResult.status === 'success' && verificationResult.bookingRef && (
-                    <div className="p-3 rounded-lg bg-[color:var(--bg-secondary)] border border-[color:var(--border)] space-y-1.5 text-[11px] text-[color:var(--text-secondary)]">
-                      <div>Ref: <strong className="font-mono text-[color:var(--text-primary)]">{verificationResult.bookingRef}</strong></div>
-                      <div className="flex items-center gap-1.5"><User size={12} /> Client: <strong className="text-[color:var(--text-primary)]">{verificationResult.customerName}</strong></div>
-                      <div>Service: <strong className="text-[color:var(--primary)]">{verificationResult.serviceName}</strong></div>
-                      <div className="flex items-center gap-1.5"><Clock size={12} /> Slot: {verificationResult.time}</div>
+                    <div className="p-3.5 rounded-xl bg-[color:var(--bg-secondary)] border border-[color:var(--border)] space-y-2 text-[11px] text-[color:var(--text-secondary)] shadow-sm">
+                      <div className="flex items-center justify-between pb-1.5 border-b border-[color:var(--border)]">
+                        <div>Ref: <strong className="font-mono text-[color:var(--text-primary)] font-bold">{verificationResult.bookingRef}</strong></div>
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 font-extrabold text-[9px] uppercase tracking-wider border border-emerald-500/20">Gate Admitted</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 pt-0.5">
+                        <div className="flex items-center gap-1.5"><User size={12} className="text-[color:var(--primary)]" /> Client: <strong className="text-[color:var(--text-primary)] truncate">{verificationResult.customerName}</strong></div>
+                        <div className="flex items-center gap-1.5"><Clock size={12} className="text-[color:var(--primary)]" /> Slot: <span className="font-semibold text-[color:var(--text-primary)]">{verificationResult.time}</span></div>
+                      </div>
+                      <div>Service: <strong className="text-[color:var(--primary)] font-bold">{verificationResult.serviceName}</strong></div>
+                      {verificationResult.bookingRef && (
+                        <div className="pt-1 text-[10px] text-slate-400 flex items-center justify-between border-t border-[color:var(--border)]/60 font-mono">
+                          <span>PNR: {verificationResult.bookingRef.replace('BK-', 'PNR-')}</span>
+                          <span>Barcode Validated ✓</span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

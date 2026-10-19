@@ -114,6 +114,32 @@
   --border: rgba(22, 163, 74, 0.2);
 }
 
+:root:not(.dark) .theme-pass {
+  --primary: #0284c7;
+  --primary-dark: #0369a1;
+  --accent: #ff6325;
+  --bg-primary: #f0f9ff;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e0f2fe;
+  --text-primary: #0c4a6e;
+  --text-secondary: #075985;
+  --text-muted: #0284c7;
+  --border: rgba(2, 132, 199, 0.2);
+}
+
+:root:not(.dark) .theme-rental {
+  --primary: #d97706;
+  --primary-dark: #b45309;
+  --accent: #ff6325;
+  --bg-primary: #fffbeb;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #fef3c7;
+  --text-primary: #78350f;
+  --text-secondary: #92400e;
+  --text-muted: #b45309;
+  --border: rgba(217, 119, 6, 0.2);
+}
+
 /* Global overrides for hardcoded Tailwind backgrounds and brand colors */
 .bg-\[\#030c17\] { background-color: var(--bg-primary) !important; }
 .bg-\[\#061528\] { background-color: var(--bg-secondary) !important; }
