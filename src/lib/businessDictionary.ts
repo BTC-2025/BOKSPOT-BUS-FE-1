@@ -71,6 +71,8 @@ export type ArchetypeConfig = {
   customerDesc?: string;
   customerTierLabel?: string;
   customerMetricsLabel?: string;
+  customerSpendLabel?: string;
+  customerVolumeLabel?: string;
   gradientClass?: string;
   dashboardTitle?: string;
   metric1Title?: string;
@@ -250,12 +252,23 @@ export const businessDictionary: Record<string, ArchetypeConfig> = {
     servicesEmptyTitle: 'No Rooms Defined',
     servicesEmptyDesc: 'Create room categories and define tariff prices.',
     staffEmptyTitle: 'No Staff Found',
-    staffEmptyDesc: 'Onboard your reception and housekeeping staff.',
+    staffEmptyDesc: 'Onboard your reception and housekeeping staff to manage guests.',
     priceLabel: 'Tariff/Night',
     createServiceLabel: 'Create Room',
     editServiceLabel: 'Edit Room',
     assignStaffLabel: 'Assign Manager',
     deployServiceLabel: 'Add Room',
+    customerSearchPlaceholder: 'Search guest name, room number, or reservation ID...',
+    customerMetricsLabel: 'Stays',
+    customerSpendLabel: 'Total Spent',
+    customerVolumeLabel: 'Total Revenue',
+    bookingRefLabel: 'Guest & Room',
+    bookingAssignedLabel: 'Assigned Host / Manager',
+    staffRolePlaceholder: 'e.g. Front Desk Executive, Housekeeping Lead, Resort Manager',
+    staffNamePlaceholder: 'e.g. Rajesh Kumar',
+    staffEmailPlaceholder: 'e.g. frontdesk@resort.com',
+    serviceNamePlaceholder: 'e.g. Deluxe Ocean View Villa, Luxury Swiss Cottage',
+    serviceFeePlaceholder: 'e.g. 4500',
   },
   Beauty: {
 

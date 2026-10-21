@@ -186,10 +186,15 @@ body {
   box-shadow: 0 4px 25px rgba(10, 49, 97, 0.35), 0 1px 0 rgba(255, 255, 255, 0.1) inset !important;
 }
 
-.vendor-navbar > div button,
-.vendor-navbar > div a,
-.vendor-navbar > div span,
-.vendor-navbar > div svg {
+.vendor-navbar > div > button,
+.vendor-navbar > div > a,
+.vendor-navbar > div > span,
+.vendor-navbar > div > svg {
+  color: #ffffff !important;
+}
+
+/* Lucide SVGs directly inside the top navbar buttons */
+.vendor-navbar > div:not(.profile-dropdown-card) > button svg {
   color: #ffffff !important;
 }
 
@@ -212,10 +217,9 @@ body {
   color: #ffffff !important;
 }
 
-/* Ensure profile dropdown avatar and contents remain properly colored */
-.vendor-navbar .profile-dropdown-card,
-.vendor-navbar .profile-dropdown-card * {
-  color: var(--text-primary) !important;
+/* Ensure profile dropdown default text color without overriding intentional inner badge colors like text-white */
+.vendor-navbar .profile-dropdown-card {
+  color: var(--text-primary);
 }
 
 .gradient-text {
@@ -676,4 +680,33 @@ body {
 }
 .light .shadow-2xl {
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* ─── Clear, High-Contrast Date & Time Picker Indicators ─── */
+input[type="time"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.85;
+  filter: invert(42%) sepia(98%) saturate(1450%) hue-rotate(346deg) brightness(98%) contrast(102%); /* Bokspot Orange #ff6325 */
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  width: 18px;
+  height: 18px;
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  transform: scale(1.15);
+  opacity: 1;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.85;
+  filter: invert(42%) sepia(98%) saturate(1450%) hue-rotate(346deg) brightness(98%) contrast(102%); /* Bokspot Orange #ff6325 */
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  width: 18px;
+  height: 18px;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  transform: scale(1.15);
+  opacity: 1;
 }

@@ -8,7 +8,7 @@ import {
   Package, Menu, X, Bell, LogOut, Stethoscope, Dumbbell, Bed, 
   Scissors, Utensils, ShieldAlert, Check, Trash2, Info,
   ChevronDown, Building, Building2, Film, Sparkles, LogOut as LogOutIcon, Laptop, User,
-  Sun, Moon, Users, Mail, Search, UserCog, MapPin, Clock, ShieldCheck, MessageSquare, Calculator, Ticket, CheckCircle, Headset
+  Sun, Moon, Users, Mail, Search, UserCog, MapPin, Clock, ShieldCheck, MessageSquare, Calculator, Ticket, CheckCircle, Headset, Camera
 } from 'lucide-react';
 import { UtilityDrawer } from '@/components/UtilityDrawer';
 import { LocationSelectorModal } from '@/components/LocationSelectorModal';
@@ -17,6 +17,7 @@ import { useVendorStore, PRESET_MERCHANTS } from '@/lib/store';
 import { getArchetypeConfig } from '@/lib/businessDictionary';
 import OnboardingWizard from './components/OnboardingWizard';
 import { getVerticalFromCategory } from '@/lib/categoryUtils';
+import { getArchetypeFromCategory } from '@/lib/archetypes';
 
 const staticNavItems = [
   { href: '/home/verify-code', icon: QrCode, label: 'Verify Code' },
@@ -75,11 +76,42 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       const storedCity = localStorage.getItem('bus-selected-city');
       if (storedCity) setCity(storedCity);
     }
-    if (useVendorStore.persist.hasHydrated()) {
+    const cleanupStore = () => {
       setHasHydrated(true);
+      const merchant = useVendorStore.getState().currentMerchant;
+      if (merchant) {
+        const curId = String(merchant.id || '').trim();
+        const curName = (merchant.merchantName || '').toLowerCase().trim();
+        const curArch = getArchetypeFromCategory(merchant.archetype) || getArchetypeFromCategory(merchant.category);
+        const existingBookings = useVendorStore.getState().bookings;
+        const valid = existingBookings.filter((b: any) => {
+          const bId = String(b.merchantId || '').trim();
+          const bName = (b.merchantName || '').toLowerCase().trim();
+          const matches = (curId && bId && curId === bId) || (curName && bName && curName === bName);
+          if (!matches) return false;
+
+          const bCategory = (b.category || '').toLowerCase().trim();
+          const bServiceName = (b.serviceName || '').toLowerCase();
+          const bArch = getArchetypeFromCategory(bCategory);
+
+          if (curArch === 'ACCOMMODATION' || ['homestay / villa', 'homestay-villa', 'villas', 'hotels', 'resorts'].includes((merchant.category || '').toLowerCase().trim())) {
+            if (bArch === 'TRANSPORT' || ['buses', 'trains', 'flights', 'cabs'].includes(bCategory)) return false;
+            if (/bus|train|flight|shatabdi|volvo/i.test(bServiceName)) return false;
+          }
+          if (curArch && bArch && curArch !== bArch) return false;
+          return true;
+        });
+        if (valid.length !== existingBookings.length) {
+          useVendorStore.setState({ bookings: valid });
+        }
+      }
+    };
+
+    if (useVendorStore.persist.hasHydrated()) {
+      cleanupStore();
     }
     const unsub = useVendorStore.persist.onFinishHydration(() => {
-      setHasHydrated(true);
+      cleanupStore();
     });
     return () => unsub();
   }, []);
@@ -118,6 +150,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
       };
       setNotifications(getMockNotifications());
+      
+      // Strict Isolation: Sanitize local store bookings so foreign merchant bookings are cleaned up immediately
+      const curId = String(currentMerchant.id || '').trim();
+      const curName = (currentMerchant.merchantName || '').toLowerCase().trim();
+      const curArch = getArchetypeFromCategory(currentMerchant.archetype) || getArchetypeFromCategory(currentMerchant.category);
+      const currentBookings = useVendorStore.getState().bookings;
+      const validForCurrent = currentBookings.filter((b: any) => {
+        const bId = String(b.merchantId || '').trim();
+        const bName = (b.merchantName || '').toLowerCase().trim();
+        const matches = (curId && bId && curId === bId) || (curName && bName && curName === bName);
+        if (!matches) return false;
+
+        const bCategory = (b.category || '').toLowerCase().trim();
+        const bServiceName = (b.serviceName || '').toLowerCase();
+        const bArch = getArchetypeFromCategory(bCategory);
+
+        if (curArch === 'ACCOMMODATION' || ['homestay / villa', 'homestay-villa', 'villas', 'hotels', 'resorts'].includes((currentMerchant.category || '').toLowerCase().trim())) {
+          if (bArch === 'TRANSPORT' || ['buses', 'trains', 'flights', 'cabs'].includes(bCategory)) return false;
+          if (/bus|train|flight|shatabdi|volvo/i.test(bServiceName)) return false;
+        }
+        if (curArch && bArch && curArch !== bArch) return false;
+        return true;
+      });
+      if (validForCurrent.length !== currentBookings.length) {
+        useVendorStore.setState({ bookings: validForCurrent });
+      }
     }
   }, [currentMerchant]);
 
@@ -159,13 +217,40 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           const merged = [...currentBookings];
 
           data.forEach((syncB: any) => {
+            // Strict security & isolation check:
+            // Do NOT touch or adopt bookings belonging to other merchants/categories!
+            const curName = (currentMerchant.merchantName || '').toLowerCase().trim();
+            const bMerchantName = (syncB.merchantName || '').toLowerCase().trim();
+            const curId = String(currentMerchant.id || '').trim();
+            const bMerchantId = String(syncB.merchantId || '').trim();
+
+            const isSameId = Boolean(curId && bMerchantId && curId === bMerchantId);
+            const isSameName = Boolean(curName && bMerchantName && curName === bMerchantName);
+
+            // If this booking explicitly belongs to another merchant, do NOT merge it into this merchant's state
+            if (!isSameId && !isSameName) {
+              return;
+            }
+
+            // Archetype / Service mismatch check
+            const curArch = getArchetypeFromCategory(currentMerchant.archetype) || getArchetypeFromCategory(currentMerchant.category);
+            const bCategory = (syncB.category || '').toLowerCase().trim();
+            const bServiceName = (syncB.serviceName || '').toLowerCase();
+            const bArch = getArchetypeFromCategory(bCategory);
+
+            if (curArch === 'ACCOMMODATION' || ['homestay / villa', 'homestay-villa', 'villas', 'hotels', 'resorts'].includes((currentMerchant.category || '').toLowerCase().trim())) {
+              if (bArch === 'TRANSPORT' || ['buses', 'trains', 'flights', 'cabs'].includes(bCategory)) return;
+              if (/bus|train|flight|shatabdi|volvo/i.test(bServiceName)) return;
+            }
+            if (curArch && bArch && curArch !== bArch) return;
+
             const index = merged.findIndex((b) => b.ref === syncB.ref || b.id === syncB.id);
             if (index === -1) {
               merged.unshift({
                 ...syncB,
                 merchantName: syncB.merchantName || currentMerchant.merchantName,
                 merchantId: syncB.merchantId || currentMerchant.id,
-                status: syncB.status === 'CONFIRMED' ? 'CONFIRMED' : (syncB.status || 'PENDING'),
+                status: syncB.status || 'PENDING',
               });
               changed = true;
             } else {
@@ -465,6 +550,37 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <span className="text-[10px] font-extrabold tracking-wider uppercase text-white select-none hidden md:inline">Spotlight</span>
           </button>
 
+          {/* Direct 1-Click Theme Toggle Button */}
+          <button
+            onClick={() => {
+              const isCurrentlyDark = document.documentElement.classList.contains('dark') || theme === 'dark';
+              const nextTheme = isCurrentlyDark ? 'light' : 'dark';
+              setTheme(nextTheme);
+              if (nextTheme === 'light') {
+                document.documentElement.classList.add('light');
+                document.documentElement.classList.remove('dark');
+                document.documentElement.setAttribute('data-theme', 'light');
+                document.body?.classList.add('light');
+                document.body?.classList.remove('dark');
+              } else {
+                document.documentElement.classList.remove('light');
+                document.documentElement.classList.add('dark');
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.body?.classList.remove('light');
+                document.body?.classList.add('dark');
+              }
+            }}
+            className="flex items-center justify-center rounded-xl p-2 border border-white/25 hover:border-white/40 bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer shadow-md"
+            title="Toggle Light / Dark Mode"
+            aria-label="Toggle theme"
+          >
+            {theme === 'light' ? (
+              <Moon className="h-3.5 w-3.5 text-blue-300" />
+            ) : (
+              <Sun className="h-3.5 w-3.5 text-amber-400" />
+            )}
+          </button>
+
           {/* Stateful Notifications Popover */}
           <div className="relative" ref={popoverRef}>
             <button 
@@ -579,8 +695,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         (currentMerchant?.username || 'P').charAt(0).toUpperCase()
                       )}
                     </div>
-                    <label className="absolute bottom-0 right-0 h-5 w-5 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 shadow-sm hover:bg-slate-50 cursor-pointer">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    <label className="absolute bottom-0 right-0 h-5 w-5 rounded-full bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-500 flex items-center justify-center shadow-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors cursor-pointer">
+                      <Camera size={11} strokeWidth={2.5} className="!text-slate-800 dark:!text-white !stroke-slate-800 dark:!stroke-white" />
                       <input 
                         type="file" 
                         accept="image/png, image/jpeg" 
@@ -642,17 +758,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Appearance</span>
                     <span className="text-[11px] font-extrabold capitalize text-[#8b6508] dark:text-[#d4af37]">{theme || 'System'}</span>
                   </div>
-                  <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-slate-200/70 dark:bg-slate-800 border border-slate-300/60 dark:border-slate-700">
+                  <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-slate-200/80 dark:bg-slate-800 border border-slate-300 dark:border-slate-700">
                     <button
                       type="button"
                       onClick={() => setTheme('light')}
                       className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                         theme === 'light'
-                          ? 'bg-white !text-slate-900 shadow-sm'
-                          : '!text-slate-600 dark:!text-slate-400 hover:!text-slate-900 dark:hover:!text-white'
+                          ? 'bg-white !text-slate-900 shadow-sm border border-slate-200'
+                          : '!text-slate-700 dark:!text-slate-300 hover:!text-slate-950 dark:hover:!text-white'
                       }`}
                     >
-                      <Sun size={13} className={theme === 'light' ? '!text-amber-500' : ''} /> Light
+                      <Sun size={13} className={theme === 'light' ? '!text-amber-500 !stroke-amber-500' : '!text-slate-600 dark:!text-slate-400 !stroke-slate-600 dark:!stroke-slate-400'} /> 
+                      <span>Light</span>
                     </button>
                     <button
                       type="button"
@@ -660,21 +777,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                         theme === 'dark'
                           ? 'bg-slate-900 !text-white shadow-sm'
-                          : '!text-slate-600 dark:!text-slate-400 hover:!text-slate-900 dark:hover:!text-white'
+                          : '!text-slate-700 dark:!text-slate-300 hover:!text-slate-950 dark:hover:!text-white'
                       }`}
                     >
-                      <Moon size={13} className={theme === 'dark' ? '!text-blue-400' : ''} /> Dark
+                      <Moon size={13} className={theme === 'dark' ? '!text-blue-400 !stroke-blue-400' : '!text-slate-600 dark:!text-slate-400 !stroke-slate-600 dark:!stroke-slate-400'} /> 
+                      <span>Dark</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setTheme('system')}
                       className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                         theme === 'system'
-                          ? 'bg-white dark:bg-slate-900 !text-slate-900 dark:!text-white shadow-sm'
-                          : '!text-slate-600 dark:!text-slate-400 hover:!text-slate-900 dark:hover:!text-white'
+                          ? 'bg-white dark:bg-slate-900 !text-slate-900 dark:!text-white shadow-sm border border-slate-200 dark:border-transparent'
+                          : '!text-slate-700 dark:!text-slate-300 hover:!text-slate-950 dark:hover:!text-white'
                       }`}
                     >
-                      <Laptop size={13} /> Auto
+                      <Laptop size={13} className={theme === 'system' ? '!text-[#ff6325] !stroke-[#ff6325]' : '!text-slate-600 dark:!text-slate-400 !stroke-slate-600 dark:!stroke-slate-400'} /> 
+                      <span>Auto</span>
                     </button>
                   </div>
                 </div>
@@ -693,17 +812,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                           }}
                           className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-colors cursor-pointer text-xs ${
                             isActive
-                              ? 'bg-[#ff6325]/15 border border-[#ff6325]/30 text-[#ff6325] font-black'
-                              : 'hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-slate-200 font-bold'
+                              ? 'bg-[#ff6325]/15 border border-[#ff6325]/40 text-[#c2410c] dark:text-[#ff6325] font-black'
+                              : 'hover:bg-slate-100 dark:hover:bg-white/5 text-slate-900 dark:text-slate-100 font-bold'
                           }`}
                         >
                           <div className="flex items-center gap-2 truncate">
-                            <span className="w-5 h-5 rounded-md bg-[#0a3161] text-white flex items-center justify-center text-[10px] font-black shrink-0">
+                            <span className="w-5 h-5 rounded-md bg-[#0a3161] !text-white flex items-center justify-center text-[10px] font-black shrink-0 shadow-xs">
                               {m.logoLetter || m.merchantName.charAt(0)}
                             </span>
-                            <span className="truncate">{m.merchantName}</span>
+                            <span className="truncate text-slate-900 dark:text-white font-extrabold">{m.merchantName}</span>
                           </div>
-                          {isActive && <span className="text-[10px] text-[#ff6325] font-black uppercase">Active</span>}
+                          {isActive && <span className="text-[10px] text-[#c2410c] dark:text-[#ff6325] font-black uppercase tracking-wider">Active</span>}
                         </button>
                       );
                     })}

@@ -2,6 +2,7 @@
 
 import { useVendorStore, PersistedBooking } from '@/lib/store'; 
 import { getArchetypeConfig } from '@/lib/businessDictionary';
+import { getArchetypeFromCategory } from '@/lib/archetypes';
 import { 
   Search, Clock, CheckCircle2, ChevronRight, X, Phone, 
   Activity, FileText, Pill, Stethoscope, ChevronDown, User, HeartPulse, ActivitySquare, TestTube2, AlertCircle, FileDigit, MonitorPlay, Zap, ShieldAlert, Flag, Tag
@@ -9,7 +10,7 @@ import {
 import { useState, useEffect } from 'react';
 
 export default function BookingsPage() {
-  const { currentMerchant, bookings, staffAccounts, loginRole, currentStaff, checkInBooking, completeBooking, savePrescription } = useVendorStore();
+  const { currentMerchant, bookings, staffAccounts, loginRole, currentStaff, checkInBooking, completeBooking, savePrescription, assignStaffToBooking } = useVendorStore();
   const [mounted, setMounted] = useState(false);
 
   // States
@@ -18,10 +19,8 @@ export default function BookingsPage() {
   
   const baseConfig = getArchetypeConfig(currentMerchant?.archetype || 'Service');
   const archetypeConfig = { ...baseConfig, ...(currentMerchant?.customDictionary || {}) };
-        
 
   // Prescription Form (Healthcare)
-  
   
 
   // Match Notes (Turf)
@@ -32,6 +31,30 @@ export default function BookingsPage() {
 
   useEffect(() => {
     setMounted(true);
+    if (!currentMerchant) return;
+
+    const curArch = getArchetypeFromCategory(currentMerchant.archetype) || getArchetypeFromCategory(currentMerchant.category);
+    const curName = (currentMerchant.merchantName || '').toLowerCase().trim();
+    const curId = String(currentMerchant.id || '').trim();
+
+    const isMatch = (b: any) => {
+      const bId = String(b.merchantId || '').trim();
+      const bName = (b.merchantName || '').toLowerCase().trim();
+      const matches = (curId && bId && curId === bId) || (curName && bName && curName === bName);
+      if (!matches) return false;
+
+      const bCategory = (b.category || '').toLowerCase().trim();
+      const bServiceName = (b.serviceName || '').toLowerCase();
+      const bArch = getArchetypeFromCategory(bCategory);
+
+      if (curArch === 'ACCOMMODATION' || ['homestay / villa', 'homestay-villa', 'villas', 'hotels', 'resorts'].includes((currentMerchant.category || '').toLowerCase().trim())) {
+        if (bArch === 'TRANSPORT' || ['buses', 'trains', 'flights', 'cabs'].includes(bCategory)) return false;
+        if (/bus|train|flight|shatabdi|volvo/i.test(bServiceName)) return false;
+      }
+      if (curArch && bArch && curArch !== bArch) return false;
+      return true;
+    };
+
     const fetchSync = async () => {
       try {
         let res = await fetch(`/api/v1/bookings/sync?t=${Date.now()}`, { cache: 'no-store' });
@@ -41,9 +64,8 @@ export default function BookingsPage() {
         if (res.ok) {
           const raw = await res.json();
           const items = Array.isArray(raw?.data) ? raw.data : (Array.isArray(raw) ? raw : []);
-          if (items.length > 0 || liveBookings.length === 0) {
-            setLiveBookings(items);
-          }
+          const merchantOnlyLive = items.filter(isMatch);
+          setLiveBookings(merchantOnlyLive);
         }
       } catch (e) {
         try {
@@ -51,7 +73,8 @@ export default function BookingsPage() {
           if (resDirect.ok) {
             const rawDirect = await resDirect.json();
             const itemsDirect = Array.isArray(rawDirect?.data) ? rawDirect.data : (Array.isArray(rawDirect) ? rawDirect : []);
-            if (itemsDirect.length > 0) setLiveBookings(itemsDirect);
+            const merchantOnlyDirect = itemsDirect.filter(isMatch);
+            setLiveBookings(merchantOnlyDirect);
           }
         } catch (err2) {}
       }
@@ -59,7 +82,7 @@ export default function BookingsPage() {
     fetchSync();
     const interval = setInterval(fetchSync, 2000);
     return () => clearInterval(interval);
-  }, []);
+  }, [currentMerchant]);
 
   const handleAccept = async (b: any) => {
     setAcceptingId(b.id);
@@ -77,6 +100,34 @@ export default function BookingsPage() {
     setAcceptingId(null);
   };
 
+  const handleAssignStaff = async (booking: any, staffId: string) => {
+    const selected = staffAccounts.find(s => s.id === staffId);
+    const staffName = selected?.name || '';
+    assignStaffToBooking(booking.id, staffId, staffName);
+    
+    // Update local liveBookings
+    setLiveBookings(prev => prev.map(item => item.id === booking.id ? {
+      ...item,
+      assignedDoctorId: staffId,
+      refereeAssigned: staffName,
+      assignedStaffName: staffName
+    } : item));
+
+    // Sync to backend so persistence & staff view updates
+    try {
+      await fetch('/api/v1/bookings/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...booking,
+          assignedDoctorId: staffId,
+          refereeAssigned: staffName,
+          assignedStaffName: staffName
+        }),
+      });
+    } catch (err) {}
+  };
+
   if (!currentMerchant || !mounted) {
     return (
       <div className="flex h-full min-h-[500px] items-center justify-center">
@@ -85,25 +136,45 @@ export default function BookingsPage() {
     );
   }
 
-  // Combine bookings from store and live bookings
-  const allMergedBookings = [...bookings];
-  liveBookings.forEach((lb: any) => {
-    if (!allMergedBookings.some(b => b.ref === lb.ref || b.id === lb.id)) {
-      allMergedBookings.unshift(lb);
+  // Combine bookings: liveBookings from backend take precedence over local cache
+  const allMergedBookings = [...liveBookings];
+  bookings.forEach((b: any) => {
+    if (!allMergedBookings.some(lb => lb.ref === b.ref || lb.id === b.id)) {
+      allMergedBookings.push(b);
     }
   });
 
-  // Filter logic — match by merchantName, merchantId, or include if matching current category or no merchant explicitly specified
+  // Strict Filter logic — ONLY show bookings that explicitly belong to THIS merchant (by ID or exact Merchant Name)
+  // and guarantee strict archetype / category isolation so Villa never sees Bus/Train bookings.
+  const curArch = getArchetypeFromCategory(currentMerchant.archetype) || getArchetypeFromCategory(currentMerchant.category);
+  const curName = (currentMerchant.merchantName || '').toLowerCase().trim();
+  const curId = String(currentMerchant.id || '').trim();
+
   let merchantBookings = allMergedBookings.filter((b) => {
-    const curName = (currentMerchant.merchantName || '').toLowerCase().trim();
-    const bName = (b.merchantName || '').toLowerCase().trim();
-    const matchesName = curName && bName && (bName === curName || bName.includes(curName) || curName.includes(bName));
-    const matchesId = b.merchantId && currentMerchant.id && String(b.merchantId).trim() === String(currentMerchant.id).trim();
-    const matchesCategory = b.category && currentMerchant.category && (
-      b.category.toLowerCase().includes(currentMerchant.category.toLowerCase()) ||
-      currentMerchant.category.toLowerCase().includes(b.category.toLowerCase())
-    );
-    return matchesName || matchesId || matchesCategory;
+    const bMerchantName = (b.merchantName || '').toLowerCase().trim();
+    const bMerchantId = String(b.merchantId || '').trim();
+
+    // 1. Direct Merchant ID Match
+    const matchesId = Boolean(curId && bMerchantId && curId === bMerchantId);
+    // 2. Direct Merchant Name Match (Exact match to prevent partial collisions)
+    const matchesName = Boolean(curName && bMerchantName && curName === bMerchantName);
+    // 3. Fallback for bookings without merchantId/merchantName only if serviceName explicitly contains the merchant's exact business name
+    const bServiceName = (b.serviceName || '').toLowerCase().trim();
+    const matchesServiceFallback = Boolean(!bMerchantId && !bMerchantName && curName && bServiceName && bServiceName.includes(curName));
+
+    if (!matchesId && !matchesName && !matchesServiceFallback) return false;
+
+    // Archetype / Service category isolation:
+    const bCategory = (b.category || '').toLowerCase().trim();
+    const bArch = getArchetypeFromCategory(bCategory);
+
+    if (curArch === 'ACCOMMODATION' || ['homestay / villa', 'homestay-villa', 'villas', 'hotels', 'resorts'].includes((currentMerchant.category || '').toLowerCase().trim())) {
+      if (bArch === 'TRANSPORT' || ['buses', 'trains', 'flights', 'cabs'].includes(bCategory)) return false;
+      if (/bus|train|flight|shatabdi|volvo/i.test(bServiceName)) return false;
+    }
+    if (curArch && bArch && curArch !== bArch) return false;
+
+    return true;
   });
 
   const isStaffView = loginRole === 'staff';
@@ -111,13 +182,10 @@ export default function BookingsPage() {
     const staffFiltered = merchantBookings.filter((b) => 
       b.assignedDoctorId === currentStaff.id || b.refereeAssigned === currentStaff.name
     );
-    if (staffFiltered.length > 0) {
-      merchantBookings = staffFiltered;
-    }
+    merchantBookings = staffFiltered;
   }
 
-  // If filtered by merchant returned 0, but allMergedBookings has items, fallback to showing all bookings
-  const displayBookings = merchantBookings.length > 0 ? merchantBookings : allMergedBookings;
+  const displayBookings = merchantBookings;
 
   const filteredBookings = displayBookings.filter((b) => {
     const searchTarget = (b.teamName || b.customerName || '');
@@ -166,7 +234,46 @@ export default function BookingsPage() {
                   const res = await fetch(`http://localhost:9000/api/v1/bookings/sync?t=${Date.now()}`);
                   const raw = await res.json();
                   const items = Array.isArray(raw?.data) ? raw.data : (Array.isArray(raw) ? raw : []);
-                  if (items.length > 0) setLiveBookings(items);
+                  const curName = (currentMerchant?.merchantName || '').toLowerCase().trim();
+                  const curId = String(currentMerchant?.id || '').trim();
+                  const curArch = currentMerchant?.archetype || getArchetypeFromCategory(currentMerchant?.category);
+
+                  const merchantOnly = items.filter((b: any) => {
+                    const bId = String(b.merchantId || '').trim();
+                    const bName = (b.merchantName || '').toLowerCase().trim();
+                    const matches = (curId && bId && curId === bId) || (curName && bName && curName === bName);
+                    if (!matches) return false;
+
+                    const bCategory = (b.category || '').toLowerCase().trim();
+                    const bServiceName = (b.serviceName || '').toLowerCase();
+                    const bArch = getArchetypeFromCategory(bCategory);
+
+                    if (curArch === 'ACCOMMODATION' || ['homestay / villa', 'homestay-villa', 'villas', 'hotels', 'resorts'].includes((currentMerchant?.category || '').toLowerCase().trim())) {
+                      if (bArch === 'TRANSPORT' || ['buses', 'trains', 'flights', 'cabs'].includes(bCategory)) return false;
+                      if (/bus|train|flight|shatabdi|volvo/i.test(bServiceName)) return false;
+                    }
+                    if (curArch && bArch && curArch !== bArch) return false;
+                    return true;
+                  });
+                  setLiveBookings(merchantOnly);
+
+                  // Also cleanse store's persisted bookings
+                  const currentStored = useVendorStore.getState().bookings;
+                  const cleanedStore = currentStored.filter((b: any) => {
+                    const bId = String(b.merchantId || '').trim();
+                    const bName = (b.merchantName || '').toLowerCase().trim();
+                    const matches = (curId && bId && curId === bId) || (curName && bName && curName === bName);
+                    if (!matches) return false;
+                    const bCategory = (b.category || '').toLowerCase().trim();
+                    const bServiceName = (b.serviceName || '').toLowerCase();
+                    const bArch = getArchetypeFromCategory(bCategory);
+                    if (curArch === 'ACCOMMODATION' || ['homestay / villa', 'homestay-villa', 'villas', 'hotels', 'resorts'].includes((currentMerchant?.category || '').toLowerCase().trim())) {
+                      if (bArch === 'TRANSPORT' || ['buses', 'trains', 'flights', 'cabs'].includes(bCategory)) return false;
+                      if (/bus|train|flight|shatabdi|volvo/i.test(bServiceName)) return false;
+                    }
+                    return true;
+                  });
+                  useVendorStore.setState({ bookings: cleanedStore });
                 } catch(e) {}
               }} 
               className="px-2 py-0.5 rounded bg-[#ff6325] text-white font-bold text-[10px] ml-2 hover:opacity-90 active:scale-95"
@@ -196,7 +303,7 @@ export default function BookingsPage() {
         <div className="hidden md:grid grid-cols-12 gap-4 px-8 py-4 bg-bg-tertiary/40 border-b border-border-brand/40 text-[10px] font-black uppercase tracking-widest text-text-secondary">
           <div className="col-span-3">{archetypeConfig.bookingRefLabel || 'Ref & Name'}</div>
           <div className="col-span-2">Date / Time</div>
-          <div className="col-span-3">'Service Type'</div>
+          <div className="col-span-3">Service Type</div>
           <div className="col-span-2">{archetypeConfig.bookingAssignedLabel || 'Assigned Staff'}</div>
           <div className="col-span-2 text-right">Status</div>
         </div>
@@ -234,26 +341,42 @@ export default function BookingsPage() {
                 {/* Column 3: Service */}
                 <div className="col-span-1 md:col-span-3">
                   <p className="text-xs font-bold text-text-primary line-clamp-1">{b.serviceName}</p>
-                  <p className="text-[10px] font-semibold text-text-secondary">{currentMerchant.category}</p>
+                  <p className="text-[10px] font-semibold text-text-secondary">{b.category || currentMerchant.category}</p>
                 </div>
 
-                {/* Column 4: Doctor/Staff */}
-                <div className="col-span-1 md:col-span-2">
+                {/* Column 4: Doctor/Staff Assign Selector */}
+                <div className="col-span-1 md:col-span-2" onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center gap-2">
-                    <div className="h-6 w-6 rounded-full bg-bg-tertiary border border-border-brand flex items-center justify-center">
+                    <div className="h-6 w-6 rounded-full bg-bg-tertiary border border-border-brand flex items-center justify-center shrink-0">
                       <EmptyIcon size={10} className='text-text-secondary' />
                     </div>
-                    <div>
-                      <p className="text-xs font-bold text-text-primary">
-                        {`${archetypeConfig.staffPrefix || ''}${staff?.name || 'Unassigned'}`}
-                      </p>
+                    <div className="min-w-0 flex-1">
+                      <select
+                        value={b.assignedDoctorId || ''}
+                        onChange={(e) => handleAssignStaff(b, e.target.value)}
+                        className="w-full bg-bg-secondary hover:bg-bg-tertiary border border-border-brand/70 rounded-lg px-2 py-1 text-xs font-bold text-text-primary outline-none focus:border-[#ff6325] cursor-pointer transition-colors truncate"
+                      >
+                        <option value="">Unassigned</option>
+                        {staffAccounts.map(s => {
+                          const role = s.roleTitle || (s as any).role || '';
+                          return (
+                            <option key={s.id} value={s.id}>
+                              {archetypeConfig.staffPrefix || ''}{s.name}{role ? ` (${role})` : ''}
+                            </option>
+                          );
+                        })}
+                      </select>
                     </div>
                   </div>
                 </div>
 
                 {/* Column 5: Status / Action */}
                 <div className="col-span-1 md:col-span-2 flex justify-end items-center gap-2">
-                  {b.status === 'PENDING' ? (
+                  {b.status === 'SPLIT_PENDING' ? (
+                    <div className="px-3.5 py-1.5 rounded-xl flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-wider bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
+                      <span>👥 Split ({b.splitPaidMembers || 1}/{b.splitCount || 2})</span>
+                    </div>
+                  ) : b.status === 'PENDING' ? (
                     <button
                       disabled={acceptingId === b.id}
                       onClick={(e) => {
@@ -276,6 +399,7 @@ export default function BookingsPage() {
                       b.status === 'COMPLETED' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' :
                       b.status === 'CHECKED_IN' ? 'bg-blue-500/10 border-blue-500/30 text-blue-400' :
                       b.status === 'CONFIRMED' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500' :
+                      b.status === 'CANCELLED' ? 'bg-red-500/10 border-red-500/30 text-red-400' :
                       'bg-[#ff6325]/10 border-[#ff6325]/30 text-[#ff6325]'
                     }`}>
                       {b.status === 'COMPLETED' || b.status === 'CONFIRMED' ? <CheckCircle2 size={14} /> : <Clock size={14} />}
@@ -342,9 +466,23 @@ export default function BookingsPage() {
                   )}
                 </div>
               </div>
-              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-3 shrink-0 text-right">
-                <p className="text-[9px] font-black uppercase tracking-widest text-emerald-400 mb-1">{archetypeConfig.assignedStaffLabel}</p>
-                <p className="text-sm font-bold text-text-primary">{archetypeConfig.staffPrefix || ''}{selectedStaff?.name || 'Unassigned'}</p>
+              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-3 shrink-0 text-right min-w-[160px]">
+                <p className="text-[9px] font-black uppercase tracking-widest text-emerald-400 mb-1">{archetypeConfig.assignedStaffLabel || 'Assigned Staff'}</p>
+                <select
+                  value={selectedBooking.assignedDoctorId || ''}
+                  onChange={(e) => handleAssignStaff(selectedBooking, e.target.value)}
+                  className="bg-bg-secondary hover:bg-bg-tertiary border border-border-brand/70 rounded-lg px-2 py-1 text-xs font-bold text-text-primary outline-none focus:border-[#ff6325] cursor-pointer transition-colors max-w-full"
+                >
+                  <option value="">Unassigned</option>
+                  {staffAccounts.map(s => {
+                    const role = s.roleTitle || (s as any).role || '';
+                    return (
+                      <option key={s.id} value={s.id}>
+                        {archetypeConfig.staffPrefix || ''}{s.name}{role ? ` (${role})` : ''}
+                      </option>
+                    );
+                  })}
+                </select>
               </div>
             </div>
 
@@ -354,20 +492,96 @@ export default function BookingsPage() {
               <div className="p-4 rounded-2xl bg-bg-secondary border border-border-brand/60 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-black uppercase tracking-wider text-text-secondary">Booking Details</span>
-                  <span className="text-xs font-black text-[#ff6325]">
-                    ₹{(selectedBooking.price || selectedBooking.totalAmount || 0).toLocaleString()}
-                  </span>
+                  <div className="text-right">
+                    <span className="text-base font-black text-[#ff6325] block">
+                      ₹{Number(selectedBooking.amount || selectedBooking.price || selectedBooking.totalAmount || 0).toLocaleString()}
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">
+                      {selectedBooking.payMode === 'PARTIAL_ADVANCE' ? 'Advance Paid' : 'Paid Online (UPI)'}
+                    </span>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-xs">
                   <div>
-                    <span className="text-text-muted text-[10px] block">Service Booked</span>
+                    <span className="text-text-muted text-[10px] block font-semibold">Service Booked</span>
                     <span className="font-bold text-text-primary">{selectedBooking.serviceName || 'Custom Service'}</span>
                   </div>
                   <div>
-                    <span className="text-text-muted text-[10px] block">Schedule Window</span>
-                    <span className="font-bold text-text-primary">{selectedBooking.date} at {selectedBooking.time}</span>
+                    <span className="text-text-muted text-[10px] block font-semibold">Schedule Window</span>
+                    <span className="font-bold text-text-primary">{selectedBooking.time || selectedBooking.date}</span>
                   </div>
                 </div>
+
+                {/* Accept / Status Action Inside Drawer */}
+                <div className="pt-3 border-t border-border-brand/40 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-text-muted uppercase">Status:</span>
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                      selectedBooking.status === 'SPLIT_PENDING' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30' :
+                      selectedBooking.status === 'CONFIRMED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30' :
+                      selectedBooking.status === 'CHECKED_IN' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :
+                      selectedBooking.status === 'COMPLETED' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40' :
+                      selectedBooking.status === 'CANCELLED' ? 'bg-red-500/15 text-red-400 border-red-500/40' :
+                      'bg-[#ff6325]/15 text-[#ff6325] border-[#ff6325]/30'
+                    }`}>
+                      {selectedBooking.status === 'SPLIT_PENDING' ? `SPLIT (${selectedBooking.splitPaidMembers || 1}/${selectedBooking.splitCount || 2} PAID)` : (selectedBooking.status || 'PENDING')}
+                    </span>
+                  </div>
+
+                  {selectedBooking.status === 'PENDING' && (
+                    <button
+                      disabled={acceptingId === selectedBooking.id}
+                      onClick={() => handleAccept(selectedBooking)}
+                      className="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs uppercase tracking-wider shadow-md shadow-emerald-500/30 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+                    >
+                      {acceptingId === selectedBooking.id ? (
+                        <>
+                          <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Accepting...
+                        </>
+                      ) : (
+                        <>✓ Accept Reservation</>
+                      )}
+                    </button>
+                  )}
+                </div>
+
+                {/* Group Split Details Card for Merchant */}
+                {selectedBooking.isSplitEnabled && (
+                  <div className="mt-3 p-3.5 rounded-xl bg-indigo-500/5 border border-indigo-500/20 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-extrabold text-indigo-400 flex items-center gap-1.5">
+                        👥 Group Split Booking ({selectedBooking.splitPaidMembers || 1}/{selectedBooking.splitCount || 2} Paid)
+                      </span>
+                      <span className="font-mono text-[10px] font-bold text-text-muted">
+                        Per Head: ₹{(selectedBooking.splitPerPerson || Math.round(selectedBooking.amount / (selectedBooking.splitCount || 2))).toLocaleString()}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      {(selectedBooking.splitPayments || [
+                        { name: selectedBooking.customerName, role: 'LEADER', status: 'PAID', amount: selectedBooking.amountPaidByLeader || (selectedBooking.amount / (selectedBooking.splitCount || 2)) }
+                      ]).map((m: any, idx: number) => (
+                        <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-bg-tertiary/40 text-[11px]">
+                          <span className="font-bold text-text-primary flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                            {m.name} {m.role === 'LEADER' ? '(Initiator)' : ''}
+                          </span>
+                          <span className="text-emerald-400 font-mono font-bold">✓ Paid ₹{m.amount?.toLocaleString()}</span>
+                        </div>
+                      ))}
+
+                      {(selectedBooking.splitPaidMembers || 1) < (selectedBooking.splitCount || 2) && (
+                        <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px] flex items-center justify-between text-amber-400">
+                          <span className="font-medium">
+                            {(selectedBooking.splitCount || 2) - (selectedBooking.splitPaidMembers || 1)} Member(s) Pending
+                          </span>
+                          <span className="text-[10px] font-bold">Escrow Protected</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* 1. DOCTOR / HEALTHCARE OPD QUEUE & EMR TAB */}

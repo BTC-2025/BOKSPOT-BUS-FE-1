@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import axios from 'axios';
+import { getArchetypeFromCategory } from './archetypes';
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1';
 
 export interface MedicalReport {
@@ -331,6 +332,7 @@ interface VendorStoreState {
   cancelBooking: (bookingId: string) => void;
   rescheduleBooking: (bookingId: string, newDate: string, newTime: string) => void;
   updateBookingNotes: (bookingId: string, notes: string) => void;
+  assignStaffToBooking: (bookingId: string, staffId: string, staffName: string) => void;
   
   // Industry actions — Medical
   uploadReport: (bookingId: string, reportName: string) => void;
@@ -1227,11 +1229,23 @@ export const useVendorStore = create<VendorStoreState>()(
         try {
           const res = await axios.get(`${API_BASE}/bookings/sync`);
           if (res.data && Array.isArray(res.data)) {
-            set({ bookings: res.data });
+            const currentMerchant = get().currentMerchant;
+            if (currentMerchant) {
+              const curName = (currentMerchant.merchantName || '').toLowerCase().trim();
+              const curId = String(currentMerchant.id || '').trim();
+              const filtered = res.data.filter((b: any) => {
+                const bId = String(b.merchantId || '').trim();
+                const bName = (b.merchantName || '').toLowerCase().trim();
+                return (curId && bId && curId === bId) || (curName && bName && curName === bName);
+              });
+              set({ bookings: filtered });
+            } else {
+              set({ bookings: [] });
+            }
           }
         } catch (error) {
           console.error("Error fetching bookings:", error);
-          set({ bookings: INITIAL_BOOKINGS });
+          set({ bookings: [] });
         }
       },
       
@@ -1269,8 +1283,7 @@ export const useVendorStore = create<VendorStoreState>()(
             supervisorId: null,
             services: [],
             bookings: [],
-            supportTickets: [],
-            staffAccounts: []
+            supportTickets: []
           });
           return true;
         }
@@ -1309,8 +1322,7 @@ export const useVendorStore = create<VendorStoreState>()(
             supervisorId: null,
             services: [],
             bookings: [],
-            supportTickets: [],
-            staffAccounts: []
+            supportTickets: []
           });
           
           // No mock seeding - user gets a blank slate when starting fresh
@@ -1336,8 +1348,7 @@ export const useVendorStore = create<VendorStoreState>()(
           currentStaff: null,
           services: [],
           bookings: [],
-          supportTickets: [],
-          staffAccounts: []
+          supportTickets: []
         });
       },
       
@@ -1367,8 +1378,7 @@ export const useVendorStore = create<VendorStoreState>()(
           supervisorId: null,
           services: [],
           bookings: [],
-          supportTickets: [],
-          staffAccounts: []
+          supportTickets: []
         });
       },
       
@@ -1405,6 +1415,21 @@ export const useVendorStore = create<VendorStoreState>()(
         set((state) => ({
           bookings: state.bookings.map((b) =>
             b.id === bookingId ? { ...b, notes } : b
+          )
+        }));
+      },
+
+      assignStaffToBooking: (bookingId, staffId, staffName) => {
+        set((state) => ({
+          bookings: state.bookings.map((b) =>
+            b.id === bookingId
+              ? {
+                  ...b,
+                  assignedDoctorId: staffId,
+                  refereeAssigned: staffName,
+                  assignedStaffName: staffName
+                }
+              : b
           )
         }));
       },
@@ -1875,9 +1900,12 @@ export const useVendorStore = create<VendorStoreState>()(
 
       // Staff actions
       addStaffMember: (staff) => {
-        set((state) => ({
-          staffAccounts: [...state.staffAccounts, staff]
-        }));
+        set((state) => {
+          const filtered = state.staffAccounts.filter((s) => s.id.toLowerCase() !== staff.id.toLowerCase());
+          return {
+            staffAccounts: [...filtered, staff]
+          };
+        });
       },
       
       updateStaffPermissions: (staffId, permissions) => {
@@ -1987,6 +2015,37 @@ export const useVendorStore = create<VendorStoreState>()(
         }
       }
     }),
-    { name: 'vendor-portal-storage-v9' }
+    {
+      name: 'vendor-portal-storage-v9',
+      // Ensure bookings that don't belong to currentMerchant or have mismatched archetype are filtered out upon rehydration
+      onRehydrateStorage: () => (state) => {
+        if (state && state.currentMerchant && Array.isArray(state.bookings)) {
+          const curId = String(state.currentMerchant.id || '').trim();
+          const curName = (state.currentMerchant.merchantName || '').toLowerCase().trim();
+          const curArch = getArchetypeFromCategory(state.currentMerchant.archetype) || getArchetypeFromCategory(state.currentMerchant.category);
+
+          state.bookings = state.bookings.filter((b: any) => {
+            const bId = String(b.merchantId || '').trim();
+            const bName = (b.merchantName || '').toLowerCase().trim();
+            const matchesMerchant = (curId && bId && curId === bId) || (curName && bName && curName === bName);
+            if (!matchesMerchant) return false;
+
+            // Archetype / Service mismatch check
+            const bCategory = (b.category || '').toLowerCase().trim();
+            const bServiceName = (b.serviceName || '').toLowerCase();
+            const bArch = getArchetypeFromCategory(bCategory);
+
+            const merchantCategory = (state.currentMerchant?.category || '').toLowerCase().trim();
+            if (curArch === 'ACCOMMODATION' || ['homestay / villa', 'homestay-villa', 'villas', 'hotels', 'resorts'].includes(merchantCategory)) {
+              if (bArch === 'TRANSPORT' || ['buses', 'trains', 'flights', 'cabs'].includes(bCategory)) return false;
+              if (/bus|train|flight|shatabdi|volvo/i.test(bServiceName)) return false;
+            }
+            if (curArch && bArch && curArch !== bArch) return false;
+
+            return true;
+          });
+        }
+      }
+    }
   )
 );

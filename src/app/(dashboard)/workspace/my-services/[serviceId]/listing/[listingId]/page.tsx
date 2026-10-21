@@ -154,7 +154,11 @@ export default function ListingEditorPage() {
                   value={serviceName}
                   onChange={(e) => setServiceName(e.target.value)}
                   placeholder={
-                    archetype === 'HOME_CALL'
+                    category?.name?.toLowerCase().includes('resort') || currentMerchant?.category?.toLowerCase().includes('resort')
+                      ? "e.g. Beachfront Pool Villa, Luxury Swiss Tent, Lagoon View Cottage, Premium Suite"
+                      : category?.name?.toLowerCase().includes('villa') || category?.name?.toLowerCase().includes('homestay') || currentMerchant?.category?.toLowerCase().includes('villa')
+                      ? "e.g. 3BHK Private Pool Villa, Sunset Hill View Cottage, Traditional Courtyard Room"
+                      : archetype === 'HOME_CALL'
                       ? "e.g. Split AC Deep Cleaning & Foam Jet Wash, Switchboard & MCB Repair, Kitchen Sink Drain Unclog"
                       : archetype === 'PASS_ENTRY'
                       ? "e.g. VIP Standing Fan Pit, Audi 1 Dolby Atmos Recliner, Special Darshan Pass"
@@ -166,7 +170,7 @@ export default function ListingEditorPage() {
                       ? "e.g. Senior Doctor OPD Consultation, Hair Styling Session"
                       : archetype === 'DINING'
                       ? "e.g. Rooftop 4-Seater Table, Private Dining Room"
-                      : "e.g. Deluxe AC Room, Presidential Suite, Standard King"
+                      : "e.g. Deluxe AC Room, Presidential Suite, Standard King Room"
                   }
                   className="w-full px-4 py-3 rounded-xl border border-white/10 focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium bg-[#162033] text-white placeholder-slate-400"
                 />
@@ -224,20 +228,38 @@ export default function ListingEditorPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">
-                    {archetype === 'HOME_CALL' ? 'Inspection / Starting Rate (₹)' : archetype === 'PASS_ENTRY' ? 'Price per Pass / Ticket (₹)' : archetype === 'ASSET_RENTAL' ? 'Daily Rental Tariff (₹ / 24h)' : archetype === 'RENTAL' ? 'Base Hourly Rate (₹)' : archetype === 'APPOINTMENT' ? 'Doctor Consultation Fee (₹)' : 'Base Price (₹)'} <span className="text-red-500">*</span>
+                    {archetype === 'HOME_CALL' ? 'Inspection / Starting Rate (₹)' : archetype === 'PASS_ENTRY' ? 'Price per Pass / Ticket (₹)' : archetype === 'ASSET_RENTAL' ? 'Daily Rental Tariff (₹ / 24h)' : archetype === 'RENTAL' ? 'Base Hourly Rate (₹)' : archetype === 'APPOINTMENT' ? 'Doctor Consultation Fee (₹)' : archetype === 'ACCOMMODATION' ? 'Tariff per Night (₹)' : 'Base Price (₹)'} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
                     value={basePrice}
                     onChange={(e) => setBasePrice(e.target.value)}
-                    placeholder={archetype === 'HOME_CALL' ? "e.g. 199" : archetype === 'PASS_ENTRY' ? "e.g. 599" : archetype === 'ASSET_RENTAL' ? "e.g. 1500" : archetype === 'RENTAL' ? "e.g. 1200" : archetype === 'APPOINTMENT' ? "e.g. 600" : "e.g. 500"}
+                    placeholder={
+                      category?.name?.toLowerCase().includes('resort') || currentMerchant?.category?.toLowerCase().includes('resort')
+                        ? "e.g. 4500"
+                        : category?.name?.toLowerCase().includes('villa') || category?.name?.toLowerCase().includes('homestay')
+                        ? "e.g. 3500"
+                        : archetype === 'ACCOMMODATION'
+                        ? "e.g. 2499"
+                        : archetype === 'HOME_CALL' 
+                        ? "e.g. 199" 
+                        : archetype === 'PASS_ENTRY' 
+                        ? "e.g. 599" 
+                        : archetype === 'ASSET_RENTAL' 
+                        ? "e.g. 1500" 
+                        : archetype === 'RENTAL' 
+                        ? "e.g. 1200" 
+                        : archetype === 'APPOINTMENT' 
+                        ? "e.g. 600" 
+                        : "e.g. 500"
+                    }
                     min="0"
                     step="0.01"
                     className="w-full px-4 py-3 rounded-xl border border-white/10 focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium bg-[#162033] text-white placeholder-slate-400"
                     required
                   />
                   <p className="text-[10px] text-text-secondary mt-1">
-                    {archetype === 'HOME_CALL' ? 'Visiting inspection fee or package starting price.' : archetype === 'PASS_ENTRY' ? 'Single admission price per pass/ticket.' : archetype === 'ASSET_RENTAL' ? 'Per-day rental tariff (24 hours window).' : archetype === 'RENTAL' ? 'Hourly court rate charged to players.' : archetype === 'APPOINTMENT' ? 'Standard fee charged per patient consultation.' : 'The starting price shown to customers.'}
+                    {archetype === 'ACCOMMODATION' ? 'Standard per-night room tariff shown to guests.' : archetype === 'HOME_CALL' ? 'Visiting inspection fee or package starting price.' : archetype === 'PASS_ENTRY' ? 'Single admission price per pass/ticket.' : archetype === 'ASSET_RENTAL' ? 'Per-day rental tariff (24 hours window).' : archetype === 'RENTAL' ? 'Hourly court rate charged to players.' : archetype === 'APPOINTMENT' ? 'Standard fee charged per patient consultation.' : 'The starting price shown to customers.'}
                   </p>
                 </div>
               </div>
@@ -248,7 +270,13 @@ export default function ListingEditorPage() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder={
-                    archetype === 'HOME_CALL'
+                    category?.name?.toLowerCase().includes('resort') || currentMerchant?.category?.toLowerCase().includes('resort')
+                      ? "Describe villa layout, beach/pool proximity, complimentary breakfast, air-conditioning, private sit-out deck, and guest capacity..."
+                      : category?.name?.toLowerCase().includes('villa') || category?.name?.toLowerCase().includes('homestay')
+                      ? "Describe homestay amenities, kitchen access, surrounding nature/hill view, peaceful courtyard, and family accommodation details..."
+                      : archetype === 'ACCOMMODATION'
+                      ? "Describe room amenities, view (city/garden/pool), bedding type, high-speed Wi-Fi, and 24/7 room service..."
+                      : archetype === 'HOME_CALL'
                       ? "Describe technician equipment, service process, guarantee terms, and safety precautions followed at doorstep..."
                       : archetype === 'PASS_ENTRY'
                       ? "Describe the show/event experience, gate timings, stage proximity, sound clarity, and special privileges included with this pass..."
@@ -402,7 +430,11 @@ export default function ListingEditorPage() {
                     Object.entries(metadata).map(([key, val]) => (
                       <div key={key} className="text-sm border-b border-border-brand/40 pb-2 last:border-0">
                         <span className="text-text-secondary capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</span> <br/>
-                        <strong>{Array.isArray(val) ? val.join(', ') : String(val)}</strong>
+                        <strong>
+                          {Array.isArray(val) 
+                            ? val.map(v => typeof v === 'string' ? v.replace(/([a-z])([A-Z])/g, '$1 $2') : v).join(', ') 
+                            : (typeof val === 'string' ? val.replace(/([a-z])([A-Z])/g, '$1 $2') : String(val))}
+                        </strong>
                       </div>
                     ))
                   ) : (

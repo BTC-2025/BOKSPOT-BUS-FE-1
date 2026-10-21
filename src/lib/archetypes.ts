@@ -100,10 +100,6 @@ export const CATEGORY_TO_ARCHETYPE_MAP: Record<string, Archetype> = {
   'pet-grooming': 'APPOINTMENT',
   'pet-grooming-appointment': 'APPOINTMENT',
   'fitness-classes': 'APPOINTMENT',
-  'workshops': 'APPOINTMENT',
-  'workshops-classes': 'APPOINTMENT',
-  'pooja': 'APPOINTMENT',
-  'pooja-slot-booking': 'APPOINTMENT',
   'training': 'APPOINTMENT',
   'training-sessions': 'APPOINTMENT',
 
@@ -138,6 +134,32 @@ export const CATEGORY_TO_ARCHETYPE_MAP: Record<string, Archetype> = {
   'metro': 'TRANSPORT',
 };
 
+export const getArchetypeFromCategory = (cat?: string): Archetype | null => {
+  if (!cat) return null;
+  const raw = cat.toUpperCase().trim();
+  if (['EVENT', 'RENTAL', 'FACILITY_HOURLY', 'APPOINTMENT', 'DINING', 'ACCOMMODATION', 'TRANSPORT', 'ASSET_RENTAL', 'PASS_ENTRY', 'HOME_CALL'].includes(raw)) {
+    return raw as Archetype;
+  }
+  // Title-case archetype aliases
+  if (raw === 'SERVICE' || raw === 'HEALTHCAREBOOKING') return 'APPOINTMENT';
+  if (raw === 'RESOURCEBOOKING') return 'RENTAL';
+
+  const normalized = cat.toLowerCase().trim().replace(/\s+/g, '-');
+  if (CATEGORY_TO_ARCHETYPE_MAP[normalized]) return CATEGORY_TO_ARCHETYPE_MAP[normalized];
+  
+  // Fuzzy checks
+  if (normalized.includes('bus') || normalized.includes('train') || normalized.includes('flight') || normalized.includes('cab')) return 'TRANSPORT';
+  if (normalized.includes('villa') || normalized.includes('hotel') || normalized.includes('resort') || normalized.includes('hostel') || normalized.includes('stay') || normalized.includes('camp') || normalized.includes('accommodation')) return 'ACCOMMODATION';
+  if (normalized.includes('turf') || normalized.includes('court') || normalized.includes('pool') || normalized.includes('arena')) return 'RENTAL';
+  if (normalized.includes('doctor') || normalized.includes('clinic') || normalized.includes('salon') || normalized.includes('spa') || normalized.includes('gym')) return 'APPOINTMENT';
+  if (normalized.includes('restaurant') || normalized.includes('dining') || normalized.includes('cafe')) return 'DINING';
+  if (normalized.includes('clean') || normalized.includes('electric') || normalized.includes('plumb') || normalized.includes('repair')) return 'HOME_CALL';
+  if (normalized.includes('movie') || normalized.includes('concert') || normalized.includes('darshan') || normalized.includes('event')) return 'PASS_ENTRY';
+  if (normalized.includes('bike') || normalized.includes('car-rent') || normalized.includes('camera')) return 'ASSET_RENTAL';
+
+  return null;
+};
+
 // Blueprint schemas for the Dynamic Form Engine (Business App)
 export const ARCHETYPE_SCHEMAS: Record<Archetype, any> = {
   PASS_ENTRY: {
@@ -157,11 +179,11 @@ export const ARCHETYPE_SCHEMAS: Record<Archetype, any> = {
   EVENT: {
     title: "Event Details",
     fields: [
-      { name: "eventName", type: "text", label: "Event Name", required: true },
+      { name: "eventName", type: "text", label: "Event Name", placeholder: "e.g., Live Music Concert, Standup Comedy Night, Art Workshop", required: true },
       { name: "eventDate", type: "date", label: "Event Date", required: true },
-      { name: "ticketTiers", type: "array", label: "Ticket Pricing Tiers (e.g., VIP: ₹2000)", required: true },
-      { name: "cast", type: "textarea", label: "Cast / Performers", required: false },
-      { name: "ageLimit", type: "text", label: "Age Limit / Entry Rules", required: false }
+      { name: "ticketTiers", type: "array", label: "Ticket Pricing Tiers", placeholder: "e.g., Early Bird: ₹499, General: ₹799, VIP Lounge: ₹1999", required: true },
+      { name: "cast", type: "textarea", label: "Cast / Performers", placeholder: "e.g., Lead Vocalist: A.R. John, Supporting DJ: Alex, Opening Act: Trio Band", required: false },
+      { name: "ageLimit", type: "text", label: "Age Limit / Entry Rules", placeholder: "e.g., 18+ Only, Valid Govt ID mandatory at gate", required: false }
     ]
   },
   ASSET_RENTAL: {
@@ -218,31 +240,31 @@ export const ARCHETYPE_SCHEMAS: Record<Archetype, any> = {
   DINING: {
     title: "Dining / Restaurant Details",
     fields: [
-      { name: "costForTwo", type: "number", label: "Cost for Two (₹)", required: true },
-      { name: "cuisines", type: "multi-select", label: "Cuisines", required: true },
-      { name: "facilities", type: "multi-select", label: "Facilities (e.g. Serves Alcohol, Indoor Seating)", required: false },
+      { name: "costForTwo", type: "number", label: "Cost for Two (₹)", placeholder: "e.g., 1200", required: true },
+      { name: "cuisines", type: "multi-select", label: "Cuisines", placeholder: "e.g., South Indian, North Indian, Chettinad, Chinese, Continental", required: true },
+      { name: "facilities", type: "multi-select", label: "Facilities", placeholder: "e.g., AC Dining, Valet Parking, Serves Alcohol, Outdoor Seating, Live Music", required: false },
       { name: "menuImages", type: "image-array", label: "Upload Menu Pages", required: true },
-      { name: "offers", type: "array", label: "Active Offers (e.g. FLAT 25% OFF)", required: false }
+      { name: "offers", type: "array", label: "Active Offers & Discounts", placeholder: "e.g., FLAT 20% OFF on Weekdays, 1+1 on Cocktails", required: false }
     ]
   },
   ACCOMMODATION: {
     title: "Accommodation Details",
     fields: [
-      { name: "roomType", type: "text", label: "Room Type / Suite Title", required: true },
-      { name: "totalUnits", type: "number", label: "Number of Rooms Available (Inventory)", required: true },
-      { name: "maxGuests", type: "number", label: "Max Guests / Adults", required: true },
-      { name: "bedType", type: "text", label: "Bed Type (e.g., King / Queen Beds, Twin Beds)", required: false },
-      { name: "bathroomType", type: "text", label: "Bathroom Spec (e.g., Private Ensuite Bathrooms, Jacuzzi)", required: false },
+      { name: "roomType", type: "text", label: "Room Type / Suite Title", placeholder: "e.g., Deluxe Ocean View Villa, Premium Executive Room, 3BHK Private Villa", required: true },
+      { name: "totalUnits", type: "number", label: "Number of Rooms Available (Inventory)", placeholder: "e.g., 5", required: true },
+      { name: "maxGuests", type: "number", label: "Max Guests / Adults", placeholder: "e.g., 3", required: true },
+      { name: "bedType", type: "text", label: "Bed Type", placeholder: "e.g., 1 King Size Bed or 2 Twin Beds", required: false },
+      { name: "bathroomType", type: "text", label: "Bathroom Spec", placeholder: "e.g., Private Ensuite Bathroom with Jacuzzi & Rain Shower", required: false },
       { name: "checkInTime", type: "time", label: "Standard Check-in Time", required: true },
       { name: "checkOutTime", type: "time", label: "Standard Check-out Time", required: true },
-      { name: "perks", type: "array", label: "Special Offers & Deals", placeholder: "e.g., Happy Hours 1+1, 20% Off F&B, Free Breakfast, Early Check-in", required: false },
-      { name: "amenities", type: "multi-select", label: "Room Facilities & Amenities", placeholder: "e.g., Free Wi-Fi, Air Conditioning, Smart TV, Mini Bar, Balcony", required: false }
+      { name: "perks", type: "array", label: "Special Offers & Deals", placeholder: "e.g., Complimentary Buffet Breakfast, Welcome Drink, Free Swimming Pool Access, 20% Off F&B", required: false },
+      { name: "amenities", type: "multi-select", label: "Room Facilities & Amenities", placeholder: "e.g., Free High-Speed Wi-Fi, Central Air Conditioning, Smart 55\" TV, Mini Bar, Balcony View", required: false }
     ]
   },
   TRANSPORT: {
     title: "Transport Details",
     fields: [
-      { name: "vehicleType", type: "text", label: "Vehicle Type", required: true }
+      { name: "vehicleType", type: "text", label: "Vehicle Type / Coach Class", placeholder: "e.g., Multi-Axle Volvo AC Sleeper, Innova Crysta 7-Seater, 3-Tier AC Coach", required: true }
     ]
   },
   HOME_CALL: {

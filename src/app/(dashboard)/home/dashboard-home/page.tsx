@@ -2,6 +2,7 @@
 
 import { useVendorStore } from '@/lib/store';
 import { getArchetypeConfig } from '@/lib/businessDictionary';
+import { getArchetypeFromCategory } from '@/lib/archetypes';
 import {
   Users, User, Activity, CheckCircle2, ChevronRight, Phone,
   Stethoscope, FileText, IndianRupee, Clock,
@@ -72,8 +73,23 @@ export default function DashboardPage() {
     );
   }
 
+  const curArch = currentMerchant.archetype || getArchetypeFromCategory(currentMerchant.category);
+
+  const isValidForMerchant = (b: any) => {
+    const bCategory = (b.category || '').toLowerCase().trim();
+    const bServiceName = (b.serviceName || '').toLowerCase();
+    const bArch = getArchetypeFromCategory(bCategory);
+
+    if (curArch === 'ACCOMMODATION' || ['homestay / villa', 'homestay-villa', 'villas', 'hotels', 'resorts'].includes((currentMerchant.category || '').toLowerCase().trim())) {
+      if (bArch === 'TRANSPORT' || ['buses', 'trains', 'flights', 'cabs'].includes(bCategory)) return false;
+      if (/bus|train|flight|shatabdi|volvo/i.test(bServiceName)) return false;
+    }
+    if (curArch && bArch && curArch !== bArch) return false;
+    return true;
+  };
+
   let merchantBookings = bookings.filter(
-    b => b.merchantName.toLowerCase() === currentMerchant.merchantName.toLowerCase()
+    b => b.merchantName.toLowerCase() === currentMerchant.merchantName.toLowerCase() && isValidForMerchant(b)
   );
   const staffList = staffAccounts.filter(s => s.merchantId === currentMerchant.id);
   const isStaffView = loginRole === 'staff';
@@ -87,6 +103,7 @@ export default function DashboardPage() {
   // Merge live bookings (from backend) with local bookings for this merchant
   const liveForMerchant = (Array.isArray(liveBookings) ? liveBookings : []).filter(b =>
     (b.merchantId === currentMerchant.id || b.merchantName?.toLowerCase() === currentMerchant.merchantName?.toLowerCase()) &&
+    isValidForMerchant(b) &&
     (b.status === 'PENDING' || b.status === 'CONFIRMED' || b.status === 'CHECKED_IN' || b.status === 'CANCELLED')
   );
   const localActive = merchantBookings.filter(b =>
@@ -160,75 +177,117 @@ export default function DashboardPage() {
   if (isStaffView) {
     return (
       <div className="space-y-8 animate-fade-in pb-12 font-sans max-w-5xl mx-auto">
-        <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden">
-          <div className="absolute right-0 top-0 h-full w-[30%] bg-gradient-to-l from-blue-50 to-transparent pointer-events-none" />
+        <div className="bg-white dark:bg-[#0f1624] rounded-3xl p-8 border border-slate-200 dark:border-white/10 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden">
+          <div className="absolute right-0 top-0 h-full w-[30%] bg-gradient-to-l from-blue-50/50 dark:from-blue-900/10 to-transparent pointer-events-none" />
           <div className="flex items-center gap-6 relative z-10">
-            <div className="h-24 w-24 rounded-3xl bg-blue-600 p-1 shadow-lg shadow-blue-600/30">
-              <div className="h-full w-full rounded-2xl bg-white flex items-center justify-center font-black text-4xl text-blue-600 uppercase border-2 border-transparent">
-                {currentStaff?.name.charAt(0)}
+            <div className="h-24 w-24 rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 p-1 shadow-lg shadow-blue-600/30 shrink-0">
+              <div className="h-full w-full rounded-2xl bg-white dark:bg-[#162033] flex items-center justify-center font-black text-4xl text-blue-600 dark:text-blue-400 uppercase select-none">
+                {(currentStaff?.name || 'Aadhi').trim().charAt(0).toUpperCase() || 'A'}
               </div>
             </div>
             <div>
-              <h1 className="text-3xl font-black text-slate-900 tracking-tight">{`${archetypeConfig.staffPrefix || ''} ${currentStaff?.name || ''}`}</h1>
-              <p className="text-sm text-blue-600 font-bold uppercase tracking-widest mt-1">{currentStaff?.roleTitle}</p>
-              <div className="flex items-center gap-3 mt-3 text-xs font-semibold text-slate-500">
-                <span className="flex items-center gap-1 text-emerald-600"><CheckCircle2 size={14} /> Active Shift</span>
+              <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{`${archetypeConfig.staffPrefix || ''} ${currentStaff?.name || ''}`}</h1>
+              <p className="text-sm text-blue-600 dark:text-blue-400 font-bold uppercase tracking-widest mt-1">{currentStaff?.roleTitle}</p>
+              <div className="flex items-center gap-3 mt-3 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400"><CheckCircle2 size={14} /> Active Shift</span>
               </div>
             </div>
           </div>
           <div className="relative z-10 flex gap-4">
-            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-center min-w-[120px]">
-              <h3 className="text-3xl font-black text-slate-900">{activeBookings.length}</h3>
-              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">Pending</p>
+            <div className="bg-slate-50 dark:bg-[#162033] rounded-2xl p-4 border border-slate-200 dark:border-white/10 text-center min-w-[120px]">
+              <h3 className="text-3xl font-black text-slate-900 dark:text-white">{activeBookings.length}</h3>
+              <p className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-1">Pending</p>
             </div>
-            <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100 text-center min-w-[120px]">
-              <h3 className="text-3xl font-black text-blue-700">{completedBookings.length}</h3>
-              <p className="text-[9px] font-bold text-blue-500 uppercase tracking-widest mt-1">Completed</p>
+            <div className="bg-blue-50 dark:bg-blue-950/40 rounded-2xl p-4 border border-blue-100 dark:border-blue-900/40 text-center min-w-[120px]">
+              <h3 className="text-3xl font-black text-blue-700 dark:text-blue-300">{completedBookings.length}</h3>
+              <p className="text-[9px] font-bold text-blue-500 dark:text-blue-400 uppercase tracking-widest mt-1">Completed</p>
             </div>
           </div>
         </div>
 
         <div>
           <div className="flex items-center justify-between mb-6 px-2">
-            <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
-              <Clock size={18} className="text-blue-600" /> {archetypeConfig.bookingHeaderTitle || 'Tasks Today'}
+            <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+              <Clock size={18} className="text-blue-600 dark:text-blue-400" /> {archetypeConfig.bookingHeaderTitle || 'Tasks Today'}
             </h2>
           </div>
           <div className="space-y-4">
-            {activeBookings.map((booking, index) => (
-              <div key={booking.id} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all flex flex-col md:flex-row items-center gap-6 group cursor-pointer">
-                <div className="flex flex-col items-center justify-center w-20 shrink-0 border-r border-slate-100 pr-6">
-                  <span className="text-sm font-black text-slate-900 group-hover:text-blue-600 transition-colors">{booking.time?.split(' ')[0]}</span>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">{booking.time?.split(' ')[1]}</span>
-                </div>
-                <div className="flex-1 w-full">
-                  <div className="flex items-center gap-3 mb-1">
-                    <h3 className="text-lg font-bold text-slate-900">{booking.teamName || booking.customerName}</h3>
-                    {index === 0 && <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-black uppercase tracking-widest animate-pulse">Up Next</span>}
-                  </div>
-                  <div className="flex items-center gap-4 text-xs font-semibold text-slate-500">
-                    <span className="flex items-center gap-1"><User size={12} /> ID: {booking.ref}</span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1"><Phone size={12} /> {booking.customerPhone}</span>
-                    <span>•</span>
-                    <span className="text-[#8b6508] font-bold">{booking.serviceName}</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  {booking.status === 'CONFIRMED' && (
-                    <button onClick={e => { e.stopPropagation(); checkInBooking(booking.id); }} className="px-6 py-3 rounded-xl bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 font-bold text-xs uppercase tracking-widest transition-all">Start</button>
-                  )}
-                  {booking.status === 'CHECKED_IN' && (
-                    <button onClick={e => { e.stopPropagation(); completeBooking(booking.id); }} className="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2">
-                      <CheckCircle2 size={16} /> Finish
-                    </button>
-                  )}
-                  <button className="h-12 w-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-900 transition-colors">
-                    <ChevronRight size={20} />
-                  </button>
-                </div>
+            {activeBookings.length === 0 ? (
+              <div className="bg-white dark:bg-[#0f1624] rounded-2xl p-10 border border-slate-200 dark:border-white/10 text-center">
+                <Clock size={36} className="text-slate-400 mx-auto mb-3 opacity-60" />
+                <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No active tasks right now</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">New incoming bookings and check-in tasks will appear here automatically.</p>
               </div>
-            ))}
+            ) : (
+              activeBookings.map((booking, index) => (
+                <div key={booking.id} className="bg-white dark:bg-[#0f1624] rounded-2xl p-5 border border-slate-200 dark:border-white/10 shadow-sm hover:shadow-md hover:border-blue-200 dark:hover:border-blue-500/30 transition-all flex flex-col md:flex-row items-center gap-6 group cursor-pointer">
+                  <div className="flex flex-col items-center justify-center w-20 shrink-0 border-r border-slate-100 dark:border-white/10 pr-6">
+                    <span className="text-sm font-black text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{booking.time?.split(' ')[0] || booking.date}</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">{booking.time?.split(' ')[1] || 'Today'}</span>
+                  </div>
+                  <div className="flex-1 w-full">
+                    <div className="flex items-center gap-3 mb-1">
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white">{booking.teamName || booking.customerName}</h3>
+                      {index === 0 && <span className="px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase tracking-widest animate-pulse">Up Next</span>}
+                    </div>
+                    <div className="flex items-center gap-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                      <span className="flex items-center gap-1"><User size={12} /> ID: {booking.ref}</span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1"><Phone size={12} /> {booking.customerPhone}</span>
+                      <span>•</span>
+                      <span className="text-[#8b6508] dark:text-[#d4af37] font-bold">{booking.serviceName}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    {booking.status === 'CONFIRMED' && (
+                      <button 
+                        onClick={async (e) => { 
+                          e.stopPropagation(); 
+                          checkInBooking(booking.id);
+                          setLiveBookings(prev => prev.map(b => b.id === booking.id ? { ...b, status: 'CHECKED_IN' } : b));
+                          try {
+                            await fetch('/api/v1/bookings/sync', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ ...booking, status: 'CHECKED_IN' }),
+                            });
+                          } catch {}
+                        }} 
+                        className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-md active:scale-95 cursor-pointer"
+                      >
+                        Start / Check-In
+                      </button>
+                    )}
+                    {booking.status === 'CHECKED_IN' && (
+                      <button 
+                        onClick={async (e) => { 
+                          e.stopPropagation(); 
+                          completeBooking(booking.id);
+                          setLiveBookings(prev => prev.map(b => b.id === booking.id ? { ...b, status: 'COMPLETED' } : b));
+                          try {
+                            await fetch('/api/v1/bookings/sync', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ ...booking, status: 'COMPLETED' }),
+                            });
+                          } catch {}
+                        }} 
+                        className="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 active:scale-95 cursor-pointer"
+                      >
+                        <CheckCircle2 size={16} /> Complete &amp; Finish
+                      </button>
+                    )}
+                    <button 
+                      onClick={() => router.push(`/tracks/bookings`)}
+                      className="h-12 w-12 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+                      title="View Booking Details"
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

@@ -122,17 +122,29 @@ export default function ServiceListingsPage() {
                 </div>
                 
                 <div className="mt-6 pt-4 border-t border-white/[0.08] flex items-center justify-between">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      router.push(`/workspace/my-services/${serviceId}/listing/${list.id}/slots`);
-                    }}
-                    className="flex items-center gap-2 px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#162033] dark:hover:bg-[#1f2d47] text-slate-800 dark:text-white text-xs font-bold rounded-lg transition-all border border-slate-200 dark:border-white/10 shadow-sm"
-                  >
-                    <Calendar size={13} className="text-[#ff6325]" />
-                    <span>Slots</span>
-                  </button>
-                  <span className="text-xs font-bold text-[#ff6325] group-hover:translate-x-1 transition-transform">Edit Info &rarr;</span>
+                  {/* Hide Hourly Slots button for Accommodation/Hotels/Resorts/Villas where booking is by Night/Date, not hourly slots */}
+                  {!category?.slug?.includes('hotel') &&
+                   !category?.slug?.includes('resort') &&
+                   !category?.slug?.includes('villa') &&
+                   !category?.slug?.includes('homestay') &&
+                   !category?.name?.toLowerCase().includes('hotel') &&
+                   !category?.name?.toLowerCase().includes('resort') &&
+                   !category?.name?.toLowerCase().includes('villa') &&
+                   !category?.name?.toLowerCase().includes('homestay') &&
+                   !category?.name?.toLowerCase().includes('stay') &&
+                   currentMerchant?.archetype !== 'Accommodation' && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/workspace/my-services/${serviceId}/listing/${list.id}/slots`);
+                      }}
+                      className="flex items-center gap-2 px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#162033] dark:hover:bg-[#1f2d47] text-slate-800 dark:text-white text-xs font-bold rounded-lg transition-all border border-slate-200 dark:border-white/10 shadow-sm"
+                    >
+                      <Calendar size={13} className="text-[#ff6325]" />
+                      <span>Slots</span>
+                    </button>
+                  )}
+                  <span className="text-xs font-bold text-[#ff6325] group-hover:translate-x-1 transition-transform ml-auto">Edit Info &rarr;</span>
                 </div>
               </div>
             </div>

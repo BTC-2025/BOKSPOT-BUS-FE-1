@@ -240,7 +240,15 @@ export default function StaffPage() {
                     type="text"
                     value={newRole}
                     onChange={(e) => setNewRole(e.target.value)}
-                    placeholder="e.g. Senior Nurse"
+                    placeholder={
+                      currentMerchant?.category?.toLowerCase().includes('resort') || currentMerchant?.archetype === 'Accommodation'
+                        ? "e.g. Resort Manager / Front Desk"
+                        : currentMerchant?.category?.toLowerCase().includes('turf') || currentMerchant?.archetype === 'ResourceBooking'
+                        ? "e.g. Ground Manager / Head Referee"
+                        : currentMerchant?.category?.toLowerCase().includes('doctor') || currentMerchant?.archetype === 'Healthcare'
+                        ? "e.g. Senior Nurse / Resident Doctor"
+                        : "e.g. Operations Manager"
+                    }
                     className="w-full rounded-xl border border-white/10 bg-[#162033] px-3 py-2 text-xs text-white placeholder:text-slate-500 outline-none focus:border-[#ff6325] focus:ring-1 focus:ring-[#ff6325]/20"
                     required
                   />
@@ -260,19 +268,34 @@ export default function StaffPage() {
 
               {/* Sub-ID Mapping */}
               <div className="space-y-1.5 p-3.5 rounded-xl border border-[#ff6325]/20 bg-[#ff6325]/5">
-                <label className="text-[10px] uppercase font-bold text-slate-300">Existing Employee Sub-ID</label>
+                <label className="text-[10px] uppercase font-bold text-slate-300">Employee Login Email / Sub-ID</label>
                 <div className="flex items-center mt-1">
                   <input
                     type="email"
                     value={subIdEmail}
                     onChange={(e) => setSubIdEmail(e.target.value)}
-                    placeholder="e.g. employee/workspace@centralmail.com"
+                    placeholder="e.g. employee@bnxmail.com"
                     className="w-full rounded-xl border border-white/10 bg-[#162033] px-3 py-2 text-xs text-white placeholder:text-slate-500 outline-none focus:border-[#ff6325] font-mono"
                     required
                   />
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1.5 leading-relaxed">
-                  🔒 Staff will sign in using their existing office workspace credentials. No new password needed here.
+              </div>
+
+              {/* Password Setting */}
+              <div className="space-y-1.5 p-3.5 rounded-xl border border-white/10 bg-[#162033]">
+                <label className="text-[10px] uppercase font-bold text-slate-300">Staff Login Passcode</label>
+                <div className="flex items-center mt-1">
+                  <input
+                    type="text"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Enter login password (e.g. pass123)"
+                    className="w-full rounded-xl border border-white/10 bg-[#0f1624] px-3 py-2 text-xs text-white placeholder:text-slate-500 outline-none focus:border-[#ff6325] font-mono"
+                    required
+                  />
+                </div>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  🔑 Staff intha passcode vachu login pannuvanga. Default: <strong className="text-white">pass123</strong>
                 </p>
               </div>
 

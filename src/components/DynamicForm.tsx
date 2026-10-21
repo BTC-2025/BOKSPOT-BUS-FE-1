@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { ARCHETYPE_SCHEMAS, Archetype } from '../lib/archetypes';
-import { Save, AlertCircle } from 'lucide-react';
+import { Save, AlertCircle, Clock, Calendar } from 'lucide-react';
 
 interface DynamicFormProps {
   archetype: Archetype;
@@ -83,24 +83,30 @@ export default function DynamicForm({ archetype, initialData = {}, onSubmit, onC
 
               {/* Date Input */}
               {field.type === 'date' && (
-                <input
-                  type="date"
-                  required={field.required}
-                  value={formData[field.name] || ''}
-                  onChange={(e) => handleChange(field.name, e.target.value)}
-                  className="w-full bg-[#162033] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff6325] focus:ring-1 focus:ring-[#ff6325] transition-colors [color-scheme:dark]"
-                />
+                <div className="relative">
+                  <input
+                    type="date"
+                    id={`field-${field.name}`}
+                    required={field.required}
+                    value={formData[field.name] || ''}
+                    onChange={(e) => handleChange(field.name, e.target.value)}
+                    className="w-full bg-[#162033] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff6325] focus:ring-1 focus:ring-[#ff6325] transition-colors cursor-pointer"
+                  />
+                </div>
               )}
 
               {/* Time Input */}
               {field.type === 'time' && (
-                <input
-                  type="time"
-                  required={field.required}
-                  value={formData[field.name] || ''}
-                  onChange={(e) => handleChange(field.name, e.target.value)}
-                  className="w-full bg-[#162033] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff6325] focus:ring-1 focus:ring-[#ff6325] transition-colors [color-scheme:dark]"
-                />
+                <div className="relative">
+                  <input
+                    type="time"
+                    id={`field-${field.name}`}
+                    required={field.required}
+                    value={formData[field.name] || ''}
+                    onChange={(e) => handleChange(field.name, e.target.value)}
+                    className="w-full bg-[#162033] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff6325] focus:ring-1 focus:ring-[#ff6325] transition-colors cursor-pointer"
+                  />
+                </div>
               )}
 
               {/* Array / Multi-select (Simplified as comma separated for now) */}

@@ -478,13 +478,25 @@ export default function WorkspacePage() {
                     value={categoryName} 
                     onChange={(e) => setCategoryName(e.target.value)} 
                     placeholder={
-                      (selectedGroup?.toLowerCase().includes('turf') || selectedGroup?.toLowerCase().includes('sport') || currentMerchant?.category?.toLowerCase().includes('turf') || currentMerchant?.category?.toLowerCase().includes('sport'))
-                        ? "e.g. 7s Football Turf / Court A / Box Cricket"
-                        : (selectedGroup?.toLowerCase().includes('doctor') || currentMerchant?.category?.toLowerCase().includes('doctor'))
-                        ? "e.g. General OPD Consultation"
+                      (selectedGroup?.toLowerCase().includes('resort') || currentMerchant?.category?.toLowerCase().includes('resort'))
+                        ? "e.g. Beachfront Villa, Luxury Swiss Cottage, Lagoon Pool Villa"
+                        : (selectedGroup?.toLowerCase().includes('homestay') || selectedGroup?.toLowerCase().includes('villa') || currentMerchant?.category?.toLowerCase().includes('villa'))
+                        ? "e.g. 3BHK Heritage Homestay, Sunset Hill Villa, Poolside Villa"
+                        : (selectedGroup?.toLowerCase().includes('hotel') || currentMerchant?.category?.toLowerCase().includes('hotel'))
+                        ? "e.g. Deluxe Room, Executive Suite, Standard King Room"
+                        : (selectedGroup?.toLowerCase().includes('bus') || selectedGroup?.toLowerCase().includes('train') || selectedGroup?.toLowerCase().includes('flight') || selectedGroup?.toLowerCase().includes('cab') || selectedGroup?.toLowerCase().includes('transport') || currentMerchant?.category?.toLowerCase().includes('transport'))
+                        ? "e.g. AC Multi-Axle Sleeper, Sedan City Ride, Tier-2 AC Coach"
+                        : (selectedGroup?.toLowerCase().includes('turf') || selectedGroup?.toLowerCase().includes('sport') || currentMerchant?.category?.toLowerCase().includes('turf') || currentMerchant?.category?.toLowerCase().includes('sport'))
+                        ? "e.g. 7s Football Turf, Badminton Court A, Box Cricket Pitch"
+                        : (selectedGroup?.toLowerCase().includes('doctor') || selectedGroup?.toLowerCase().includes('clinic') || selectedGroup?.toLowerCase().includes('health') || currentMerchant?.category?.toLowerCase().includes('doctor') || currentMerchant?.category?.toLowerCase().includes('health'))
+                        ? "e.g. General OPD Consultation, Dental Checkup, Cardiology Review"
                         : (selectedGroup?.toLowerCase().includes('rental') || currentMerchant?.category?.toLowerCase().includes('rental'))
-                        ? "e.g. 350cc Cruiser Bike / Sedan Car"
-                        : "e.g. Deluxe Room"
+                        ? "e.g. 350cc Cruiser Bike, Sedan Automatic Car, Camera Kit"
+                        : (selectedGroup?.toLowerCase().includes('rest') || selectedGroup?.toLowerCase().includes('din') || selectedGroup?.toLowerCase().includes('cafe') || currentMerchant?.category?.toLowerCase().includes('rest') || currentMerchant?.category?.toLowerCase().includes('din'))
+                        ? "e.g. Rooftop 4-Seater Table, AC Family Dining, Candlelight Booth"
+                        : (selectedGroup?.toLowerCase().includes('event') || currentMerchant?.category?.toLowerCase().includes('event'))
+                        ? "e.g. VIP Seating Zone, General Admission Pass, Weekend Stage Entry"
+                        : "e.g. Deluxe Room / Package Name"
                     } 
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500" 
                     required 

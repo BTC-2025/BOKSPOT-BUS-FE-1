@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useVendorStore } from '@/lib/store';
 import { getArchetypeConfig } from '@/lib/businessDictionary';
+import { getArchetypeFromCategory } from '@/lib/archetypes';
 import { 
   Users, Search, Mail, Phone, Calendar, ArrowUpRight, 
   DollarSign, BookOpen, Star, RefreshCw
@@ -29,6 +30,10 @@ export default function CustomersPage() {
   const [liveBookings, setLiveBookings] = useState<any[]>([]);
 
   useEffect(() => {
+    if (!currentMerchant) return;
+    const curName = (currentMerchant.merchantName || '').toLowerCase().trim();
+    const curId = String(currentMerchant.id || '').trim();
+
     const fetchSync = async () => {
       try {
         let res = await fetch(`/api/v1/bookings/sync?t=${Date.now()}`, { cache: 'no-store' });
@@ -36,15 +41,27 @@ export default function CustomersPage() {
           res = await fetch(`http://localhost:9000/api/v1/bookings/sync?t=${Date.now()}`, { cache: 'no-store' });
         }
         if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data)) setLiveBookings(data);
+          const raw = await res.json();
+          const data = Array.isArray(raw?.data) ? raw.data : (Array.isArray(raw) ? raw : []);
+          const filtered = data.filter((b: any) => {
+            const bId = String(b.merchantId || '').trim();
+            const bName = (b.merchantName || '').toLowerCase().trim();
+            return (curId && bId && curId === bId) || (curName && bName && curName === bName);
+          });
+          setLiveBookings(filtered);
         }
       } catch (e) {
         try {
           const resDirect = await fetch(`http://localhost:9000/api/v1/bookings/sync?t=${Date.now()}`, { cache: 'no-store' });
           if (resDirect.ok) {
-            const dataDirect = await resDirect.json();
-            if (Array.isArray(dataDirect)) setLiveBookings(dataDirect);
+            const rawDirect = await resDirect.json();
+            const dataDirect = Array.isArray(rawDirect?.data) ? rawDirect.data : (Array.isArray(rawDirect) ? rawDirect : []);
+            const filtered = dataDirect.filter((b: any) => {
+              const bId = String(b.merchantId || '').trim();
+              const bName = (b.merchantName || '').toLowerCase().trim();
+              return (curId && bId && curId === bId) || (curName && bName && curName === bName);
+            });
+            setLiveBookings(filtered);
           }
         } catch (err2) {}
       }
@@ -52,49 +69,63 @@ export default function CustomersPage() {
     fetchSync();
     const interval = setInterval(fetchSync, 2000);
     return () => clearInterval(interval);
-  }, []);
+  }, [currentMerchant]);
   
   const customers = useMemo(() => {
     if (!currentMerchant) return [];
-    const allBookings = [...bookings];
-    liveBookings.forEach((lb: any) => {
-      if (!allBookings.some(b => b.ref === lb.ref || b.id === lb.id)) {
-        allBookings.unshift(lb);
+
+    // Prioritize liveBookings over local bookings
+    const allBookings = [...liveBookings];
+    bookings.forEach((b: any) => {
+      if (!allBookings.some(lb => lb.ref === b.ref || lb.id === b.id)) {
+        allBookings.push(b);
       }
     });
 
     const curName = (currentMerchant.merchantName || '').toLowerCase().trim();
+    const curId = String(currentMerchant.id || '').trim();
+    const curArch = getArchetypeFromCategory(currentMerchant.archetype) || getArchetypeFromCategory(currentMerchant.category);
+
     let merchantBookings = allBookings.filter(b => {
       const bName = (b.merchantName || '').toLowerCase().trim();
-      const matchesName = bName === curName || bName.includes(curName) || curName.includes(bName);
-      const matchesId = b.merchantId && currentMerchant.id && String(b.merchantId) === String(currentMerchant.id);
-      return matchesName || matchesId;
+      const bId = String(b.merchantId || '').trim();
+      const matchesName = Boolean(curName && bName && bName === curName);
+      const matchesId = Boolean(bId && curId && bId === curId);
+      if (!matchesName && !matchesId) return false;
+
+      const bCategory = (b.category || '').toLowerCase().trim();
+      const bServiceName = (b.serviceName || '').toLowerCase();
+      const bArch = getArchetypeFromCategory(bCategory);
+
+      if (curArch === 'ACCOMMODATION' || ['homestay / villa', 'homestay-villa', 'villas', 'hotels', 'resorts'].includes((currentMerchant.category || '').toLowerCase().trim())) {
+        if (bArch === 'TRANSPORT' || ['buses', 'trains', 'flights', 'cabs'].includes(bCategory)) return false;
+        if (/bus|train|flight|shatabdi|volvo/i.test(bServiceName)) return false;
+      }
+      if (curArch && bArch && curArch !== bArch) return false;
+      return true;
     });
 
-    if (merchantBookings.length === 0 && allBookings.length > 0) {
-      merchantBookings = allBookings;
-    }
     const customersMap = new Map<string, CustomerRecord>();
     
     merchantBookings.forEach((b) => {
-      const key = b.customerEmail || b.customerName;
+      const key = b.customerEmail || b.customerPhone || b.customerName || 'guest';
       if (!customersMap.has(key)) {
         customersMap.set(key, {
           id: `cust-${key}`,
-          name: b.customerName,
+          name: b.customerName || 'Guest Customer',
           email: b.customerEmail || "",
-          phone: b.customerPhone,
+          phone: b.customerPhone || "",
           totalBookings: 0,
           totalSpend: 0,
           lastBookingDate: '',
           rating: 4.0 + ((key.length % 10) / 10), // Deterministic pseudo-random rating
           status: 'New',
-          complaint: (key.length % 5 === 0) ? 'Delay in admission process last week.' : undefined
+          complaint: (key.length % 5 === 0) ? 'Delay in check-in process.' : undefined
         });
       }
       const cust = customersMap.get(key)!;
       cust.totalBookings += 1;
-      cust.totalSpend += b.amount;
+      cust.totalSpend += (Number(b.amount) || 0);
       if (!cust.lastBookingDate || new Date(b.date) > new Date(cust.lastBookingDate)) {
         cust.lastBookingDate = b.date;
       }
@@ -105,12 +136,14 @@ export default function CustomersPage() {
       else if (c.totalBookings >= 2) c.status = 'Frequent';
       return c;
     }).sort((a, b) => b.totalSpend - a.totalSpend);
-  }, [currentMerchant, bookings]);
+  }, [currentMerchant, bookings, liveBookings]);
 
   const filteredCustomers = customers.filter(c => 
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.phone || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
+
 
   const totalClients = customers.length;
   const totalSpendVal = customers.reduce((sum, c) => sum + c.totalSpend, 0);
@@ -151,7 +184,9 @@ export default function CustomersPage() {
           </div>
           <div>
             <span className="text-[10px] text-text-secondary uppercase font-bold tracking-wider">Total Bookings</span>
-            <h3 className="text-xl font-black text-text-primary">{totalBookingsVal} sessions</h3>
+            <h3 className="text-xl font-black text-text-primary">
+              {totalBookingsVal} {archetypeConfig.customerMetricsLabel ? archetypeConfig.customerMetricsLabel.toLowerCase() : 'sessions'}
+            </h3>
           </div>
         </div>
 
@@ -160,7 +195,9 @@ export default function CustomersPage() {
             <DollarSign size={20} />
           </div>
           <div>
-            <span className="text-[10px] text-text-secondary uppercase font-bold tracking-wider">Lifetime Volume</span>
+            <span className="text-[10px] text-text-secondary uppercase font-bold tracking-wider">
+              {archetypeConfig.customerVolumeLabel || 'Total Revenue'}
+            </span>
             <h3 className="text-xl font-black text-text-primary">₹{totalSpendVal.toLocaleString()}</h3>
           </div>
         </div>
@@ -189,8 +226,8 @@ export default function CustomersPage() {
                 <th className="py-3 px-5">{(archetypeConfig.customerDirLabel ? archetypeConfig.customerDirLabel.split(' ')[0] : 'Client') + ' Name'}</th>
                 <th className="py-3 px-5">Contact Info</th>
                 <th className="py-3 px-5">{archetypeConfig.customerTierLabel || 'Status'}</th>
-                <th className="py-3 px-5">{archetypeConfig.customerMetricsLabel || 'Sessions'}</th>
-                <th className="py-3 px-5">Lifetime Value</th>
+                <th className="py-3 px-5">{archetypeConfig.customerMetricsLabel || 'Stays'}</th>
+                <th className="py-3 px-5">{archetypeConfig.customerSpendLabel || 'Total Spent'}</th>
                 <th className="py-3 px-5">Recent Visit</th>
                 <th className="py-3 px-5">Feedback / Complaint</th>
               </tr>
