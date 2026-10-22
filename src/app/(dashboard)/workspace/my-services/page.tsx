@@ -200,18 +200,36 @@ export default function WorkspacePage() {
         </div>
         <div className="flex items-center gap-3 w-full md:w-auto">
           {!selectedGroup ? (
-            <button
-              onClick={() => {
-                setBookingTypeCategory('');
-                setBookingTypeImage('');
-                setShowBookingTypeModal(true);
-              }}
-              className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-bold text-sm tracking-wide transition-all shadow-lg shadow-[#ff6325]/25 active:scale-95 cursor-pointer"
-            >
-              <Plus size={18} className="text-white" /> Add Booking Type
-            </button>
+            <>
+              <button
+                onClick={() => router.push('/workspace/about')}
+                className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#0f1624] hover:bg-[#162033] text-slate-100 hover:text-white font-bold text-sm tracking-wide transition-all shadow-md active:scale-95 border border-white/20 hover:border-[#ff6325]/60 cursor-pointer"
+                title="Manage Venue Profile, Photos & Location"
+              >
+                <Building2 size={16} className="text-[#ff6325]" />
+                <span>Venue Profile</span>
+              </button>
+              <button
+                onClick={() => {
+                  setBookingTypeCategory('');
+                  setBookingTypeImage('');
+                  setShowBookingTypeModal(true);
+                }}
+                className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-bold text-sm tracking-wide transition-all shadow-lg shadow-[#ff6325]/25 active:scale-95 cursor-pointer"
+              >
+                <Plus size={18} className="text-white" /> Add Booking Type
+              </button>
+            </>
           ) : (
             <>
+              <button
+                onClick={() => router.push('/workspace/about')}
+                className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#0f1624] hover:bg-[#162033] text-slate-100 hover:text-white font-bold text-sm tracking-wide transition-all shadow-md active:scale-95 border border-white/20 hover:border-[#ff6325]/60 cursor-pointer"
+                title="Manage Venue Profile, Photos & Location"
+              >
+                <Building2 size={16} className="text-[#ff6325]" />
+                <span>Venue Profile</span>
+              </button>
               <button
                 onClick={() => {
                   setEditingServiceId(null);
@@ -223,14 +241,6 @@ export default function WorkspacePage() {
                 className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-bold text-sm tracking-wide transition-all shadow-lg shadow-[#ff6325]/25 active:scale-95 cursor-pointer"
               >
                 <Plus size={18} /> Add Category
-              </button>
-              <button
-                onClick={() => router.push('/workspace/about')}
-                className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#0f1624] hover:bg-[#162033] text-slate-100 hover:text-white font-bold text-sm tracking-wide transition-all shadow-md active:scale-95 border border-white/20 hover:border-[#ff6325]/60 cursor-pointer"
-                title="Manage Venue Profile, Photos & Location"
-              >
-                <Building2 size={16} className="text-[#ff6325]" />
-                <span>Venue Profile</span>
               </button>
             </>
           )}
@@ -476,9 +486,13 @@ export default function WorkspacePage() {
                   <input 
                     type="text" 
                     value={categoryName} 
-                    onChange={(e) => setCategoryName(e.target.value)} 
+                    onChange={(e) => setCategoryName(e.target.value)}
                     placeholder={
-                      (selectedGroup?.toLowerCase().includes('resort') || currentMerchant?.category?.toLowerCase().includes('resort'))
+                      (selectedGroup?.toLowerCase().includes('camp') || currentMerchant?.category?.toLowerCase().includes('camp') || currentMerchant?.category?.toLowerCase().includes('tent'))
+                        ? "e.g. 2-Person Alpine Tent, Luxury Glamping Dome, Forest Pitch with Bonfire"
+                        : (selectedGroup?.toLowerCase().includes('hostel') || currentMerchant?.category?.toLowerCase().includes('hostel'))
+                        ? "e.g. 6-Bed Mixed AC Dorm, 4-Bed Female Dorm, Private Deluxe Bunk Room"
+                        : (selectedGroup?.toLowerCase().includes('resort') || currentMerchant?.category?.toLowerCase().includes('resort'))
                         ? "e.g. Beachfront Villa, Luxury Swiss Cottage, Lagoon Pool Villa"
                         : (selectedGroup?.toLowerCase().includes('homestay') || selectedGroup?.toLowerCase().includes('villa') || currentMerchant?.category?.toLowerCase().includes('villa'))
                         ? "e.g. 3BHK Heritage Homestay, Sunset Hill Villa, Poolside Villa"

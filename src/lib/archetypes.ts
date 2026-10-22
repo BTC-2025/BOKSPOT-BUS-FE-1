@@ -248,17 +248,17 @@ export const ARCHETYPE_SCHEMAS: Record<Archetype, any> = {
     ]
   },
   ACCOMMODATION: {
-    title: "Accommodation Details",
+    title: "Accommodation, Campsite & Stay Details",
     fields: [
-      { name: "roomType", type: "text", label: "Room Type / Suite Title", placeholder: "e.g., Deluxe Ocean View Villa, Premium Executive Room, 3BHK Private Villa", required: true },
-      { name: "totalUnits", type: "number", label: "Number of Rooms Available (Inventory)", placeholder: "e.g., 5", required: true },
-      { name: "maxGuests", type: "number", label: "Max Guests / Adults", placeholder: "e.g., 3", required: true },
-      { name: "bedType", type: "text", label: "Bed Type", placeholder: "e.g., 1 King Size Bed or 2 Twin Beds", required: false },
-      { name: "bathroomType", type: "text", label: "Bathroom Spec", placeholder: "e.g., Private Ensuite Bathroom with Jacuzzi & Rain Shower", required: false },
+      { name: "roomType", type: "text", label: "Unit / Tent / Room Title", placeholder: "e.g., 2-Person Alpine Tent, Luxury Glamping Dome, Deluxe Ocean View Villa, 6-Bed Mixed AC Dorm Bed", required: true },
+      { name: "totalUnits", type: "number", label: "Number of Units / Tents / Beds Available", placeholder: "e.g., 10 (Tents, Rooms or Beds)", required: true },
+      { name: "maxGuests", type: "number", label: "Max Guests / Campers per Unit", placeholder: "e.g., 2 (per Alpine Tent) or 4 (per Family Tent)", required: true },
+      { name: "bedType", type: "text", label: "Bed / Sleeping Arrangement", placeholder: "e.g., 2 Sleeping Bags + Camping Mats, 1 Queen Bed, or 1 Single Bunk", required: false },
+      { name: "bathroomType", type: "text", label: "Bathroom / Washroom Setup", placeholder: "e.g., Camp Facility Washrooms with Hot Water, or Attached Ensuite Bathroom", required: false },
       { name: "checkInTime", type: "time", label: "Standard Check-in Time", required: true },
       { name: "checkOutTime", type: "time", label: "Standard Check-out Time", required: true },
-      { name: "perks", type: "array", label: "Special Offers & Deals", placeholder: "e.g., Complimentary Buffet Breakfast, Welcome Drink, Free Swimming Pool Access, 20% Off F&B", required: false },
-      { name: "amenities", type: "multi-select", label: "Room Facilities & Amenities", placeholder: "e.g., Free High-Speed Wi-Fi, Central Air Conditioning, Smart 55\" TV, Mini Bar, Balcony View", required: false }
+      { name: "perks", type: "array", label: "Special Inclusions & Add-ons", placeholder: "e.g., Evening Campfire & Live BBQ, Stargazing Telescope, Trekking Guide, Free Breakfast", required: false },
+      { name: "amenities", type: "multi-select", label: "Camp & Stay Amenities", placeholder: "e.g., Bonfire Pit, BBQ Grill, Sleeping Bags, Charging Points, Clean Restrooms, First Aid Kit, Solar Lamps", required: false }
     ]
   },
   TRANSPORT: {

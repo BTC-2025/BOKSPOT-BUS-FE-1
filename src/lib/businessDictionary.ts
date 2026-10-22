@@ -13,6 +13,7 @@ import {
   Key,
   Calendar,
   Clock,
+  Tent,
   type LucideIcon 
 } from 'lucide-react';
 
@@ -91,6 +92,8 @@ export type ArchetypeConfig = {
   serviceFeePlaceholder?: string;
   staffPermissionDesc?: string;
   staffPrefix?: string;
+  gridNavLabel?: string;
+  gridTitle?: string;
 };
 
 export const businessDictionary: Record<string, ArchetypeConfig> = {
@@ -268,7 +271,114 @@ export const businessDictionary: Record<string, ArchetypeConfig> = {
     staffNamePlaceholder: 'e.g. Rajesh Kumar',
     staffEmailPlaceholder: 'e.g. frontdesk@resort.com',
     serviceNamePlaceholder: 'e.g. Deluxe Ocean View Villa, Luxury Swiss Cottage',
-    serviceFeePlaceholder: 'e.g. 4500',
+  },
+  Hostel: {
+    staffIcon: 'User',
+    feature1Label: 'Manage Dorms & Bunks',
+    feature1Desc: 'Can assign dorm beds, track locker keys, and manage check-in/out schedules.',
+    feature2Label: 'Hostel Revenue & Billing',
+    feature2Desc: 'Can view dormitory occupancy revenue, caution deposits, and guest billing.',
+    bookingTitle: 'Hostel Bookings',
+    bookingIcon: Calendar,
+    servicesTitle: 'Dorm & Room Types',
+    servicesIcon: Bed,
+    staffTitle: 'Hostel Crew',
+    kpiTotalBookings: 'Total Hostellers',
+    kpiNewBookings: 'Check-ins Today',
+    quickActionNew: '+ New Hostel Booking',
+    liveWidgetTitle: 'Dorm & Bed Availability',
+    drawerHeader: 'Hostel Reservation Details',
+    assignedStaffLabel: 'Hostel Warden / Manager',
+    hasHealthVitals: false,
+    hasMatchNotes: false,
+    staffRoleLabel: 'Warden / Front Desk / Caretaker',
+    staffRosterLabel: 'Hostel Crew Roster',
+    scanLabel: 'Scan Student / Guest Pass',
+    customerDirLabel: 'Hosteller Directory',
+    managementLabel: 'Dorm & Bed Management',
+    settingsLabel: 'Hostel Settings',
+    themeClass: 'theme-hotel',
+    staffOnboardTitle: 'Onboard Hostel Staff',
+    staffOnboardDesc: 'Onboard wardens, caretakers, and front desk receptionists.',
+    activeStaffLabel: 'Active Hostel Staff',
+    newShiftLabel: 'New Dorm / Bed Plan',
+    servicesDesc: 'Manage hostel rooms, 4-bed/6-bed/8-bed AC/Non-AC dorms, and bed tariffs.',
+    servicesEmptyTitle: 'No Dorms or Beds Defined',
+    servicesEmptyDesc: 'Create dorm categories (e.g. Mixed Dorm, Female Dorm, Private Room) and define bed tariffs.',
+    staffEmptyTitle: 'No Hostel Crew Found',
+    staffEmptyDesc: 'Onboard wardens and caretakers to manage check-ins and hostel curfew logs.',
+    priceLabel: 'Tariff / Bed / Night',
+    createServiceLabel: 'Add Dorm / Bed Type',
+    editServiceLabel: 'Edit Dorm / Bed Type',
+    assignStaffLabel: 'Assign Warden',
+    deployServiceLabel: 'Publish Dorm / Bed',
+    customerSearchPlaceholder: 'Search hosteller name, bed/bunk number, or reservation ID...',
+    customerMetricsLabel: 'Hostel Stays',
+    customerSpendLabel: 'Total Paid',
+    customerVolumeLabel: 'Total Hostel Revenue',
+    bookingRefLabel: 'Guest & Bed / Dorm',
+    bookingAssignedLabel: 'Assigned Warden / Caretaker',
+    staffRolePlaceholder: 'e.g. Hostel Warden, Night Caretaker, Frontdesk Associate',
+    staffNamePlaceholder: 'e.g. Anand Sharma',
+    staffEmailPlaceholder: 'e.g. warden@backpackershostel.com',
+    serviceNamePlaceholder: 'e.g. 6-Bed Mixed AC Dorm Bed, 4-Bed Female Dorm Bed, Private Deluxe Bunk',
+    serviceFeePlaceholder: 'e.g. 799',
+    gridNavLabel: 'Dorm & Bed Grid',
+    gridTitle: 'Hostel Dorm & Bed Allocation',
+  },
+  Camping: {
+    staffIcon: 'User',
+    feature1Label: 'Manage Tents, Domes & Campsites',
+    feature1Desc: 'Can assign tent pitches, oversee campfire zones, and manage check-in/out schedules.',
+    feature2Label: 'Camp Revenue & Gear Add-ons',
+    feature2Desc: 'Can track overnight camp occupancy, BBQ packages, sleeping bags, and equipment rentals.',
+    bookingTitle: 'Camp & Tent Reservations',
+    bookingIcon: Tent,
+    servicesTitle: 'Tents, Domes & Campsites',
+    servicesIcon: Tent,
+    staffTitle: 'Camp Crew & Guides',
+    kpiTotalBookings: 'Total Campers',
+    kpiNewBookings: 'Arrivals Today',
+    quickActionNew: '+ New Camp Reservation',
+    liveWidgetTitle: 'Tent & Campsite Availability',
+    drawerHeader: 'Camp Reservation Details',
+    assignedStaffLabel: 'Camp Manager / Trek Leader',
+    hasHealthVitals: false,
+    hasMatchNotes: false,
+    staffRoleLabel: 'Camp Guide / Caretaker / Safety Officer',
+    staffRosterLabel: 'Camp Crew Roster',
+    scanLabel: 'Scan Camper Pass',
+    customerDirLabel: 'Camper Directory',
+    managementLabel: 'Campsite & Pitch Allocation',
+    settingsLabel: 'Campsite Settings',
+    themeClass: 'theme-hotel',
+    staffOnboardTitle: 'Onboard Camp Staff',
+    staffOnboardDesc: 'Onboard trek leaders, camp guides, safety marshals, and caretakers.',
+    activeStaffLabel: 'Active Camp Crew',
+    newShiftLabel: 'New Tent / Campsite Pitch',
+    servicesDesc: 'Manage luxury alpine tents, stargazing glamping domes, wilderness pitches, and campfire packages.',
+    servicesEmptyTitle: 'No Tents or Campsites Defined',
+    servicesEmptyDesc: 'Create tent packages (e.g. 2-Person Alpine Tent, Luxury Glamping Dome, Open Campsite Pitch) and set tariffs.',
+    staffEmptyTitle: 'No Camp Crew Found',
+    staffEmptyDesc: 'Onboard camp guides and safety officers to manage check-ins and outdoor activities.',
+    priceLabel: 'Tariff / Tent / Night',
+    createServiceLabel: 'Add Tent / Campsite',
+    editServiceLabel: 'Edit Tent / Campsite',
+    assignStaffLabel: 'Assign Camp Guide',
+    deployServiceLabel: 'Publish Campsite / Tent',
+    customerSearchPlaceholder: 'Search camper name, tent/pitch ID, or reservation number...',
+    customerMetricsLabel: 'Camp Stays',
+    customerSpendLabel: 'Total Paid',
+    customerVolumeLabel: 'Total Campsite Revenue',
+    bookingRefLabel: 'Camper & Pitch / Tent',
+    bookingAssignedLabel: 'Assigned Camp Guide / Lead',
+    staffRolePlaceholder: 'e.g. Senior Trek Leader, Camp Marshal, Outdoor Chef',
+    staffNamePlaceholder: 'e.g. Vikram Rana',
+    staffEmailPlaceholder: 'e.g. leader@pinetrailscamp.com',
+    serviceNamePlaceholder: 'e.g. 2-Person Alpine Tent, Luxury Stargazing Dome, Forest Clearing Pitch',
+    serviceFeePlaceholder: 'e.g. 1999',
+    gridNavLabel: 'Tent & Pitch Grid',
+    gridTitle: 'Campsite & Pitch Allocation',
   },
   Beauty: {
 
@@ -479,9 +589,23 @@ export const businessDictionary: Record<string, ArchetypeConfig> = {
   }
 };
 
-export const getArchetypeConfig = (archetype: string): ArchetypeConfig => {
+export const getArchetypeConfig = (archetypeOrCategory?: string): ArchetypeConfig => {
+  if (!archetypeOrCategory) return businessDictionary['Service'];
+
   // Direct match
-  if (businessDictionary[archetype]) return businessDictionary[archetype];
+  if (businessDictionary[archetypeOrCategory]) return businessDictionary[archetypeOrCategory];
+
+  const lower = archetypeOrCategory.toLowerCase().trim();
+
+  // Hostel specific check
+  if (lower.includes('hostel') || lower.includes('pg') || lower.includes('dorm') || lower.includes('bunk')) {
+    return businessDictionary['Hostel'];
+  }
+
+  // Camping specific check
+  if (lower.includes('camp') || lower.includes('tent') || lower.includes('glamp')) {
+    return businessDictionary['Camping'];
+  }
   
   // Normalized Excel archetype aliases
   const aliasMap: Record<string, string> = {
@@ -498,12 +622,36 @@ export const getArchetypeConfig = (archetype: string): ArchetypeConfig => {
     'Workspace': 'PassEntry',
     'Events': 'PassEntry',
     'Rentals': 'AssetRental',
-    'EventSpace': 'FacilityHourly'
+    'EventSpace': 'FacilityHourly',
+    'hostel-booking': 'Hostel',
+    'hostel': 'Hostel',
+    'camping-booking': 'Camping',
+    'camping': 'Camping'
   };
 
-  const resolved = aliasMap[archetype];
+  const resolved = aliasMap[archetypeOrCategory];
   if (resolved && businessDictionary[resolved]) {
     return businessDictionary[resolved];
+  }
+
+  // Fuzzy check for other categories
+  if (lower.includes('hotel') || lower.includes('resort') || lower.includes('villa') || lower.includes('homestay') || lower.includes('stay') || lower.includes('accommodation')) {
+    return businessDictionary['Accommodation'];
+  }
+  if (lower.includes('turf') || lower.includes('sport') || lower.includes('court') || lower.includes('pitch')) {
+    return businessDictionary['FacilityHourly'];
+  }
+  if (lower.includes('doctor') || lower.includes('clinic') || lower.includes('health')) {
+    return businessDictionary['Healthcare'];
+  }
+  if (lower.includes('salon') || lower.includes('spa') || lower.includes('beauty')) {
+    return businessDictionary['Beauty'];
+  }
+  if (lower.includes('bike') || lower.includes('car-rent') || lower.includes('rental')) {
+    return businessDictionary['AssetRental'];
+  }
+  if (lower.includes('clean') || lower.includes('electric') || lower.includes('plumb') || lower.includes('repair')) {
+    return businessDictionary['HomeCall'];
   }
 
   return businessDictionary['Service']; // fallback

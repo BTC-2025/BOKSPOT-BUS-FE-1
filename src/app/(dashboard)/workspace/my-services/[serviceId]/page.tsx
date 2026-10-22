@@ -3,7 +3,7 @@
 import { useVendorStore, CatalogListing } from '@/lib/store';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Plus, ArrowLeft, Image as ImageIcon, Trash2, Calendar } from 'lucide-react';
+import { Plus, ArrowLeft, Image as ImageIcon, Trash2, Calendar, Building2 } from 'lucide-react';
 
 export default function ServiceListingsPage() {
   const router = useRouter();
@@ -71,6 +71,14 @@ export default function ServiceListingsPage() {
         </div>
         <div className="flex items-center gap-3">
           <button 
+            onClick={() => router.push('/workspace/about')}
+            className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#0f1624] hover:bg-[#162033] text-slate-100 hover:text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 border border-white/20 hover:border-[#ff6325]/60 cursor-pointer"
+            title="Manage Venue / Campsite Profile, Photos & Location"
+          >
+            <Building2 size={16} className="text-[#ff6325]" />
+            <span>Venue Profile</span>
+          </button>
+          <button 
             onClick={() => router.push(`/workspace/my-services/${serviceId}/listing/new`)}
             className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white shadow-lg shadow-[#ff6325]/25 font-bold text-xs uppercase tracking-widest transition-all cursor-pointer"
           >
@@ -122,17 +130,32 @@ export default function ServiceListingsPage() {
                 </div>
                 
                 <div className="mt-6 pt-4 border-t border-white/[0.08] flex items-center justify-between">
-                  {/* Hide Hourly Slots button for Accommodation/Hotels/Resorts/Villas where booking is by Night/Date, not hourly slots */}
+                  {/* Hide Hourly Slots button for Accommodation/Hotels/Resorts/Villas/Camping/Hostels where booking is by Night/Date, not hourly slots */}
                   {!category?.slug?.includes('hotel') &&
                    !category?.slug?.includes('resort') &&
                    !category?.slug?.includes('villa') &&
                    !category?.slug?.includes('homestay') &&
+                   !category?.slug?.includes('camp') &&
+                   !category?.slug?.includes('tent') &&
+                   !category?.slug?.includes('hostel') &&
                    !category?.name?.toLowerCase().includes('hotel') &&
                    !category?.name?.toLowerCase().includes('resort') &&
                    !category?.name?.toLowerCase().includes('villa') &&
                    !category?.name?.toLowerCase().includes('homestay') &&
+                   !category?.name?.toLowerCase().includes('camp') &&
+                   !category?.name?.toLowerCase().includes('tent') &&
+                   !category?.name?.toLowerCase().includes('glamp') &&
+                   !category?.name?.toLowerCase().includes('hostel') &&
                    !category?.name?.toLowerCase().includes('stay') &&
-                   currentMerchant?.archetype !== 'Accommodation' && (
+                   !currentMerchant?.category?.toLowerCase().includes('camp') &&
+                   !currentMerchant?.category?.toLowerCase().includes('tent') &&
+                   !currentMerchant?.category?.toLowerCase().includes('hostel') &&
+                   !currentMerchant?.category?.toLowerCase().includes('hotel') &&
+                   !currentMerchant?.category?.toLowerCase().includes('resort') &&
+                   !currentMerchant?.category?.toLowerCase().includes('villa') &&
+                   currentMerchant?.archetype !== 'Accommodation' &&
+                   currentMerchant?.archetype !== 'Camping' &&
+                   currentMerchant?.archetype !== 'Hostel' && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();

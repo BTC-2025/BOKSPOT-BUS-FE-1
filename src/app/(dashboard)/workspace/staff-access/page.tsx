@@ -99,7 +99,7 @@ export default function StaffPage() {
           className="flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white px-6 py-3 text-xs font-bold uppercase tracking-wider transition-all shadow-lg shadow-[#ff6325]/25 active:scale-95 cursor-pointer"
         >
           <UserPlus size={16} />
-          <span>Link Sub-ID</span>
+          <span>{currentMerchant?.category?.toLowerCase().includes('camp') ? '+ Add Crew Member' : '+ Add Staff Member'}</span>
         </button>
       </div>
 
@@ -208,9 +208,9 @@ export default function StaffPage() {
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
               <div>
                 <h3 className="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
-                  <Shield size={16} className="text-[#ff6325]" /> Link Existing Sub-ID
+                  <Shield size={16} className="text-[#ff6325]" /> {currentMerchant?.category?.toLowerCase().includes('camp') ? 'Add Camp Crew Member' : 'Add New Staff Member'}
                 </h3>
-                <p className="text-[10px] text-slate-400 mt-0.5">Authorize an existing employee Sub-ID from your central workspace</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">Create staff login credentials and configure permissions</p>
               </div>
               <button
                 onClick={() => setShowAddModal(false)}
@@ -241,7 +241,9 @@ export default function StaffPage() {
                     value={newRole}
                     onChange={(e) => setNewRole(e.target.value)}
                     placeholder={
-                      currentMerchant?.category?.toLowerCase().includes('resort') || currentMerchant?.archetype === 'Accommodation'
+                      currentMerchant?.category?.toLowerCase().includes('camp') || currentMerchant?.archetype === 'Camping'
+                        ? "e.g. Camp Leader / Trek Guide / Caretaker"
+                        : currentMerchant?.category?.toLowerCase().includes('resort') || currentMerchant?.archetype === 'Accommodation'
                         ? "e.g. Resort Manager / Front Desk"
                         : currentMerchant?.category?.toLowerCase().includes('turf') || currentMerchant?.archetype === 'ResourceBooking'
                         ? "e.g. Ground Manager / Head Referee"

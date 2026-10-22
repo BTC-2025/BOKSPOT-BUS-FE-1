@@ -108,7 +108,12 @@ export default function CustomersPage() {
     const customersMap = new Map<string, CustomerRecord>();
     
     merchantBookings.forEach((b) => {
-      const key = b.customerEmail || b.customerPhone || b.customerName || 'guest';
+      // Group uniquely by Customer Phone or Normalized Email or Name
+      const rawPhone = (b.customerPhone || '').replace(/\D/g, '');
+      const key = rawPhone ? `p_${rawPhone.slice(-10)}` : (b.customerEmail ? `e_${b.customerEmail.toLowerCase().trim()}` : `n_${(b.customerName || 'guest').toLowerCase().trim()}`);
+      
+      const isCancelled = b.status === 'CANCELLED';
+
       if (!customersMap.has(key)) {
         customersMap.set(key, {
           id: `cust-${key}`,
@@ -118,14 +123,27 @@ export default function CustomersPage() {
           totalBookings: 0,
           totalSpend: 0,
           lastBookingDate: '',
-          rating: 4.0 + ((key.length % 10) / 10), // Deterministic pseudo-random rating
+          rating: 4.5,
           status: 'New',
-          complaint: (key.length % 5 === 0) ? 'Delay in check-in process.' : undefined
+          complaint: undefined
         });
       }
       const cust = customersMap.get(key)!;
-      cust.totalBookings += 1;
-      cust.totalSpend += (Number(b.amount) || 0);
+      // Prefer latest email/phone if available
+      if (b.customerEmail && !cust.email) cust.email = b.customerEmail;
+      if (b.customerPhone && !cust.phone) cust.phone = b.customerPhone;
+
+      // Only count completed or confirmed bookings towards actual Stays and Total Spend
+      if (!isCancelled) {
+        cust.totalBookings += 1;
+        cust.totalSpend += (Number(b.amount) || 0);
+      } else {
+        // Show reason for cancellation under feedback / complaint
+        if (!cust.complaint) {
+          cust.complaint = b.cancellationReason || 'Reservation Cancelled by Guest';
+        }
+      }
+
       if (!cust.lastBookingDate || new Date(b.date) > new Date(cust.lastBookingDate)) {
         cust.lastBookingDate = b.date;
       }
@@ -134,6 +152,7 @@ export default function CustomersPage() {
     return Array.from(customersMap.values()).map(c => {
       if (c.totalBookings >= 5) c.status = 'Loyal';
       else if (c.totalBookings >= 2) c.status = 'Frequent';
+      else if (c.totalBookings === 0) c.status = 'Inactive';
       return c;
     }).sort((a, b) => b.totalSpend - a.totalSpend);
   }, [currentMerchant, bookings, liveBookings]);

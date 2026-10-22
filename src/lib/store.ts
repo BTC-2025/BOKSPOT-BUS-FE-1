@@ -102,6 +102,13 @@ export interface PersistedBooking {
   screenAudi?: string;
   admittedAt?: string;
 
+  // Hotel & Accommodation specific fields
+  roomNumber?: string;
+  keycardIssued?: boolean;
+  keycardIssuedAt?: string;
+  checkInDate?: string;
+  checkOutDate?: string;
+
   // AssetRental specific fields
   assetRegistrationNo?: string;
   securityDeposit?: number;
@@ -267,7 +274,7 @@ export interface MerchantUser {
   supervisorPhone?: string;
   supervisorEmail?: string;
   supervisorAddress?: string;
-  archetype?: 'Healthcare' | 'ResourceBooking' | 'Service' | 'Dining' | 'Accommodation' | 'SportsFacility' | 'Fitness' | 'EventSpace' | 'Rental' | 'CareServices' | 'PersonalCare' | 'Sports' | 'Wellness' | 'Trade' | 'Workspace' | 'Events' | 'Rentals' | 'PassEntry' | 'FacilityHourly' | 'OvernightStay' | 'TimeSlot' | 'AssetRental' | 'HomeCall';
+  archetype?: 'Healthcare' | 'ResourceBooking' | 'Service' | 'Dining' | 'Accommodation' | 'Camping' | 'Hostel' | 'SportsFacility' | 'Fitness' | 'EventSpace' | 'Rental' | 'CareServices' | 'PersonalCare' | 'Sports' | 'Wellness' | 'Trade' | 'Workspace' | 'Events' | 'Rentals' | 'PassEntry' | 'FacilityHourly' | 'OvernightStay' | 'TimeSlot' | 'AssetRental' | 'HomeCall';
   
   // Venue Profile (Global Business Details)
   thingsToKnow?: string[];
@@ -428,7 +435,7 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     aboutText: 'Welcome to Pine Trails Camp. We provide professional Camping Booking services.',
     vendorId: '20260004',
     email: 'h105@bnxmail.com',
-    archetype: 'Accommodation'
+    archetype: 'Camping'
   },
   {
     id: '7c996ce5-e515-8b61-5039-83c06a21e9e5',
@@ -1228,19 +1235,20 @@ export const useVendorStore = create<VendorStoreState>()(
       fetchBookings: async () => {
         try {
           const res = await axios.get(`${API_BASE}/bookings/sync`);
-          if (res.data && Array.isArray(res.data)) {
+          const rawItems = Array.isArray(res.data?.data) ? res.data.data : (Array.isArray(res.data) ? res.data : []);
+          if (rawItems.length >= 0) {
             const currentMerchant = get().currentMerchant;
             if (currentMerchant) {
               const curName = (currentMerchant.merchantName || '').toLowerCase().trim();
               const curId = String(currentMerchant.id || '').trim();
-              const filtered = res.data.filter((b: any) => {
+              const filtered = rawItems.filter((b: any) => {
                 const bId = String(b.merchantId || '').trim();
                 const bName = (b.merchantName || '').toLowerCase().trim();
                 return (curId && bId && curId === bId) || (curName && bName && curName === bName);
               });
               set({ bookings: filtered });
             } else {
-              set({ bookings: [] });
+              set({ bookings: rawItems });
             }
           }
         } catch (error) {
@@ -1560,14 +1568,14 @@ export const useVendorStore = create<VendorStoreState>()(
           if (res.ok) {
             const body = await res.json();
             let servicesData = [];
-            if (Array.isArray(body?.data)) {
+            if (Array.isArray(body?.data?.data)) {
+              servicesData = body.data.data;
+            } else if (Array.isArray(body?.data?.items)) {
+              servicesData = body.data.items;
+            } else if (Array.isArray(body?.data)) {
               servicesData = body.data;
             } else if (Array.isArray(body)) {
               servicesData = body;
-            } else if (body?.data?.items && Array.isArray(body.data.items)) {
-              servicesData = body.data.items;
-            } else if (body?.data?.data && Array.isArray(body.data.data)) {
-              servicesData = body.data.data;
             }
             
             // Map the API data structure to the BUS-FE structure

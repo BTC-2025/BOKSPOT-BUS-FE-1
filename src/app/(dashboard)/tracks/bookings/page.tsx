@@ -17,7 +17,7 @@ export default function BookingsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   
-  const baseConfig = getArchetypeConfig(currentMerchant?.archetype || 'Service');
+  const baseConfig = getArchetypeConfig(currentMerchant?.category || currentMerchant?.archetype || 'Service');
   const archetypeConfig = { ...baseConfig, ...(currentMerchant?.customDictionary || {}) };
 
   // Prescription Form (Healthcare)
@@ -137,11 +137,31 @@ export default function BookingsPage() {
   }
 
   // Combine bookings: liveBookings from backend take precedence over local cache
-  const allMergedBookings = [...liveBookings];
+  const combinedRaw = [...liveBookings];
   bookings.forEach((b: any) => {
-    if (!allMergedBookings.some(lb => lb.ref === b.ref || lb.id === b.id)) {
-      allMergedBookings.push(b);
+    if (!combinedRaw.some(lb => lb.ref === b.ref || lb.id === b.id)) {
+      combinedRaw.push(b);
     }
+  });
+
+  const allMergedBookings = combinedRaw.map((b: any) => {
+    const splitPaidCount = b?.isSplitEnabled
+      ? (Array.isArray(b.splitPayments)
+          ? b.splitPayments.filter((s: any) => s.status === 'PAID').length
+          : (typeof b.splitPaidMembers === 'number' ? b.splitPaidMembers : 0))
+      : 0;
+    const isSplitComplete = !b?.isSplitEnabled || splitPaidCount >= (b?.splitCount || 2);
+    const rawStatus = b.status || 'PENDING';
+    const resolvedStatus = (b?.isSplitEnabled && !isSplitComplete)
+      ? 'SPLIT_PENDING'
+      : (rawStatus === 'SPLIT_PENDING' && isSplitComplete ? 'CONFIRMED' : rawStatus);
+
+    return {
+      ...b,
+      splitPaidMembers: splitPaidCount,
+      isSplitComplete,
+      status: resolvedStatus,
+    };
   });
 
   // Strict Filter logic — ONLY show bookings that explicitly belong to THIS merchant (by ID or exact Merchant Name)
@@ -374,7 +394,7 @@ export default function BookingsPage() {
                 <div className="col-span-1 md:col-span-2 flex justify-end items-center gap-2">
                   {b.status === 'SPLIT_PENDING' ? (
                     <div className="px-3.5 py-1.5 rounded-xl flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-wider bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
-                      <span>👥 Split ({b.splitPaidMembers || 1}/{b.splitCount || 2})</span>
+                      <span>👥 Split ({b.splitPaidMembers || 0}/{b.splitCount || 2})</span>
                     </div>
                   ) : b.status === 'PENDING' ? (
                     <button
@@ -447,8 +467,8 @@ export default function BookingsPage() {
 
             {/* Entity Snapshot */}
             <div className="bg-bg-secondary border-b border-border-brand/40 p-6 shrink-0 flex flex-col md:flex-row gap-6 items-start md:items-center">
-              <div className="h-20 w-20 rounded-[2rem] bg-bg-tertiary border-2 border-border-brand shadow-md flex items-center justify-center overflow-hidden shrink-0">
-                <img src={`https://i.pravatar.cc/150?u=${selectedBooking.id}`} className="h-full w-full object-cover" />
+              <div className="h-16 w-16 md:h-20 md:w-20 rounded-[2rem] bg-gradient-to-br from-[#ff6325] to-[#ff8452] border-2 border-[#ff6325]/40 shadow-lg flex items-center justify-center shrink-0 text-white font-black text-2xl md:text-3xl select-none">
+                {((selectedBooking.customerName || selectedBooking.teamName || 'U').charAt(0)).toUpperCase()}
               </div>
               <div className="flex-1">
                 <h3 className="text-2xl font-black text-text-primary">{selectedBooking.teamName || selectedBooking.customerName}</h3>
@@ -496,8 +516,12 @@ export default function BookingsPage() {
                     <span className="text-base font-black text-[#ff6325] block">
                       ₹{Number(selectedBooking.amount || selectedBooking.price || selectedBooking.totalAmount || 0).toLocaleString()}
                     </span>
-                    <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">
-                      {selectedBooking.payMode === 'PARTIAL_ADVANCE' ? 'Advance Paid' : 'Paid Online (UPI)'}
+                    <span className={`text-[10px] font-bold uppercase tracking-widest ${
+                      selectedBooking.payMode === 'PARTIAL_ADVANCE' ? 'text-amber-500' : 'text-emerald-500'
+                    }`}>
+                      {selectedBooking.isSplitEnabled && (selectedBooking.splitPaidMembers || 0) < (selectedBooking.splitCount || 2)
+                        ? `Split In Progress (${selectedBooking.splitPaidMembers || 0}/${selectedBooking.splitCount || 2} Paid)`
+                        : selectedBooking.payMode === 'PARTIAL_ADVANCE' ? '30% Advance Paid (Venue Pay)' : 'Paid Online (100% UPI)'}
                     </span>
                   </div>
                 </div>
@@ -512,6 +536,70 @@ export default function BookingsPage() {
                   </div>
                 </div>
 
+                {/* ── Partial Advance & Venue Pay Settlement Card (Only for non-split partial bookings) ── */}
+                {selectedBooking.payMode === 'PARTIAL_ADVANCE' && !selectedBooking.isSplitEnabled && (
+                  <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-black uppercase tracking-wider text-amber-500 flex items-center gap-1.5">
+                        <span>💰</span> Payment Mode: 30% Advance + Venue Pay
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                        Collect at Venue
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 pt-1 text-xs">
+                      <div className="p-2.5 rounded-xl bg-bg-secondary/70 border border-border-brand/40">
+                        <span className="text-[10px] text-emerald-400 font-bold block uppercase tracking-wider">Advance Paid Online</span>
+                        <span className="text-base font-black text-emerald-400">
+                          ₹{Number(selectedBooking.advancePaid || Math.round((selectedBooking.amount || 0) * 0.3)).toLocaleString()}
+                        </span>
+                        <span className="text-[9px] text-text-muted block mt-0.5">✓ Received via Bokspot</span>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-bg-secondary/70 border border-amber-500/30 flex flex-col justify-between">
+                        <div>
+                          <span className="text-[10px] text-amber-400 font-bold block uppercase tracking-wider">Balance to Collect at Venue</span>
+                          <span className="text-base font-black text-amber-400">
+                            {selectedBooking.venueBalanceCollected ? '₹0' : `₹${Number(selectedBooking.balanceAtVenue || ((selectedBooking.amount || 0) - Math.round((selectedBooking.amount || 0) * 0.3))).toLocaleString()}`}
+                          </span>
+                          <span className={`text-[9px] block mt-0.5 ${selectedBooking.venueBalanceCollected ? 'text-emerald-400 font-bold' : 'text-amber-300/80'}`}>
+                            {selectedBooking.venueBalanceCollected ? '✓ Fully Settled at Venue' : '⚠️ Collect cash/UPI on arrival'}
+                          </span>
+                        </div>
+
+                        {!selectedBooking.venueBalanceCollected && (
+                          <button
+                            onClick={async () => {
+                              const bId = selectedBooking.id;
+                              const updated = {
+                                ...selectedBooking,
+                                venueBalanceCollected: true,
+                                venueBalanceCollectedAt: new Date().toISOString(),
+                              };
+                              setLiveBookings(prev => prev.map(item => item.id === bId ? updated : item));
+                              useVendorStore.setState(state => ({
+                                bookings: state.bookings.map(item => item.id === bId ? updated : item)
+                              }));
+                              try {
+                                await fetch('/api/v1/bookings/sync', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify(updated),
+                                });
+                              } catch (err) {}
+                              alert(`Collected ₹${Number(selectedBooking.balanceAtVenue || ((selectedBooking.amount || 0) - Math.round((selectedBooking.amount || 0) * 0.3))).toLocaleString()} balance at venue from ${selectedBooking.customerName}! Payment marked fully settled.`);
+                            }}
+                            className="mt-2 w-full py-1.5 px-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-95 text-white font-black text-[10px] uppercase tracking-wider rounded-lg shadow-sm transition-all cursor-pointer active:scale-95"
+                          >
+                            ✓ Mark Balance Collected
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Accept / Status Action Inside Drawer */}
                 <div className="pt-3 border-t border-border-brand/40 flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -524,7 +612,9 @@ export default function BookingsPage() {
                       selectedBooking.status === 'CANCELLED' ? 'bg-red-500/15 text-red-400 border-red-500/40' :
                       'bg-[#ff6325]/15 text-[#ff6325] border-[#ff6325]/30'
                     }`}>
-                      {selectedBooking.status === 'SPLIT_PENDING' ? `SPLIT (${selectedBooking.splitPaidMembers || 1}/${selectedBooking.splitCount || 2} PAID)` : (selectedBooking.status || 'PENDING')}
+                      {selectedBooking.status === 'SPLIT_PENDING' 
+                        ? `SPLIT (${selectedBooking.splitPaidMembers || 0}/${selectedBooking.splitCount || 2} PAID)` 
+                        : (selectedBooking.status || 'PENDING')}
                     </span>
                   </div>
 
@@ -547,11 +637,11 @@ export default function BookingsPage() {
                 </div>
 
                 {/* Group Split Details Card for Merchant */}
-                {selectedBooking.isSplitEnabled && (
+                {Boolean(selectedBooking.isSplitEnabled) && (
                   <div className="mt-3 p-3.5 rounded-xl bg-indigo-500/5 border border-indigo-500/20 space-y-2">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-extrabold text-indigo-400 flex items-center gap-1.5">
-                        👥 Group Split Booking ({selectedBooking.splitPaidMembers || 1}/{selectedBooking.splitCount || 2} Paid)
+                        👥 Group Split Booking ({selectedBooking.splitPaidMembers || 0}/{selectedBooking.splitCount || 2} Paid)
                       </span>
                       <span className="font-mono text-[10px] font-bold text-text-muted">
                         Per Head: ₹{(selectedBooking.splitPerPerson || Math.round(selectedBooking.amount / (selectedBooking.splitCount || 2))).toLocaleString()}
@@ -561,20 +651,27 @@ export default function BookingsPage() {
                     <div className="space-y-1.5">
                       {(selectedBooking.splitPayments || [
                         { name: selectedBooking.customerName, role: 'LEADER', status: 'PAID', amount: selectedBooking.amountPaidByLeader || (selectedBooking.amount / (selectedBooking.splitCount || 2)) }
-                      ]).map((m: any, idx: number) => (
-                        <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-bg-tertiary/40 text-[11px]">
-                          <span className="font-bold text-text-primary flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                            {m.name} {m.role === 'LEADER' ? '(Initiator)' : ''}
-                          </span>
-                          <span className="text-emerald-400 font-mono font-bold">✓ Paid ₹{m.amount?.toLocaleString()}</span>
-                        </div>
-                      ))}
+                      ]).map((m: any, idx: number) => {
+                        const isMemberPaid = m.status === 'PAID';
+                        return (
+                          <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-bg-tertiary/40 text-[11px]">
+                            <span className="font-bold text-text-primary flex items-center gap-1.5">
+                              <span className={`w-1.5 h-1.5 rounded-full ${isMemberPaid ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'}`} />
+                              {m.name} {m.role === 'LEADER' ? '(Initiator)' : ''}
+                            </span>
+                            {isMemberPaid ? (
+                              <span className="text-emerald-400 font-mono font-bold">✓ Paid ₹{m.amount?.toLocaleString()}</span>
+                            ) : (
+                              <span className="text-amber-400 font-mono font-bold">⏳ Pending ₹{m.amount?.toLocaleString()}</span>
+                            )}
+                          </div>
+                        );
+                      })}
 
-                      {(selectedBooking.splitPaidMembers || 1) < (selectedBooking.splitCount || 2) && (
+                      {(selectedBooking.splitPaidMembers || 0) < (selectedBooking.splitCount || 2) && (
                         <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px] flex items-center justify-between text-amber-400">
                           <span className="font-medium">
-                            {(selectedBooking.splitCount || 2) - (selectedBooking.splitPaidMembers || 1)} Member(s) Pending
+                            {(selectedBooking.splitCount || 2) - (selectedBooking.splitPaidMembers || 0)} Member(s) Pending
                           </span>
                           <span className="text-[10px] font-bold">Escrow Protected</span>
                         </div>

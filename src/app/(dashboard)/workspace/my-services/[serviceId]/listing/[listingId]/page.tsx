@@ -154,7 +154,11 @@ export default function ListingEditorPage() {
                   value={serviceName}
                   onChange={(e) => setServiceName(e.target.value)}
                   placeholder={
-                    category?.name?.toLowerCase().includes('resort') || currentMerchant?.category?.toLowerCase().includes('resort')
+                    category?.name?.toLowerCase().includes('camp') || currentMerchant?.category?.toLowerCase().includes('camp') || currentMerchant?.category?.toLowerCase().includes('tent')
+                      ? "e.g. 2-Person Waterproof Alpine Tent with Sleeping Bags, Stargazing Glamping Dome, Forest Pitch"
+                      : category?.name?.toLowerCase().includes('hostel') || currentMerchant?.category?.toLowerCase().includes('hostel')
+                      ? "e.g. Bed in 6-Bed Mixed AC Dorm, Lower Bunk in 4-Bed Female Dorm, Private AC Bunk Cabin"
+                      : category?.name?.toLowerCase().includes('resort') || currentMerchant?.category?.toLowerCase().includes('resort')
                       ? "e.g. Beachfront Pool Villa, Luxury Swiss Tent, Lagoon View Cottage, Premium Suite"
                       : category?.name?.toLowerCase().includes('villa') || category?.name?.toLowerCase().includes('homestay') || currentMerchant?.category?.toLowerCase().includes('villa')
                       ? "e.g. 3BHK Private Pool Villa, Sunset Hill View Cottage, Traditional Courtyard Room"

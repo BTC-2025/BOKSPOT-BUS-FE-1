@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Calendar, BookOpen, Settings, QrCode, 
   Package, Menu, X, Bell, LogOut, Stethoscope, Dumbbell, Bed, 
   Scissors, Utensils, ShieldAlert, Check, Trash2, Info,
-  ChevronDown, Building, Building2, Film, Sparkles, LogOut as LogOutIcon, Laptop, User,
+  ChevronDown, Building, Building2, Film, Sparkles, LogOut as LogOutIcon, Laptop, User, Tent,
   Sun, Moon, Users, Mail, Search, UserCog, MapPin, Clock, ShieldCheck, MessageSquare, Calculator, Ticket, CheckCircle, Headset, Camera
 } from 'lucide-react';
 import { UtilityDrawer } from '@/components/UtilityDrawer';
@@ -431,13 +431,35 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     // WORKSPACE TAB (Management, Schedules, Settings)
     else {
       const currentArch = (currentMerchant?.archetype || '').toLowerCase();
-      const isHotel = currentArch === 'hotel' || currentArch === 'accommodation' || (currentMerchant?.category?.toLowerCase() || '').includes('hotel') || (currentMerchant?.category?.toLowerCase() || '').includes('room');
+      const catLower = (currentMerchant?.category || '').toLowerCase();
+      const isCamping = currentArch === 'camping' || catLower.includes('camp') || catLower.includes('tent') || catLower.includes('glamp');
+      const isHostel = currentArch === 'hostel' || catLower.includes('hostel') || catLower.includes('dorm');
+      const isHotel = currentArch === 'hotel' || currentArch === 'accommodation' || catLower.includes('hotel') || catLower.includes('resort') || catLower.includes('villa') || catLower.includes('homestay') || catLower.includes('room');
+
       const items = [
         { href: '/workspace/my-services', icon: Package, label: 'My Services' }
       ];
-      if (isHotel) {
-        items.push({ href: '/workspace/hotel-room-matrix', icon: Building2, label: 'Room Grid' });
+
+      if (isCamping) {
+        items.push({ 
+          href: '/workspace/hotel-room-matrix', 
+          icon: Tent, 
+          label: archetypeConfig.gridNavLabel || 'Tent & Pitch Grid' 
+        });
+      } else if (isHostel) {
+        items.push({ 
+          href: '/workspace/hotel-room-matrix', 
+          icon: Bed, 
+          label: archetypeConfig.gridNavLabel || 'Dorm & Bed Grid' 
+        });
+      } else if (isHotel) {
+        items.push({ 
+          href: '/workspace/hotel-room-matrix', 
+          icon: Building2, 
+          label: archetypeConfig.gridNavLabel || 'Room Grid' 
+        });
       }
+
       if (accessLink) items.push(accessLink);
       return items;
     }
@@ -533,7 +555,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                 />
               )}
-              Tracks
+              Bookings
             </Link>
           </nav>
         </div>

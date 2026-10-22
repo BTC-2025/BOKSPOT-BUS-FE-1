@@ -48,12 +48,25 @@ export default function DashboardPage() {
     let cancelled = false;
     const poll = async () => {
       try {
-        const res = await fetch(`/api/v1/bookings/sync?t=${Date.now()}`, { cache: 'no-store' });
-        if (!res.ok) return;
-        const all: any = await res.json();
-        const dataArr = all?.data || all;
-        if (!cancelled) setLiveBookings(Array.isArray(dataArr) ? dataArr : []);
-      } catch {}
+        let res = await fetch(`/api/v1/bookings/sync?t=${Date.now()}`, { cache: 'no-store' });
+        if (!res.ok) {
+          res = await fetch(`http://localhost:9000/api/v1/bookings/sync?t=${Date.now()}`, { cache: 'no-store' });
+        }
+        if (res.ok) {
+          const all: any = await res.json();
+          const dataArr = all?.data || all;
+          if (!cancelled) setLiveBookings(Array.isArray(dataArr) ? dataArr : []);
+        }
+      } catch (err) {
+        try {
+          const resDirect = await fetch(`http://localhost:9000/api/v1/bookings/sync?t=${Date.now()}`, { cache: 'no-store' });
+          if (resDirect.ok) {
+            const allDirect: any = await resDirect.json();
+            const dataArrDirect = allDirect?.data || allDirect;
+            if (!cancelled) setLiveBookings(Array.isArray(dataArrDirect) ? dataArrDirect : []);
+          }
+        } catch {}
+      }
     };
     poll();
     const id = setInterval(poll, 3000);
@@ -73,14 +86,15 @@ export default function DashboardPage() {
     );
   }
 
-  const curArch = currentMerchant.archetype || getArchetypeFromCategory(currentMerchant.category);
+  const curArch = (getArchetypeFromCategory(currentMerchant.archetype) || getArchetypeFromCategory(currentMerchant.category) || 'ACCOMMODATION');
 
   const isValidForMerchant = (b: any) => {
     const bCategory = (b.category || '').toLowerCase().trim();
     const bServiceName = (b.serviceName || '').toLowerCase();
     const bArch = getArchetypeFromCategory(bCategory);
 
-    if (curArch === 'ACCOMMODATION' || ['homestay / villa', 'homestay-villa', 'villas', 'hotels', 'resorts'].includes((currentMerchant.category || '').toLowerCase().trim())) {
+    const mCat = (currentMerchant.category || '').toLowerCase().trim();
+    if (curArch === 'ACCOMMODATION' || ['homestay / villa', 'homestay-villa', 'villas', 'hotels', 'resorts'].includes(mCat)) {
       if (bArch === 'TRANSPORT' || ['buses', 'trains', 'flights', 'cabs'].includes(bCategory)) return false;
       if (/bus|train|flight|shatabdi|volvo/i.test(bServiceName)) return false;
     }
@@ -101,31 +115,49 @@ export default function DashboardPage() {
   }
 
   // Merge live bookings (from backend) with local bookings for this merchant
+  const curMerchantName = (currentMerchant.merchantName || '').toLowerCase().trim();
+  const curMerchantId = String(currentMerchant.id || '').trim();
+  const curUsername = String(currentMerchant.username || '').toLowerCase().trim();
+
+  const isMatchingMerchant = (b: any) => {
+    const bId = String(b.merchantId || '').trim();
+    const bName = (b.merchantName || '').toLowerCase().trim();
+    const bUser = String(b.username || '').toLowerCase().trim();
+
+    const matchesIdOrName = (curMerchantId && bId && curMerchantId === bId) ||
+      (curMerchantName && bName && (curMerchantName === bName || bName.includes(curMerchantName) || curMerchantName.includes(bName))) ||
+      (curUsername && bUser && curUsername === bUser);
+
+    return matchesIdOrName && isValidForMerchant(b);
+  };
+
   const liveForMerchant = (Array.isArray(liveBookings) ? liveBookings : []).filter(b =>
-    (b.merchantId === currentMerchant.id || b.merchantName?.toLowerCase() === currentMerchant.merchantName?.toLowerCase()) &&
-    isValidForMerchant(b) &&
-    (b.status === 'PENDING' || b.status === 'CONFIRMED' || b.status === 'CHECKED_IN' || b.status === 'CANCELLED')
+    isMatchingMerchant(b) &&
+    (b.status === 'PENDING' || b.status === 'CONFIRMED' || b.status === 'CHECKED_IN' || b.status === 'CANCELLED' || b.status === 'COMPLETED')
   );
+
   const localActive = merchantBookings.filter(b =>
-    (b.status === 'PENDING' || b.status === 'CONFIRMED' || b.status === 'CHECKED_IN' || b.status === 'CANCELLED') &&
+    (b.status === 'PENDING' || b.status === 'CONFIRMED' || b.status === 'CHECKED_IN' || b.status === 'CANCELLED' || b.status === 'COMPLETED') &&
     !liveForMerchant.find((lb: any) => lb.ref === b.ref)
   );
-  const activeBookings = [...liveForMerchant, ...localActive];
+  const activeBookings = [...liveForMerchant, ...localActive].filter(b => b.status !== 'COMPLETED' && b.status !== 'CANCELLED');
+  const allMerchantBookings = [...liveForMerchant, ...localActive];
 
-  const completedBookings = liveForMerchant.filter(b => b.status === 'COMPLETED');
-  const totalRevenue = liveForMerchant.reduce((sum, b) => 
-    (b.status === 'COMPLETED' || b.status === 'CONFIRMED' || b.status === 'CHECKED_IN') ? sum + (b.amount || 0) : sum, 0
+  const completedBookings = allMerchantBookings.filter(b => b.status === 'COMPLETED');
+  const totalRevenue = allMerchantBookings.reduce((sum, b) => 
+    (b.status === 'COMPLETED' || b.status === 'CONFIRMED' || b.status === 'CHECKED_IN') ? sum + (Number(b.amount) || 0) : sum, 0
   );
 
-  const pendingBookings = liveForMerchant.filter(b => b.status === 'PENDING').length;
+  const pendingBookings = allMerchantBookings.filter(b => b.status === 'PENDING').length;
   
   // Calculate unique active customers
-  const uniqueCustomers = new Set(activeBookings.map(b => b.customerPhone || b.customerName)).size;
+  const uniqueCustomers = new Set(allMerchantBookings.filter(b => b.status !== 'CANCELLED').map(b => b.customerPhone || b.customerName)).size;
   const occupancy = uniqueCustomers; // Replaces previous mock percentage
 
-  // Calculate active staff (staff assigned to active bookings)
-  const activeStaffIds = new Set(activeBookings.map(b => b.assignedDoctorId).filter(Boolean));
-  const metric3 = activeStaffIds.size > 0 ? activeStaffIds.size : 1; // Default to 1 if no staff explicitly assigned yet
+  // Calculate active staff (enrolled staff for this merchant or staff assigned to bookings)
+  const activeStaffIds = new Set(allMerchantBookings.map(b => b.assignedDoctorId).filter(Boolean));
+  const merchantStaffCount = staffList.length;
+  const metric3 = merchantStaffCount > 0 ? merchantStaffCount : (activeStaffIds.size > 0 ? activeStaffIds.size : 0);
 
   // Calculate actual weekly trend
   const daysMap = [0, 0, 0, 0, 0, 0, 0]; // Mon-Sun
@@ -354,7 +386,7 @@ export default function DashboardPage() {
             </span>
           </div>
           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">{archetypeConfig.metric1Title || 'Total Bookings'}</p>
-          <h3 className="text-2xl font-black text-slate-900 dark:text-white">{liveForMerchant.length}</h3>
+          <h3 className="text-2xl font-black text-slate-900 dark:text-white">{allMerchantBookings.length}</h3>
         </div>
 
         <div className="bg-white dark:bg-[#0f1624] rounded-3xl p-5 border border-slate-200/80 dark:border-white/10 shadow-sm relative overflow-hidden group hover:border-[#ff6325]/50 hover:shadow-lg transition-all duration-300">

@@ -58,14 +58,57 @@ const INITIAL_ROOMS: RoomUnit[] = [
   { number: '302', category: 'Presidential Penthouse', floor: 3, status: 'AVAILABLE' }
 ];
 
+const INITIAL_CAMP_TENTS: RoomUnit[] = [
+  // Zone 1 - Riverside Alpine Tents
+  { number: 'T-01', category: '2-Person Alpine Tent', floor: 1, status: 'OCCUPIED', currentGuest: { name: 'Rahul Varma', ref: 'BOK-CMP-1021', checkIn: 'Today, 03:00 PM', checkOut: 'Tomorrow, 10:00 AM', nights: 1, phone: '+91 98765 11223', mealPlan: 'Campfire + BBQ Dinner' } },
+  { number: 'T-02', category: '2-Person Alpine Tent', floor: 1, status: 'AVAILABLE' },
+  { number: 'T-03', category: '2-Person Alpine Tent', floor: 1, status: 'CLEANING' },
+  { number: 'T-04', category: '4-Person Family Tent', floor: 1, status: 'OCCUPIED', currentGuest: { name: 'Sanjay & Family', ref: 'BOK-CMP-8812', checkIn: 'Today, 02:00 PM', checkOut: 'Day After, 11:00 AM', nights: 2, phone: '+91 98401 55667', mealPlan: 'All Meals + Trekking' } },
+  { number: 'T-05', category: '4-Person Family Tent', floor: 1, status: 'AVAILABLE' },
+
+  // Zone 2 - Stargazing Glamping Domes
+  { number: 'D-01', category: 'Luxury Stargazing Dome', floor: 2, status: 'OCCUPIED', currentGuest: { name: 'Pooja Iyer', ref: 'BOK-CMP-4432', checkIn: 'Today, 04:00 PM', checkOut: 'Tomorrow, 11:00 AM', nights: 1, phone: '+91 91234 99887', mealPlan: 'Private Bonfire & Wine' } },
+  { number: 'D-02', category: 'Luxury Stargazing Dome', floor: 2, status: 'AVAILABLE' },
+  { number: 'D-03', category: 'Luxury Stargazing Dome', floor: 2, status: 'MAINTENANCE' },
+
+  // Zone 3 - Open Forest Pitch Allocations
+  { number: 'P-01', category: 'DIY Camping Forest Pitch', floor: 3, status: 'AVAILABLE' },
+  { number: 'P-02', category: 'DIY Camping Forest Pitch', floor: 3, status: 'AVAILABLE' }
+];
+
+const INITIAL_HOSTEL_ROOMS: RoomUnit[] = [
+  // Dorm 1 - Mixed AC Dorm
+  { number: 'B-101', category: '6-Bed Mixed AC Dorm Bed', floor: 1, status: 'OCCUPIED', currentGuest: { name: 'David Lee', ref: 'BOK-HST-3312', checkIn: 'Oct 20', checkOut: 'Oct 24', nights: 4, phone: '+91 98765 99001', mealPlan: 'Hostel Bed Only' } },
+  { number: 'B-102', category: '6-Bed Mixed AC Dorm Bed', floor: 1, status: 'AVAILABLE' },
+  { number: 'B-103', category: '6-Bed Mixed AC Dorm Bed', floor: 1, status: 'CLEANING' },
+  { number: 'B-104', category: '6-Bed Mixed AC Dorm Bed', floor: 1, status: 'AVAILABLE' },
+
+  // Dorm 2 - Female Only Dorm
+  { number: 'B-201', category: '4-Bed Female Dorm Bed', floor: 2, status: 'OCCUPIED', currentGuest: { name: 'Sneha Patel', ref: 'BOK-HST-5521', checkIn: 'Today, 01:00 PM', checkOut: 'Tomorrow, 11:00 AM', nights: 1, phone: '+91 99887 12345', mealPlan: 'Bed + Breakfast' } },
+  { number: 'B-202', category: '4-Bed Female Dorm Bed', floor: 2, status: 'AVAILABLE' },
+
+  // Private Deluxe Bunk
+  { number: 'P-301', category: 'Private Twin Bunk Room', floor: 3, status: 'AVAILABLE' }
+];
+
 import { useVendorStore } from '@/lib/store';
+import { getArchetypeConfig } from '@/lib/businessDictionary';
 
 export default function HotelRoomMatrixPage() {
-  const { bookings, fetchBookings } = useVendorStore();
-  const [rooms, setRooms] = useState<RoomUnit[]>(INITIAL_ROOMS);
+  const { bookings, fetchBookings, currentMerchant } = useVendorStore();
+  const catLower = (currentMerchant?.category || '').toLowerCase();
+  const archLower = (currentMerchant?.archetype || '').toLowerCase();
+  const isCamping = archLower === 'camping' || catLower.includes('camp') || catLower.includes('tent') || catLower.includes('glamp');
+  const isHostel = archLower === 'hostel' || catLower.includes('hostel') || catLower.includes('dorm');
+
+  const initialInventory = isCamping ? INITIAL_CAMP_TENTS : isHostel ? INITIAL_HOSTEL_ROOMS : INITIAL_ROOMS;
+
+  const [rooms, setRooms] = useState<RoomUnit[]>(initialInventory);
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'AVAILABLE' | 'OCCUPIED' | 'CLEANING'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRoom, setSelectedRoom] = useState<RoomUnit | null>(null);
+
+  const archetypeConfig = getArchetypeConfig(currentMerchant?.archetype || currentMerchant?.category);
 
   // Poll backend for real-time customer bookings every 4 seconds
   useEffect(() => {
@@ -80,19 +123,45 @@ export default function HotelRoomMatrixPage() {
   useEffect(() => {
     if (!bookings || bookings.length === 0) return;
 
-    // Filter accommodation / hotel bookings
+    // Filter accommodation bookings (hotels, resorts, villas, homestays, rooms)
     const hotelBookings = bookings.filter(b => {
       const cat = (b.category || '').toLowerCase();
       const sName = (b.serviceName || '').toLowerCase();
-      return cat.includes('hotel') || cat.includes('room') || cat.includes('accommodation') || sName.includes('suite') || sName.includes('deluxe') || sName.includes('room');
+      return (
+        cat.includes('hotel') ||
+        cat.includes('room') ||
+        cat.includes('accommodation') ||
+        cat.includes('resort') ||
+        cat.includes('villa') ||
+        cat.includes('homestay') ||
+        cat.includes('stay') ||
+        cat.includes('hostel') ||
+        cat.includes('camp') ||
+        sName.includes('suite') ||
+        sName.includes('deluxe') ||
+        sName.includes('room') ||
+        sName.includes('villa') ||
+        sName.includes('resort')
+      );
     });
 
     if (hotelBookings.length > 0) {
       setRooms(prevRooms => {
         const updated = [...prevRooms];
-        // Assign first real booking to Room 102 if available
-        hotelBookings.forEach((hb, idx) => {
-          const targetRoomIdx = updated.findIndex(r => r.status === 'AVAILABLE' || r.currentGuest?.ref === hb.ref);
+        hotelBookings.forEach((hb) => {
+          // If specific roomNumber was assigned or already assigned to this booking
+          let targetRoomIdx = -1;
+          if (hb.roomNumber) {
+            targetRoomIdx = updated.findIndex(r => r.number === hb.roomNumber);
+          }
+          if (targetRoomIdx === -1) {
+            targetRoomIdx = updated.findIndex(r => r.currentGuest?.ref === hb.ref);
+          }
+          // If not assigned yet and booking is not cancelled, pick first available room
+          if (targetRoomIdx === -1 && hb.status !== 'CANCELLED') {
+            targetRoomIdx = updated.findIndex(r => r.status === 'AVAILABLE');
+          }
+
           if (targetRoomIdx !== -1) {
             updated[targetRoomIdx] = {
               ...updated[targetRoomIdx],
@@ -100,11 +169,11 @@ export default function HotelRoomMatrixPage() {
               currentGuest: hb.status === 'CANCELLED' ? undefined : {
                 name: hb.customerName || 'Verified Guest',
                 ref: hb.ref,
-                checkIn: hb.date || 'Today',
-                checkOut: 'Next Day',
+                checkIn: hb.time ? `${hb.date || 'Today'} (${hb.time})` : (hb.date || 'Today'),
+                checkOut: hb.time && hb.time.includes('to') ? hb.time.split('to')[1]?.trim() : 'Next Day',
                 nights: (hb as any).durationMinutes ? Math.round((hb as any).durationMinutes / 1440) || 1 : 1,
                 phone: hb.customerPhone || '+91 99887 76655',
-                mealPlan: hb.notes?.includes('Breakfast') ? 'With Breakfast' : 'Room Only'
+                mealPlan: hb.notes?.includes('Breakfast') ? 'With Breakfast' : (hb.serviceName || 'Standard Stay')
               }
             };
           }
@@ -191,23 +260,23 @@ export default function HotelRoomMatrixPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#ff6325]/15 text-[#ff6325] border border-[#ff6325]/30">
-              Frontdesk PMS Matrix
+              {isCamping ? 'Campsite Inventory PMS' : isHostel ? 'Hostel Dorm PMS' : 'Frontdesk PMS Matrix'}
             </span>
             <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Live Inventory & Tape Chart</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-3">
-            Hotel Room Grid & Guest Control
+            {isCamping ? 'Tent & Pitch Allocation Grid' : isHostel ? 'Hostel Dorm & Bed Control' : 'Hotel Room Grid & Guest Control'}
           </h1>
         </div>
 
         {/* Action button */}
         <div className="flex items-center gap-3">
           <button 
-            onClick={() => handleUpdateStatus(selectedRoom?.number || '103', 'AVAILABLE')}
+            onClick={() => handleUpdateStatus(selectedRoom?.number || (isCamping ? 'T-02' : '103'), 'AVAILABLE')}
             className="px-4 py-2 bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 border border-emerald-300 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-sm"
           >
             <CheckCircle2 size={15} />
-            <span>Mark Selected Ready</span>
+            <span>{isCamping ? 'Mark Tent Ready' : isHostel ? 'Mark Bed Ready' : 'Mark Selected Ready'}</span>
           </button>
         </div>
       </div>
@@ -218,7 +287,7 @@ export default function HotelRoomMatrixPage() {
           <span className="text-[11px] font-extrabold uppercase text-slate-500 dark:text-slate-400 tracking-wider block">Live Occupancy</span>
           <div className="flex items-baseline gap-2 mt-1">
             <span className="text-3xl font-black text-slate-900 dark:text-white">{occupancyRate}%</span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">({occupiedCount}/{totalRooms} Rooms)</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">({occupiedCount}/{totalRooms} {isCamping ? 'Tents/Pitches' : isHostel ? 'Beds' : 'Rooms'})</span>
           </div>
           <div className="w-full bg-slate-100 dark:bg-white/10 h-1.5 rounded-full mt-3 overflow-hidden">
             <div className="bg-[#ff6325] h-full rounded-full transition-all duration-500" style={{ width: `${occupancyRate}%` }} />
@@ -298,16 +367,30 @@ export default function HotelRoomMatrixPage() {
             const floorRooms = filteredRooms.filter(r => r.floor === floorNumber);
             if (floorRooms.length === 0) return null;
 
+            const zoneName = isCamping
+              ? (floorNumber === 1 ? 'Zone 1: Riverside Pitches' : floorNumber === 2 ? 'Zone 2: Stargazing Domes' : 'Zone 3: Forest Clearing')
+              : isHostel
+              ? (floorNumber === 1 ? 'Dorm 1: Mixed AC Bunks' : floorNumber === 2 ? 'Dorm 2: Female Sanctuary' : 'Private Bunk Units')
+              : `Floor ${floorNumber}`;
+
+            const zoneTag = isCamping
+              ? (floorNumber === 1 ? 'Alpine Canvas Tents' : floorNumber === 2 ? 'Glamping Geodesic Domes' : 'Open Pitch Tents')
+              : isHostel
+              ? (floorNumber === 1 ? 'Ground Level 8-Bed' : floorNumber === 2 ? 'Upper Deck 6-Bed' : 'Deluxe Bunks')
+              : (floorNumber === 1 ? 'Deluxe Wing' : floorNumber === 2 ? 'Executive Club Wing' : 'Presidential Suites');
+
+            const unitLabel = isCamping ? 'Tents / Pitches' : isHostel ? 'Beds' : 'Rooms';
+
             return (
               <div key={floorNumber} className="bg-white dark:bg-[#0e1628] rounded-3xl p-6 border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-xl space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#ff6325]" />
-                    <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Floor {floorNumber}</h3>
-                    <span className="text-xs text-slate-500 dark:text-slate-400">({floorRooms.length} Rooms)</span>
+                    <h3 className="font-extrabold text-base text-slate-900 dark:text-white">{zoneName}</h3>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">({floorRooms.length} {unitLabel})</span>
                   </div>
                   <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    {floorNumber === 1 ? 'Deluxe Wing' : floorNumber === 2 ? 'Executive Club Wing' : 'Presidential Suites'}
+                    {zoneTag}
                   </span>
                 </div>
 
@@ -329,7 +412,7 @@ export default function HotelRoomMatrixPage() {
                             : 'bg-amber-50/40 dark:bg-[#1a1c17] border-amber-200 dark:border-amber-500/25 hover:border-amber-400 dark:hover:border-amber-500/50'
                         }`}
                       >
-                        {/* Top bar with Room Number & Category pill */}
+                        {/* Top bar with Unit Number & Category pill */}
                         <div className="flex items-start justify-between">
                           <div>
                             <span className="text-xl font-black text-slate-900 dark:text-white">{room.number}</span>
@@ -344,12 +427,12 @@ export default function HotelRoomMatrixPage() {
                           }`} />
                         </div>
 
-                        {/* Bottom Room Summary */}
+                        {/* Bottom Summary */}
                         <div>
                           {room.status === 'OCCUPIED' ? (
                             <div>
                               <span className="text-[11px] font-bold text-slate-900 dark:text-white truncate block">{room.currentGuest?.name}</span>
-                              <span className="text-[9px] text-indigo-600 dark:text-indigo-300 font-bold">{room.currentGuest?.transit ? '⚡ Transit Stay' : `${room.currentGuest?.nights} Nights`}</span>
+                              <span className="text-[9px] text-indigo-600 dark:text-indigo-300 font-bold">{room.currentGuest?.transit ? '⚡ Day-Pass Camp' : `${room.currentGuest?.nights} Nights`}</span>
                             </div>
                           ) : room.status === 'AVAILABLE' ? (
                             <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
@@ -359,7 +442,7 @@ export default function HotelRoomMatrixPage() {
                           ) : (
                             <div className="flex items-center gap-1 text-[11px] font-bold text-amber-600 dark:text-amber-400">
                               <Clock size={12} />
-                              <span>Cleaning</span>
+                              <span>{isCamping ? 'Resetting Pitch' : 'Cleaning'}</span>
                             </div>
                           )}
                         </div>
@@ -372,14 +455,18 @@ export default function HotelRoomMatrixPage() {
           })}
         </div>
 
-        {/* Right Column: Selected Room Guest Details & Frontdesk Controls */}
+        {/* Right Column: Selected Unit Guest Details & Frontdesk Controls */}
         <div className="lg:col-span-4 space-y-6">
           {selectedRoom ? (
             <div className="bg-white dark:bg-[#0e1628] rounded-3xl p-6 border border-slate-200 dark:border-white/10 shadow-xl space-y-5 sticky top-24">
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
                 <div>
-                  <span className="text-[10px] uppercase font-black tracking-wider text-[#ff6325] block">Room Folio</span>
-                  <h3 className="text-2xl font-black text-slate-900 dark:text-white">Room {selectedRoom.number}</h3>
+                  <span className="text-[10px] uppercase font-black tracking-wider text-[#ff6325] block">
+                    {isCamping ? 'Tent & Pitch Folio' : isHostel ? 'Bed & Dorm Folio' : 'Room Folio'}
+                  </span>
+                  <h3 className="text-2xl font-black text-slate-900 dark:text-white">
+                    {isCamping ? `Unit ${selectedRoom.number}` : isHostel ? `Bed ${selectedRoom.number}` : `Room ${selectedRoom.number}`}
+                  </h3>
                   <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">{selectedRoom.category}</span>
                 </div>
 
@@ -396,7 +483,7 @@ export default function HotelRoomMatrixPage() {
               {selectedRoom.currentGuest ? (
                 <div className="space-y-4">
                   <div className="bg-slate-50 dark:bg-[#121c32] p-4 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-2.5">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Primary Guest</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Primary Camper / Guest</span>
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-[#ff6325]/15 text-[#ff6325] flex items-center justify-center font-black">
                         {selectedRoom.currentGuest.name.charAt(0)}
@@ -418,7 +505,7 @@ export default function HotelRoomMatrixPage() {
                       <span className="text-slate-900 dark:text-white font-bold">{selectedRoom.currentGuest.checkOut}</span>
                     </div>
                     <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-white/5">
-                      <span className="text-slate-500 dark:text-slate-400 font-medium">Meal Plan</span>
+                      <span className="text-slate-500 dark:text-slate-400 font-medium">{isCamping ? 'Camp Plan' : 'Meal Plan'}</span>
                       <span className="text-emerald-600 dark:text-emerald-400 font-bold">{selectedRoom.currentGuest.mealPlan}</span>
                     </div>
                     <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-white/5">
@@ -427,49 +514,53 @@ export default function HotelRoomMatrixPage() {
                     </div>
                   </div>
 
-                  {/* Actions for Occupied Room */}
+                  {/* Actions for Occupied Unit */}
                   <div className="space-y-2 pt-2">
                     <button 
                       onClick={() => handleUpdateStatus(selectedRoom.number, 'CLEANING')}
                       className="w-full py-2.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/15 dark:hover:bg-rose-500/25 border border-rose-300 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 rounded-xl font-bold text-xs transition-colors cursor-pointer"
                     >
-                      Process Check-Out & Release Room
+                      {isCamping ? 'Process Check-Out & Clean Pitch' : isHostel ? 'Process Check-Out & Strip Bed' : 'Process Check-Out & Release Room'}
                     </button>
-                    <button 
-                      onClick={async () => {
-                        const guestRef = selectedRoom.currentGuest?.ref;
-                        try {
-                          if (guestRef) {
-                            const matchingBooking = bookings.find(b => b.ref === guestRef);
-                            const updated = {
-                              ...(matchingBooking || { ref: guestRef }),
-                              keycardIssued: true,
-                              roomNumber: selectedRoom.number,
-                              keycardIssuedAt: new Date().toISOString(),
-                            };
-                            await fetch('/api/v1/bookings/sync', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify(updated),
-                            });
+                    {!isCamping && (
+                      <button 
+                        onClick={async () => {
+                          const guestRef = selectedRoom.currentGuest?.ref;
+                          try {
+                            if (guestRef) {
+                              const matchingBooking = bookings.find(b => b.ref === guestRef);
+                              const updated = {
+                                ...(matchingBooking || { ref: guestRef }),
+                                keycardIssued: true,
+                                roomNumber: selectedRoom.number,
+                                keycardIssuedAt: new Date().toISOString(),
+                              };
+                              await fetch('/api/v1/bookings/sync', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(updated),
+                              });
+                            }
+                          } catch (err) {
+                            console.warn('Keycard sync error:', err);
                           }
-                        } catch (err) {
-                          console.warn('Keycard sync error:', err);
-                        }
-                        alert(`Digital RFID & NFC Keycard successfully issued for Room ${selectedRoom.number} to guest ${selectedRoom.currentGuest?.name}! Access is now live on customer app.`);
-                      }}
-                      className="w-full py-2.5 bg-gradient-to-r from-[#ff6325] to-[#ff8452] hover:opacity-95 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md shadow-[#ff6325]/20 active:scale-98"
-                    >
-                      <Key size={14} className="text-white" />
-                      <span>Issue Digital Keycard Access</span>
-                    </button>
+                          alert(`Digital Access Keycard successfully issued for ${selectedRoom.number} to guest ${selectedRoom.currentGuest?.name}! Access is now live on customer app.`);
+                        }}
+                        className="w-full py-2.5 bg-gradient-to-r from-[#ff6325] to-[#ff8452] hover:opacity-95 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md shadow-[#ff6325]/20 active:scale-98"
+                      >
+                        <Key size={14} className="text-white" />
+                        <span>Issue Digital Keycard Access</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <div className="bg-slate-50 dark:bg-[#121c32] p-6 rounded-2xl border border-slate-200 dark:border-white/10 text-center space-y-2">
                     <DoorClosed size={36} className="text-slate-400 dark:text-slate-500 mx-auto" />
-                    <h4 className="font-bold text-slate-900 dark:text-white text-sm">Room is Currently Vacant</h4>
+                    <h4 className="font-bold text-slate-900 dark:text-white text-sm">
+                      {isCamping ? 'Tent / Pitch is Currently Vacant' : isHostel ? 'Bed is Currently Vacant' : 'Room is Currently Vacant'}
+                    </h4>
                     <p className="text-xs text-slate-500 dark:text-slate-400">Ready for walk-in reservation or Bokspot app guest arrival.</p>
                   </div>
 
@@ -492,7 +583,7 @@ export default function HotelRoomMatrixPage() {
                           : 'bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10'
                       }`}
                     >
-                      Mark Cleaning
+                      {isCamping ? 'Mark Pitch Reset' : 'Mark Cleaning'}
                     </button>
                   </div>
                 </div>
@@ -501,7 +592,7 @@ export default function HotelRoomMatrixPage() {
             </div>
           ) : (
             <div className="bg-white dark:bg-[#0e1628] rounded-3xl p-8 border border-slate-200 dark:border-white/10 text-center text-slate-500 dark:text-slate-400 shadow-sm">
-              Select a room unit from the grid to manage folio and housekeeping.
+              {isCamping ? 'Select a tent or pitch unit from the grid to manage folio and status.' : 'Select a room unit from the grid to manage folio and housekeeping.'}
             </div>
           )}
         </div>
