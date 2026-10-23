@@ -338,6 +338,48 @@ export default function SettingsPage() {
                 </div>
               </div>
 
+              {/* GST & Invoicing Settings */}
+              <div className="p-5 rounded-2xl bg-bg-tertiary border border-border-brand/60 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-black text-text-primary flex items-center gap-2">
+                      📑 Tax & Invoicing Profile
+                    </h3>
+                    <p className="text-xs text-text-secondary mt-0.5">
+                      Configure whether this business issues formal GST Tax Invoices or Non-GST booking receipts.
+                    </p>
+                  </div>
+                  <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${currentMerchant?.gstStatus === 'WITH_GST' ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'}`}>
+                    {currentMerchant?.gstStatus === 'WITH_GST' ? 'GST Verified' : 'Non-GST Individual'}
+                  </span>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] uppercase font-bold tracking-wider text-text-secondary">GST Registration Status</label>
+                    <select
+                      value={currentMerchant?.gstStatus || 'WITH_GST'}
+                      onChange={(e) => updateMerchantProfile(currentMerchant.id, { gstStatus: e.target.value as any })}
+                      className="w-full rounded-xl border border-border-brand/60 bg-bg-secondary px-4 py-3 text-sm text-text-primary font-bold focus:border-[#ff6325] outline-none"
+                    >
+                      <option value="WITH_GST">With GST (Formal Tax Invoice with 18% / 12% / 5%)</option>
+                      <option value="WITHOUT_GST">Without GST (Individual Provider - Flat Nett Receipt)</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] uppercase font-bold tracking-wider text-text-secondary">GSTIN Number</label>
+                    <input
+                      value={currentMerchant?.gstNumber || '33AAAAA0000A1Z5'}
+                      onChange={(e) => updateMerchantProfile(currentMerchant.id, { gstNumber: e.target.value.toUpperCase() })}
+                      placeholder="e.g. 33AAAAA0000A1Z5"
+                      disabled={currentMerchant?.gstStatus === 'WITHOUT_GST'}
+                      className="w-full rounded-xl border border-border-brand/60 bg-bg-secondary px-4 py-3 text-sm text-text-primary font-bold focus:border-[#ff6325] outline-none tracking-wider disabled:opacity-40"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-1.5">
                 <label className="text-[10px] uppercase font-bold tracking-wider text-text-secondary">About Description</label>
                 <div className="flex items-start gap-3 rounded-xl border border-border-brand/60 bg-bg-tertiary px-4 py-3 focus-within:border-[#ff6325] focus-within:ring-1 focus-within:ring-[#ff6325]/30 transition-all">

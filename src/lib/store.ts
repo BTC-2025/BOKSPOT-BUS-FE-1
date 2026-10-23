@@ -213,10 +213,13 @@ export interface CatalogService {
   isOffersEnabled?: boolean;
   offersAndDiscounts?: string;
   
-  // Location
+  // Location & Branch Association
   city?: string;
   latitude?: number;
   longitude?: number;
+  branchId?: string;
+  branchName?: string;
+  gstType?: 'WITH_GST' | 'WITHOUT_GST';
 
   // Custom industry-specific details
   specializationRequired?: string;
@@ -256,6 +259,17 @@ export interface CatalogService {
   [key: string]: any;
 }
 
+export interface BranchInfo {
+  id: string;
+  name: string;        // e.g. "Chennai Branch (Hotels & Pool)" or "Madurai Branch (Cricket Turf)"
+  city: string;        // e.g. "Chennai", "Madurai"
+  address?: string;
+  gstStatus: 'WITH_GST' | 'WITHOUT_GST';
+  gstNumber?: string;
+  offeringsSummary?: string; // e.g. "Hotels, Swimming Pool"
+  isMainBranch?: boolean;
+}
+
 export interface MerchantUser {
   isCustomized?: boolean;
   activeModules?: string[];
@@ -275,6 +289,12 @@ export interface MerchantUser {
   supervisorEmail?: string;
   supervisorAddress?: string;
   archetype?: 'Healthcare' | 'ResourceBooking' | 'Service' | 'Dining' | 'Accommodation' | 'Camping' | 'Hostel' | 'SportsFacility' | 'Fitness' | 'EventSpace' | 'Rental' | 'CareServices' | 'PersonalCare' | 'Sports' | 'Wellness' | 'Trade' | 'Workspace' | 'Events' | 'Rentals' | 'PassEntry' | 'FacilityHourly' | 'OvernightStay' | 'TimeSlot' | 'AssetRental' | 'HomeCall';
+  
+  // Multi-Branch and GST Settings
+  branches?: BranchInfo[];
+  activeBranchId?: string;
+  gstStatus?: 'WITH_GST' | 'WITHOUT_GST';
+  gstNumber?: string;
   
   // Venue Profile (Global Business Details)
   thingsToKnow?: string[];
@@ -323,6 +343,11 @@ interface VendorStoreState {
   staffAccounts: StaffMember[];
   customMerchants: Record<string, Partial<MerchantUser>>;
   registeredMerchants: MerchantUser[];
+  
+  // Branch actions
+  switchBranch: (branchId: string) => void;
+  addBranch: (branch: BranchInfo) => void;
+  updateBranch: (branchId: string, updated: Partial<BranchInfo>) => void;
   
   // Theme actions
   setTheme: (theme: 'system' | 'light' | 'dark') => void;
@@ -1150,6 +1175,43 @@ export const useVendorStore = create<VendorStoreState>()(
       
   customMerchants: {},
   supportTickets: [],
+
+  // Branch action implementations
+  switchBranch: (branchId: string) => set((state) => {
+    if (!state.currentMerchant) return state;
+    return {
+      currentMerchant: {
+        ...state.currentMerchant,
+        activeBranchId: branchId
+      }
+    };
+  }),
+
+  addBranch: (newBranch: BranchInfo) => set((state) => {
+    if (!state.currentMerchant) return state;
+    const existing = state.currentMerchant.branches || [];
+    const updatedBranches = [...existing, newBranch];
+    return {
+      currentMerchant: {
+        ...state.currentMerchant,
+        branches: updatedBranches,
+        activeBranchId: newBranch.id
+      }
+    };
+  }),
+
+  updateBranch: (branchId: string, updated: Partial<BranchInfo>) => set((state) => {
+    if (!state.currentMerchant || !state.currentMerchant.branches) return state;
+    const updatedBranches = state.currentMerchant.branches.map(b => 
+      b.id === branchId ? { ...b, ...updated } : b
+    );
+    return {
+      currentMerchant: {
+        ...state.currentMerchant,
+        branches: updatedBranches
+      }
+    };
+  }),
   completeOnboarding: (merchantId, setupData) => set((state) => {
     const customData: any = { isCustomized: true, activeModules: setupData.activeModules, customDictionary: setupData.customDictionary };
     if (setupData.merchantName) customData.merchantName = setupData.merchantName;

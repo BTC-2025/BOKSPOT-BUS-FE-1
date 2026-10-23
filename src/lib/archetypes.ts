@@ -157,7 +157,8 @@ export const getArchetypeFromCategory = (cat?: string): Archetype | null => {
   if (normalized.includes('movie') || normalized.includes('concert') || normalized.includes('darshan') || normalized.includes('event')) return 'PASS_ENTRY';
   if (normalized.includes('bike') || normalized.includes('car-rent') || normalized.includes('camera')) return 'ASSET_RENTAL';
 
-  return null;
+  // Default fallback for any custom category (e.g. Laser Tag, Paintball, Custom Activity)
+  return 'RENTAL';
 };
 
 // Blueprint schemas for the Dynamic Form Engine (Business App)

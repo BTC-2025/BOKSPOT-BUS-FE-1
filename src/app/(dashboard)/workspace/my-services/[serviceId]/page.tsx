@@ -60,13 +60,13 @@ export default function ServiceListingsPage() {
             onClick={() => router.push('/workspace/my-services')}
             className="flex items-center gap-2 text-slate-400 hover:text-[#ff6325] font-bold text-sm mb-4 transition-colors cursor-pointer"
           >
-            <ArrowLeft size={16} /> Back to Categories
+            <ArrowLeft size={16} /> Back to Types
           </button>
           <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight flex items-center gap-3">
             {category.name} Listings
           </h1>
           <p className="text-sm text-slate-400 font-medium mt-2 max-w-2xl">
-            Manage individual items (listings) inside the <span className="text-white font-bold">{category.name}</span> category.
+            Manage individual listings inside the <span className="text-white font-bold">{category.name}</span> type.
           </p>
         </div>
         <div className="flex items-center gap-3">

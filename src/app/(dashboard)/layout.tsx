@@ -820,36 +820,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   </div>
                 </div>
 
-                <div className="border-t border-border-brand py-2 px-3">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 px-3 block mb-1.5">Switch Active Business</span>
-                  <div className="max-h-48 overflow-y-auto space-y-1 custom-scrollbar">
-                    {allStores.map((m) => {
-                      const isActive = m.id === currentMerchant?.id;
-                      return (
-                        <button
-                          key={m.id}
-                          onClick={() => {
-                            switchStore(m.id);
-                            setProfileOpen(false);
-                          }}
-                          className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-colors cursor-pointer text-xs ${
-                            isActive
-                              ? 'bg-[#ff6325]/15 border border-[#ff6325]/40 text-[#c2410c] dark:text-[#ff6325] font-black'
-                              : 'hover:bg-slate-100 dark:hover:bg-white/5 text-slate-900 dark:text-slate-100 font-bold'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 truncate">
-                            <span className="w-5 h-5 rounded-md bg-[#0a3161] !text-white flex items-center justify-center text-[10px] font-black shrink-0 shadow-xs">
-                              {m.logoLetter || m.merchantName.charAt(0)}
-                            </span>
-                            <span className="truncate text-slate-900 dark:text-white font-extrabold">{m.merchantName}</span>
-                          </div>
-                          {isActive && <span className="text-[10px] text-[#c2410c] dark:text-[#ff6325] font-black uppercase tracking-wider">Active</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+
 
                 <div className="border-t border-border-brand py-1">
                   <button 

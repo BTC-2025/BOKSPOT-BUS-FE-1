@@ -53,8 +53,7 @@ export default function ListingEditorPage() {
   if (!category) return null;
 
   const catSlug = category?.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  const merchantSlug = currentMerchant?.category?.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  const archetype: Archetype = CATEGORY_TO_ARCHETYPE_MAP[catSlug || ''] || CATEGORY_TO_ARCHETYPE_MAP[merchantSlug || ''] || 'EVENT';
+  const archetype: Archetype = CATEGORY_TO_ARCHETYPE_MAP[catSlug || ''] || 'EVENT';
 
   const handleSaveDetails = () => {
     if (!serviceName.trim()) {
@@ -105,7 +104,7 @@ export default function ListingEditorPage() {
           {isCreating ? 'Create New Listing' : 'Edit Listing'}
         </h1>
         <p className="text-sm text-text-secondary font-medium mt-2">
-          Listing in category: <strong className="text-text-primary">{category.name}</strong>
+          Listing in type: <strong className="text-text-primary">{category.name}</strong>
         </p>
       </div>
 
@@ -154,22 +153,26 @@ export default function ListingEditorPage() {
                   value={serviceName}
                   onChange={(e) => setServiceName(e.target.value)}
                   placeholder={
-                    category?.name?.toLowerCase().includes('camp') || currentMerchant?.category?.toLowerCase().includes('camp') || currentMerchant?.category?.toLowerCase().includes('tent')
+                    category?.name?.toLowerCase().includes('camp') || category?.name?.toLowerCase().includes('tent')
                       ? "e.g. 2-Person Waterproof Alpine Tent with Sleeping Bags, Stargazing Glamping Dome, Forest Pitch"
-                      : category?.name?.toLowerCase().includes('hostel') || currentMerchant?.category?.toLowerCase().includes('hostel')
+                      : category?.name?.toLowerCase().includes('hostel')
                       ? "e.g. Bed in 6-Bed Mixed AC Dorm, Lower Bunk in 4-Bed Female Dorm, Private AC Bunk Cabin"
-                      : category?.name?.toLowerCase().includes('resort') || currentMerchant?.category?.toLowerCase().includes('resort')
+                      : category?.name?.toLowerCase().includes('resort')
                       ? "e.g. Beachfront Pool Villa, Luxury Swiss Tent, Lagoon View Cottage, Premium Suite"
-                      : category?.name?.toLowerCase().includes('villa') || category?.name?.toLowerCase().includes('homestay') || currentMerchant?.category?.toLowerCase().includes('villa')
+                      : category?.name?.toLowerCase().includes('villa') || category?.name?.toLowerCase().includes('homestay')
                       ? "e.g. 3BHK Private Pool Villa, Sunset Hill View Cottage, Traditional Courtyard Room"
+                      : category?.name?.toLowerCase().includes('cricket')
+                      ? "e.g. Main Turf Pitch (Pitch 1), Indoor Box Cricket Arena, Practice Net Turf B"
+                      : category?.name?.toLowerCase().includes('meeting') || category?.name?.toLowerCase().includes('coworking')
+                      ? "e.g. Executive Boardroom 1, 10-Pax Brainstorming Pod, Hot Desk A"
                       : archetype === 'HOME_CALL'
                       ? "e.g. Split AC Deep Cleaning & Foam Jet Wash, Switchboard & MCB Repair, Kitchen Sink Drain Unclog"
                       : archetype === 'PASS_ENTRY'
                       ? "e.g. VIP Standing Fan Pit, Audi 1 Dolby Atmos Recliner, Special Darshan Pass"
                       : archetype === 'ASSET_RENTAL'
                       ? "e.g. Royal Enfield Hunter 350 Dapper, Hyundai Creta Automatic, Sony FX3 Cinema Kit"
-                      : archetype === 'RENTAL' || category?.name?.toLowerCase().includes('turf') || category?.name?.toLowerCase().includes('cricket') || category?.name?.toLowerCase().includes('court')
-                      ? "e.g. 7-a-side Main Turf (Pitch 1), Indoor Box Cricket Arena, Badminton Court A"
+                      : archetype === 'RENTAL' || category?.name?.toLowerCase().includes('turf') || category?.name?.toLowerCase().includes('court')
+                      ? "e.g. 7-a-side Main Turf (Pitch 1), Badminton Court A, 5s Cage Pitch"
                       : archetype === 'APPOINTMENT'
                       ? "e.g. Senior Doctor OPD Consultation, Hair Styling Session"
                       : archetype === 'DINING'
@@ -266,6 +269,41 @@ export default function ListingEditorPage() {
                     {archetype === 'ACCOMMODATION' ? 'Standard per-night room tariff shown to guests.' : archetype === 'HOME_CALL' ? 'Visiting inspection fee or package starting price.' : archetype === 'PASS_ENTRY' ? 'Single admission price per pass/ticket.' : archetype === 'ASSET_RENTAL' ? 'Per-day rental tariff (24 hours window).' : archetype === 'RENTAL' ? 'Hourly court rate charged to players.' : archetype === 'APPOINTMENT' ? 'Standard fee charged per patient consultation.' : 'The starting price shown to customers.'}
                   </p>
                 </div>
+
+                {/* GST Pathway Card based on Branch / Merchant Mode */}
+                <div className="flex flex-col justify-end">
+                  {category?.gstType === 'WITH_GST' || currentMerchant?.gstStatus === 'WITH_GST' ? (
+                    <div className="p-3.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-xs space-y-1.5 animate-fade-in">
+                      <div className="flex items-center justify-between font-bold text-cyan-400">
+                        <span className="flex items-center gap-1.5">📑 Registered GST Mode (18%)</span>
+                        <span>Tax Invoice Enabled</span>
+                      </div>
+                      <div className="flex items-center justify-between text-slate-300 text-[11px] pt-1 border-t border-cyan-500/15">
+                        <span>Base Amount:</span>
+                        <span className="font-semibold">₹{Number(basePrice || 0).toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-slate-400 text-[11px]">
+                        <span>CGST (9%) + SGST (9%):</span>
+                        <span>₹{(Number(basePrice || 0) * 0.18).toFixed(2)}</span>
+                      </div>
+                      <div className="flex items-center justify-between font-black text-white text-xs pt-1 border-t border-cyan-500/20">
+                        <span>Customer Total (Incl. GST):</span>
+                        <span className="text-cyan-400">₹{(Number(basePrice || 0) * 1.18).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs space-y-1 animate-fade-in">
+                      <div className="flex items-center justify-between font-bold text-emerald-400">
+                        <span className="flex items-center gap-1.5">✨ Non-GST Individual Provider</span>
+                        <span className="text-[10px] bg-emerald-500/20 px-1.5 py-0.5 rounded">Nett Pricing</span>
+                      </div>
+                      <p className="text-[11px] text-slate-300">
+                        No GST surcharge added. Customer pays exact flat rate of <strong className="text-white">₹{Number(basePrice || 0).toLocaleString()}</strong>.
+                      </p>
+                      <span className="text-[10px] text-slate-400 block pt-0.5">Generates direct platform booking receipt.</span>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -278,6 +316,10 @@ export default function ListingEditorPage() {
                       ? "Describe villa layout, beach/pool proximity, complimentary breakfast, air-conditioning, private sit-out deck, and guest capacity..."
                       : category?.name?.toLowerCase().includes('villa') || category?.name?.toLowerCase().includes('homestay')
                       ? "Describe homestay amenities, kitchen access, surrounding nature/hill view, peaceful courtyard, and family accommodation details..."
+                      : category?.name?.toLowerCase().includes('cricket') || currentMerchant?.category?.toLowerCase().includes('cricket')
+                      ? "Describe this cricket ground/pitch (e.g. 65m boundary, 22-yard natural clay/matting pitch, high-mast floodlights, pavilion & nets)..."
+                      : category?.name?.toLowerCase().includes('meeting') || category?.name?.toLowerCase().includes('studio') || currentMerchant?.category?.toLowerCase().includes('meeting')
+                      ? "Describe this space (e.g. 12-seater boardroom with 4K interactive display, acoustic soundproofing, high-speed Wi-Fi & coffee lounge)..."
                       : archetype === 'ACCOMMODATION'
                       ? "Describe room amenities, view (city/garden/pool), bedding type, high-speed Wi-Fi, and 24/7 room service..."
                       : archetype === 'HOME_CALL'
@@ -299,7 +341,17 @@ export default function ListingEditorPage() {
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider">
-                    {archetype === 'HOME_CALL' ? 'Spare Parts & Optional Add-on Additions' : archetype === 'PASS_ENTRY' ? 'F&B Combos & Merchandise Add-ons (Optional)' : archetype === 'ASSET_RENTAL' ? 'Add-on Gear / Excess Insurance (Optional)' : archetype === 'RENTAL' ? 'Equipment Add-ons & Surcharges (Optional)' : 'Add-ons / Extras (Optional)'}
+                    {category?.name?.toLowerCase().includes('cricket') || currentMerchant?.category?.toLowerCase().includes('cricket')
+                      ? 'Match Balls, Gear & Floodlight Add-ons (Optional)'
+                      : archetype === 'HOME_CALL' 
+                      ? 'Spare Parts & Optional Add-on Additions' 
+                      : archetype === 'PASS_ENTRY' 
+                      ? 'F&B Combos & Merchandise Add-ons (Optional)' 
+                      : archetype === 'ASSET_RENTAL' 
+                      ? 'Add-on Gear / Excess Insurance (Optional)' 
+                      : archetype === 'RENTAL' 
+                      ? 'Equipment Add-ons & Surcharges (Optional)' 
+                      : 'Add-ons / Extras (Optional)'}
                   </label>
                   <button 
                     type="button"
@@ -319,7 +371,9 @@ export default function ListingEditorPage() {
                     <input 
                       type="text" 
                       placeholder={
-                        archetype === 'HOME_CALL'
+                        category?.name?.toLowerCase().includes('cricket') || currentMerchant?.category?.toLowerCase().includes('cricket')
+                          ? "e.g. Leather Match Ball (SG Test), Full Batting Kit (Bat, Pads, Helmet), Night Floodlights"
+                          : archetype === 'HOME_CALL'
                           ? "e.g. Outdoor Unit Foam Jet Cleaning, Antibacterial Spray Coat, Extra Drain Pipe"
                           : archetype === 'PASS_ENTRY'
                           ? "e.g. Large Tub Popcorn & Coke, VIP Lounge Pass, Souvenir T-Shirt"
@@ -384,16 +438,18 @@ export default function ListingEditorPage() {
           <div className="p-8 md:p-10 space-y-8 animate-fade-in">
             <div>
               <h2 className="text-2xl font-black text-text-primary flex items-center gap-2">
-                <Zap className="text-[#ff6325]" /> 2. Dynamic Details ({archetype})
+                <Zap className="text-[#ff6325]" /> 2. Dynamic Details ({category?.name || archetype})
               </h2>
               <p className="text-sm text-text-secondary mt-1">
-                These fields are specifically tailored for your business category type ({archetype}). Fill them out accurately.
+                These fields are specifically tailored for your business category ({category?.name || archetype}). Fill them out accurately.
               </p>
             </div>
             
             <div>
               <DynamicForm 
                 archetype={archetype}
+                categoryName={category?.name || ''}
+                merchantCategory={currentMerchant?.category || ''}
                 initialData={metadata}
                 onCancel={() => setStep(1)}
                 onSubmit={(data) => {
