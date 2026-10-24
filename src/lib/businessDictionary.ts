@@ -611,7 +611,10 @@ export const getArchetypeConfig = (archetypeOrCategory?: string): ArchetypeConfi
   const aliasMap: Record<string, string> = {
     'OvernightStay': 'Accommodation',
     'TimeSlot': 'Service',
-    'Rental': 'AssetRental',
+    'Rental': 'FacilityHourly',
+    'RENTAL': 'FacilityHourly',
+    'FACILITY_HOURLY': 'FacilityHourly',
+    'ASSET_RENTAL': 'AssetRental',
     'Fitness': 'ResourceBooking',
     'Dining': 'FacilityHourly',
     'PersonalCare': 'Beauty',
@@ -638,7 +641,7 @@ export const getArchetypeConfig = (archetypeOrCategory?: string): ArchetypeConfi
   if (lower.includes('hotel') || lower.includes('resort') || lower.includes('villa') || lower.includes('homestay') || lower.includes('stay') || lower.includes('accommodation')) {
     return businessDictionary['Accommodation'];
   }
-  if (lower.includes('turf') || lower.includes('sport') || lower.includes('court') || lower.includes('pitch')) {
+  if (lower.includes('turf') || lower.includes('ground') || lower.includes('football') || lower.includes('cricket') || lower.includes('sport') || lower.includes('court') || lower.includes('pitch') || lower.includes('arena')) {
     return businessDictionary['FacilityHourly'];
   }
   if (lower.includes('doctor') || lower.includes('clinic') || lower.includes('health')) {
@@ -647,7 +650,7 @@ export const getArchetypeConfig = (archetypeOrCategory?: string): ArchetypeConfi
   if (lower.includes('salon') || lower.includes('spa') || lower.includes('beauty')) {
     return businessDictionary['Beauty'];
   }
-  if (lower.includes('bike') || lower.includes('car-rent') || lower.includes('rental')) {
+  if (lower.includes('bike') || lower.includes('car-rent') || lower.includes('equipment-rent') || lower.includes('gear')) {
     return businessDictionary['AssetRental'];
   }
   if (lower.includes('clean') || lower.includes('electric') || lower.includes('plumb') || lower.includes('repair')) {

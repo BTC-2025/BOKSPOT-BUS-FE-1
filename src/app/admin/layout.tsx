@@ -42,42 +42,43 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="flex flex-col h-screen bg-bg-primary font-sans text-text-primary overflow-hidden">
       
       {/* Top Navbar */}
-      <header className="sticky top-0 z-50 flex h-16 items-center justify-between vendor-navbar px-6 shadow-md border-b border-border-brand/40 shrink-0 backdrop-blur-md">
+      <header className="sticky top-0 z-50 flex h-14 items-center justify-between vendor-navbar px-4 md:px-6 shadow-xs border-b border-border-brand/40 shrink-0 backdrop-blur-md">
         
         {/* Left Column: Logo & Badge */}
-        <div className="flex-1 flex items-center gap-4">
-          <Link href="/admin" className="flex items-center hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shrink-0">
-            <img src="/logo.png?v=3" alt="BokSpot Logo" className="h-10 lg:h-12 object-contain" />
+        <div className="flex-1 flex items-center gap-3">
+          <Link href="/admin" className="flex items-center hover:opacity-90 active:scale-[0.98] transition-all duration-200 shrink-0">
+            <img src="/logo.png?v=3" alt="BokSpot Logo" className="h-8 md:h-9 object-contain" />
           </Link>
-          <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 shadow-sm select-none hidden md:block">
-            Super Admin Console
+          <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-[0.15em] bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 shadow-2xs select-none hidden md:inline-flex items-center gap-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
+            <span>Super Admin</span>
           </span>
         </div>
 
-        {/* Center Column: Navigation Links */}
+        {/* Center Column: Navigation Links (Compact Executive Pill Dock) */}
         <div className="hidden lg:flex flex-none justify-center">
-          <nav className="custom-nav-capsule shadow-lg relative flex">
+          <nav className="p-1 rounded-2xl bg-black/[0.04] dark:bg-white/[0.03] border border-black/[0.05] dark:border-white/[0.06] shadow-inner relative flex items-center gap-1">
             {menuItems.map((item) => {
               const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`w-36 text-center py-1 text-[13px] font-extrabold tracking-wide hover:scale-[1.02] active:scale-[0.98] relative z-10 custom-nav-link flex items-center justify-center gap-1.5 ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold tracking-tight hover:scale-[1.01] active:scale-[0.98] relative z-10 transition-colors flex items-center justify-center gap-1.5 ${
                     isActive 
-                      ? 'custom-nav-link-active' 
-                      : 'custom-nav-link-inactive'
+                      ? 'text-white' 
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   {isActive && (
                     <motion.div
                       layoutId="activeAdminNavIndicator"
-                      className="absolute inset-0 rounded-full bg-[#8b6508]/20 border border-[#8b6508]/45 shadow-[0_0_12px_rgba(255,215,0,0.15)] backdrop-blur-md -z-10 custom-nav-active-bg"
-                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#ff7b47] shadow-[0_2px_10px_rgba(255,99,37,0.35)] -z-10"
+                      transition={{ type: 'spring', stiffness: 420, damping: 32 }}
                     />
                   )}
-                  <item.icon size={14} className={isActive ? 'text-white' : 'text-slate-400'} />
-                  {item.label}
+                  <item.icon size={13} className={isActive ? 'text-white' : 'text-slate-400'} />
+                  <span>{item.label}</span>
                 </Link>
               );
             })}
@@ -85,47 +86,47 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         {/* Right Column: Profile Dropdown */}
-        <div className="flex-1 flex items-center justify-end gap-4">
+        <div className="flex-1 flex items-center justify-end gap-3">
           <div className="relative animate-fade-in" ref={profileRef}>
             <button
               onClick={() => setProfileOpen(!profileOpen)}
-              className="flex items-center gap-2 rounded-full border border-white/25 hover:border-white/40 bg-white/10 hover:bg-white/20 px-3.5 py-1.5 text-xs font-bold text-white hover:text-white transition-all cursor-pointer select-none shadow-md"
+              className="flex items-center gap-2 rounded-xl border border-white/20 hover:border-white/35 bg-white/10 hover:bg-white/15 px-3 py-1.5 text-xs font-bold text-white transition-all cursor-pointer select-none shadow-xs"
               aria-label="Toggle profile menu"
               title="Admin Profile Settings"
             >
-              <div className="h-5 w-5 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm">
-                <Shield size={12} strokeWidth={2.5} className="text-indigo-500" />
+              <div className="h-5 w-5 rounded-lg bg-white/20 flex items-center justify-center shrink-0 shadow-2xs">
+                <Shield size={11} strokeWidth={2.5} className="text-white" />
               </div>
-              <span>System Admin</span>
-              <ChevronDown className={`h-3 w-3 text-white transition-transform duration-200 ${profileOpen ? 'rotate-180' : ''}`} />
+              <span className="text-[12px]">System Admin</span>
+              <ChevronDown className={`h-3 w-3 text-white/80 transition-transform duration-200 ${profileOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {profileOpen && (
-              <div className="absolute right-0 mt-3 w-[320px] bg-bg-secondary rounded-2xl shadow-2xl border border-border-brand z-50 overflow-hidden animate-fade-in text-left profile-dropdown-card">
+              <div className="absolute right-0 mt-2 w-72 bg-bg-secondary rounded-2xl shadow-2xl border border-border-brand z-50 overflow-hidden animate-fade-in text-left profile-dropdown-card">
                 {/* Profile Header */}
-                <div className="px-6 py-4 flex flex-col items-center min-w-0 text-center bg-bg-secondary">
+                <div className="px-5 py-3.5 flex flex-col items-center min-w-0 text-center bg-bg-secondary">
                   <div className="relative mb-2">
-                    <div className="h-14 w-14 rounded-full bg-indigo-500/20 border border-indigo-500/40 text-indigo-400 flex items-center justify-center text-2xl font-bold">
+                    <div className="h-12 w-12 rounded-full bg-indigo-500/20 border border-indigo-500/40 text-indigo-400 flex items-center justify-center text-xl font-bold">
                       A
                     </div>
-                    <button className="absolute bottom-0 right-0 h-5 w-5 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 shadow-sm hover:bg-slate-50">
-                      <Shield size={10} className="text-indigo-500" />
-                    </button>
+                    <div className="absolute bottom-0 right-0 h-4 w-4 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 shadow-xs">
+                      <Shield size={9} className="text-indigo-500" />
+                    </div>
                   </div>
-                  <span className="font-extrabold text-[15px] truncate max-w-full text-text-primary capitalize">
+                  <span className="font-extrabold text-sm truncate max-w-full text-text-primary capitalize">
                     System Admin
                   </span>
-                  <span className="text-xs text-indigo-400 mt-0.5 font-bold uppercase tracking-widest truncate max-w-full">
-                    God Mode
+                  <span className="text-[10px] text-indigo-400 mt-0.5 font-black uppercase tracking-widest truncate max-w-full">
+                    Console Root
                   </span>
                   
                   <Link 
                     href="/admin/settings" 
                     onClick={() => setProfileOpen(false)}
-                    className="mt-3 px-4 py-1.5 flex items-center justify-center gap-2 rounded-full border border-border-brand text-sm font-semibold text-text-secondary hover:bg-white/5 transition-colors"
+                    className="mt-3 px-3.5 py-1.5 flex items-center justify-center gap-1.5 rounded-xl border border-border-brand text-xs font-semibold text-text-secondary hover:bg-white/5 transition-colors w-full"
                   >
-                    <UserCog className="h-4 w-4" />
-                    <span>Manage your account</span>
+                    <UserCog className="h-3.5 w-3.5" />
+                    <span>Manage Account</span>
                   </Link>
                 </div>
 
@@ -135,10 +136,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       setProfileOpen(false);
                       handleLogout();
                     }}
-                    className="w-full flex items-center gap-4 px-6 py-2 hover:bg-red-500/10 transition-colors text-left cursor-pointer"
+                    className="w-full flex items-center gap-3 px-5 py-2 hover:bg-red-500/10 transition-colors text-left cursor-pointer"
                   >
-                    <LogOutIcon className="h-5 w-5 text-red-400 shrink-0" />
-                    <span className="text-[13px] font-semibold text-red-400">Sign out</span>
+                    <LogOutIcon className="h-4 w-4 text-red-400 shrink-0" />
+                    <span className="text-xs font-semibold text-red-400">Sign out</span>
                   </button>
                 </div>
               </div>
@@ -148,15 +149,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto p-6 md:p-8 relative">
+      <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-7 relative custom-scrollbar">
         {/* Subtle Background Gradients */}
-        <div className="absolute top-[-30%] left-[-10%] w-[600px] h-[600px] rounded-full bg-[#0a3161]/8 blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-[-30%] right-[-10%] w-[600px] h-[600px] rounded-full bg-[#8b6508]/6 blur-[120px] pointer-events-none" />
+        <div className="absolute top-[-30%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[#0a3161]/8 blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-[-30%] right-[-10%] w-[500px] h-[500px] rounded-full bg-[#ff6325]/5 blur-[100px] pointer-events-none" />
         
         {/* Clean Grid Overlay */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.005)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.005)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-[0.02]" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.005)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.005)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none opacity-[0.02]" />
         
-        <div className="relative z-10 max-w-7xl mx-auto animate-fade-up">
+        <div className="relative z-10 max-w-7xl mx-auto">
           {children}
         </div>
       </main>

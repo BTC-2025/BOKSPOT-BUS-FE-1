@@ -251,15 +251,20 @@ export const ARCHETYPE_SCHEMAS: Record<Archetype, any> = {
   ACCOMMODATION: {
     title: "Accommodation, Campsite & Stay Details",
     fields: [
-      { name: "roomType", type: "text", label: "Unit / Tent / Room Title", placeholder: "e.g., 2-Person Alpine Tent, Luxury Glamping Dome, Deluxe Ocean View Villa, 6-Bed Mixed AC Dorm Bed", required: true },
-      { name: "totalUnits", type: "number", label: "Number of Units / Tents / Beds Available", placeholder: "e.g., 10 (Tents, Rooms or Beds)", required: true },
-      { name: "maxGuests", type: "number", label: "Max Guests / Campers per Unit", placeholder: "e.g., 2 (per Alpine Tent) or 4 (per Family Tent)", required: true },
-      { name: "bedType", type: "text", label: "Bed / Sleeping Arrangement", placeholder: "e.g., 2 Sleeping Bags + Camping Mats, 1 Queen Bed, or 1 Single Bunk", required: false },
-      { name: "bathroomType", type: "text", label: "Bathroom / Washroom Setup", placeholder: "e.g., Camp Facility Washrooms with Hot Water, or Attached Ensuite Bathroom", required: false },
+      { name: "roomType", type: "text", label: "Room / Villa / Unit Type", placeholder: "e.g., Deluxe Ocean View Villa, 3BHK Private Pool Villa, Executive King Suite", required: true },
+      { name: "totalUnits", type: "number", label: "Inventory / Units Available", placeholder: "e.g., 5", required: true },
+      { name: "maxGuests", type: "number", label: "Max Guests Allowed", placeholder: "e.g., 4 Guests (2 Adults + 2 Kids)", required: true },
+      { name: "bedType", type: "text", label: "Bed & Sleeping Setup", placeholder: "e.g., 1 King Bed + 1 Sofa Bed, 2 Queen Beds", required: false },
+      { name: "sizeSqFt", type: "number", label: "Room / Villa Area (Sq.Ft)", placeholder: "e.g., 450", required: false },
+      { name: "viewType", type: "text", label: "Balcony / View Type", placeholder: "e.g., Sea Facing / Pool View / Mountain View / Garden View", required: false },
+      { name: "bathroomType", type: "text", label: "Bathroom / Washroom Setup", placeholder: "e.g., Ensuite Marble Bathroom with Rain Shower & Bathtub", required: false },
       { name: "checkInTime", type: "time", label: "Standard Check-in Time", required: true },
       { name: "checkOutTime", type: "time", label: "Standard Check-out Time", required: true },
-      { name: "perks", type: "array", label: "Special Inclusions & Add-ons", placeholder: "e.g., Evening Campfire & Live BBQ, Stargazing Telescope, Trekking Guide, Free Breakfast", required: false },
-      { name: "amenities", type: "multi-select", label: "Camp & Stay Amenities", placeholder: "e.g., Bonfire Pit, BBQ Grill, Sleeping Bags, Charging Points, Clean Restrooms, First Aid Kit, Solar Lamps", required: false }
+      { name: "mealPlanOptions", type: "text", label: "Dining & Meal Plan Options", placeholder: "e.g., Room Only, Free Buffet Breakfast (CP), All Meals Included (AP)", required: false },
+      { name: "petPolicy", type: "text", label: "Pet Policy", placeholder: "e.g., Pet Friendly (Dogs/Cats allowed with prior notice) / No Pets", required: false },
+      { name: "cancellationPolicy", type: "text", label: "Cancellation Policy", placeholder: "e.g., 100% Free Cancellation up to 24 hrs before check-in", required: false },
+      { name: "perks", type: "array", label: "Special Inclusions & Highlights", placeholder: "e.g., Free Buffet Breakfast, Sunset View Balcony, Private Plunge Pool, High-Speed WiFi", required: false },
+      { name: "amenities", type: "multi-select", label: "Room & Unit Amenities", placeholder: "e.g., AC, Smart TV 55\", Mini Bar, Espresso Machine, Work Desk, Bathrobes", required: false }
     ]
   },
   TRANSPORT: {

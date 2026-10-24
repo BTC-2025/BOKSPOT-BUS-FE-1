@@ -270,6 +270,14 @@ export interface BranchInfo {
   isMainBranch?: boolean;
 }
 
+export interface BusinessVertical {
+  id: string;
+  name: string;
+  category: string;
+  archetype: string;
+  badge?: string;
+}
+
 export interface MerchantUser {
   isCustomized?: boolean;
   activeModules?: string[];
@@ -290,6 +298,10 @@ export interface MerchantUser {
   supervisorAddress?: string;
   archetype?: 'Healthcare' | 'ResourceBooking' | 'Service' | 'Dining' | 'Accommodation' | 'Camping' | 'Hostel' | 'SportsFacility' | 'Fitness' | 'EventSpace' | 'Rental' | 'CareServices' | 'PersonalCare' | 'Sports' | 'Wellness' | 'Trade' | 'Workspace' | 'Events' | 'Rentals' | 'PassEntry' | 'FacilityHourly' | 'OvernightStay' | 'TimeSlot' | 'AssetRental' | 'HomeCall';
   
+  // Multi-Vertical Business Entities (e.g. Resort Booking + Football Turf)
+  verticals?: BusinessVertical[];
+  activeVerticalId?: string;
+
   // Multi-Branch and GST Settings
   branches?: BranchInfo[];
   activeBranchId?: string;
@@ -344,6 +356,10 @@ interface VendorStoreState {
   customMerchants: Record<string, Partial<MerchantUser>>;
   registeredMerchants: MerchantUser[];
   
+  // Business Vertical Switcher actions
+  switchVertical: (verticalId: string) => void;
+  switchCategory: (categoryName: string) => void;
+
   // Branch actions
   switchBranch: (branchId: string) => void;
   addBranch: (branch: BranchInfo) => void;
@@ -424,10 +440,27 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     merchantName: 'Sunstone Resort',
     category: 'Resort Booking',
     logoLetter: 'S',
-    aboutText: 'Welcome to Sunstone Resort. We provide professional Resort Booking services.',
+    aboutText: 'Welcome to Sunstone Resort & Arena. We provide luxury resort suites and premier FIFA-grade sports turf facilities.',
     vendorId: '20260001',
     email: 'h102@bnxmail.com',
-    archetype: 'Accommodation'
+    archetype: 'Accommodation',
+    activeVerticalId: 'vert-resort',
+    verticals: [
+      {
+        id: 'vert-resort',
+        name: 'Sunstone Resort',
+        category: 'Resort Booking',
+        archetype: 'Accommodation',
+        badge: 'Resort & Suites'
+      },
+      {
+        id: 'vert-turf',
+        name: 'Sunstone Arena',
+        category: 'Football Turf',
+        archetype: 'Sports',
+        badge: 'Sports Turf'
+      }
+    ]
   },
   {
     id: '23b1896d-5bd2-3242-cd72-0d55891c85e2',
@@ -1175,6 +1208,36 @@ export const useVendorStore = create<VendorStoreState>()(
       
   customMerchants: {},
   supportTickets: [],
+
+  // Business Vertical Switcher implementation
+  switchVertical: (verticalId: string) => set((state) => {
+    if (!state.currentMerchant) return state;
+    const verticals = state.currentMerchant.verticals || [];
+    const target = verticals.find(v => v.id === verticalId);
+    if (!target) return state;
+
+    return {
+      currentMerchant: {
+        ...state.currentMerchant,
+        activeVerticalId: target.id,
+        category: target.category,
+        archetype: target.archetype as any,
+        merchantName: target.name
+      }
+    };
+  }),
+
+  switchCategory: (categoryName: string) => set((state) => {
+    if (!state.currentMerchant) return state;
+    const arch = getArchetypeFromCategory(categoryName);
+    return {
+      currentMerchant: {
+        ...state.currentMerchant,
+        category: categoryName,
+        archetype: arch as any
+      }
+    };
+  }),
 
   // Branch action implementations
   switchBranch: (branchId: string) => set((state) => {

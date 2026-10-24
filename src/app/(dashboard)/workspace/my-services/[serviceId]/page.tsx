@@ -52,139 +52,181 @@ export default function ServiceListingsPage() {
 
   return (
     <div className="space-y-12 animate-fade-in pb-12 font-sans">
-      
-      {/* Header section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-white/[0.08]">
+
+      {/* 1. Compact Header Strip with Clear Breadcrumbs */}
+      <div className="px-5 py-4 rounded-2xl bg-white dark:bg-[#0f1624] border border-slate-200/80 dark:border-white/10 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <button 
-            onClick={() => router.push('/workspace/my-services')}
-            className="flex items-center gap-2 text-slate-400 hover:text-[#ff6325] font-bold text-sm mb-4 transition-colors cursor-pointer"
-          >
-            <ArrowLeft size={16} /> Back to Types
-          </button>
-          <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight flex items-center gap-3">
-            {category.name} Listings
+          {/* Breadcrumb path */}
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium mb-1">
+            <button
+              onClick={() => router.push('/workspace/my-services')}
+              className="hover:text-[#ff6325] transition-colors flex items-center gap-1 cursor-pointer font-bold"
+            >
+              <ArrowLeft size={13} />
+              <span>Categories</span>
+            </button>
+            <span>/</span>
+            <span className="text-[#ff6325] font-black">{category.category || category.name}</span>
+          </div>
+
+          <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            <span>{category.category || category.name}</span>
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#ff6325]/10 text-[#ff6325] font-bold">
+              {listings.length} Bookable {listings.length === 1 ? 'Unit' : 'Units'}
+            </span>
           </h1>
-          <p className="text-sm text-slate-400 font-medium mt-2 max-w-2xl">
-            Manage individual listings inside the <span className="text-white font-bold">{category.name}</span> type.
-          </p>
         </div>
-        <div className="flex items-center gap-3">
-          <button 
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2.5">
+          <button
             onClick={() => router.push('/workspace/about')}
-            className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#0f1624] hover:bg-[#162033] text-slate-100 hover:text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 border border-white/20 hover:border-[#ff6325]/60 cursor-pointer"
-            title="Manage Venue / Campsite Profile, Photos & Location"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-white font-bold text-xs transition-all border border-slate-200/80 dark:border-white/10 cursor-pointer shadow-sm"
+            title="Manage Venue Profile, Photos & Location"
           >
-            <Building2 size={16} className="text-[#ff6325]" />
+            <Building2 size={14} className="text-[#ff6325]" />
             <span>Venue Profile</span>
           </button>
-          <button 
+          <button
             onClick={() => router.push(`/workspace/my-services/${serviceId}/listing/new`)}
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white shadow-lg shadow-[#ff6325]/25 font-bold text-xs uppercase tracking-widest transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
+            title={`Add a new listing under ${category.name}`}
           >
-            <Plus size={16} /> Add Listing
+            <Plus size={15} /> Add Listing
           </button>
         </div>
       </div>
 
-      {/* Listings Grid */}
+      {/* 2. Listings Grid (Matching Level 1 & 2 Size: 4 Columns) */}
       <div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-          {listings.map(list => (
-            <div 
-              key={list.id} 
-              onClick={() => router.push(`/workspace/my-services/${serviceId}/listing/${list.id}`)}
-              className="bg-[#0f1624] rounded-3xl border border-white/10 hover:border-[#ff6325]/50 shadow-lg hover:shadow-2xl hover:shadow-[#ff6325]/10 hover:-translate-y-1.5 transition-all duration-300 relative overflow-hidden flex flex-col cursor-pointer group backdrop-blur-sm"
-            >
-              <div className="h-36 w-full bg-[#162033] relative overflow-hidden">
-                {list.imageUrl ? (
-                  <img src={list.imageUrl} alt={list.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                ) : (
-                  <img src={getFallbackImage(list.name)} alt={list.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0f1624] via-transparent to-black/20" />
-                <div className="absolute top-2 right-2 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={(e) => handleDeleteListing(e, list.id)} className="h-8 w-8 bg-black/60 hover:bg-red-600 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/20 shadow-md transition-colors">
-                    <Trash2 size={13} />
-                  </button>
-                </div>
-              </div>
-              <div className="p-5 flex-1 flex flex-col justify-between">
-                <div>
-                  <div className="flex justify-between items-start gap-2">
-                    <h3 className="font-extrabold text-base text-white leading-tight group-hover:text-[#ff6325] transition-colors">{list.name}</h3>
-                    {list.price !== undefined && list.price > 0 && (
-                      <span className="text-xs font-bold text-[#ff6325] bg-[#ff6325]/10 px-2 py-1 rounded-md shrink-0 border border-[#ff6325]/20">
-                        ₹{list.price}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {listings.map(list => {
+            const isTurfListing = (category.name || '').toLowerCase().includes('turf') ||
+              (category.name || '').toLowerCase().includes('football') ||
+              (list.name || '').toLowerCase().includes('turf') ||
+              (list.name || '').toLowerCase().includes('pitch');
+            const listImg = list.imageUrl && list.imageUrl.startsWith('http') && !list.imageUrl.includes('ui-avatars')
+              ? list.imageUrl
+              : (isTurfListing
+                ? 'https://images.unsplash.com/photo-1574629810360-7efbb49fec90?w=800&auto=format&fit=crop&q=80'
+                : 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop&q=80');
+
+            return (
+              <div
+                key={list.id}
+                onClick={() => router.push(`/workspace/my-services/${serviceId}/listing/${list.id}`)}
+                className="bg-white dark:bg-[#0f1624] rounded-2xl border border-slate-200/80 dark:border-white/10 hover:border-[#ff6325]/50 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 overflow-hidden flex flex-col cursor-pointer group"
+              >
+                {/* Compact Cover Image (h-36 identical to Category/Format card) */}
+                <div
+                  className="h-36 w-full relative overflow-hidden bg-cover bg-center"
+                  style={{
+                    backgroundImage: `url("${listImg}"), linear-gradient(135deg, #1e293b, #0f172a)`
+                  }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/50" />
+
+                  {/* Top Bar on Cover */}
+                  <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between z-10">
+                    {list.price !== undefined && list.price > 0 ? (
+                      <span
+                        className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-black shadow-lg border border-white/20 backdrop-blur-md"
+                        style={{ backgroundColor: 'rgba(255, 99, 37, 0.95)', color: '#ffffff' }}
+                      >
+                        ₹{Number(list.price).toLocaleString('en-IN')}
+                      </span>
+                    ) : (
+                      <span
+                        className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/20 backdrop-blur-md"
+                        style={{ color: '#ffffff' }}
+                      >
+                        Custom Pricing
                       </span>
                     )}
+
+                    <button
+                      onClick={(e) => handleDeleteListing(e, list.id)}
+                      className="h-7 w-7 rounded-full bg-black/60 hover:bg-red-600 text-white flex items-center justify-center transition-colors cursor-pointer shadow-md"
+                      style={{ color: '#ffffff' }}
+                      title="Delete Listing"
+                    >
+                      <Trash2 size={12} style={{ color: '#ffffff', stroke: '#ffffff' }} />
+                    </button>
                   </div>
-                  {list.description && <p className="text-sm text-slate-400 mt-2 line-clamp-2 leading-relaxed">{list.description}</p>}
-                  
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {list.isTimingEnabled && <span className="px-2 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-bold rounded">Timing</span>}
-                    {list.isAddonsEnabled && <span className="px-2 py-1 bg-orange-500/10 text-[#ff6325] border border-orange-500/20 text-[10px] font-bold rounded">Add-ons</span>}
-                    {list.isRulesEnabled && <span className="px-2 py-1 bg-white/10 text-slate-300 border border-white/10 text-[10px] font-bold rounded">Rules</span>}
-                    {list.isOffersEnabled && <span className="px-2 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold rounded">Offers</span>}
+
+                  {/* Bottom Listing Name on Cover */}
+                  <div className="absolute bottom-2.5 left-3 right-3 z-10">
+                    <h3
+                      className="text-base font-black capitalize truncate tracking-wide drop-shadow-md"
+                      style={{ color: '#ffffff' }}
+                    >
+                      {list.name}
+                    </h3>
+                    <p
+                      className="text-[11px] font-semibold drop-shadow"
+                      style={{ color: 'rgba(255, 255, 255, 0.85)' }}
+                    >
+                      {category.name}
+                    </p>
                   </div>
                 </div>
-                
-                <div className="mt-6 pt-4 border-t border-white/[0.08] flex items-center justify-between">
-                  {/* Hide Hourly Slots button for Accommodation/Hotels/Resorts/Villas/Camping/Hostels where booking is by Night/Date, not hourly slots */}
-                  {!category?.slug?.includes('hotel') &&
-                   !category?.slug?.includes('resort') &&
-                   !category?.slug?.includes('villa') &&
-                   !category?.slug?.includes('homestay') &&
-                   !category?.slug?.includes('camp') &&
-                   !category?.slug?.includes('tent') &&
-                   !category?.slug?.includes('hostel') &&
-                   !category?.name?.toLowerCase().includes('hotel') &&
-                   !category?.name?.toLowerCase().includes('resort') &&
-                   !category?.name?.toLowerCase().includes('villa') &&
-                   !category?.name?.toLowerCase().includes('homestay') &&
-                   !category?.name?.toLowerCase().includes('camp') &&
-                   !category?.name?.toLowerCase().includes('tent') &&
-                   !category?.name?.toLowerCase().includes('glamp') &&
-                   !category?.name?.toLowerCase().includes('hostel') &&
-                   !category?.name?.toLowerCase().includes('stay') &&
-                   !currentMerchant?.category?.toLowerCase().includes('camp') &&
-                   !currentMerchant?.category?.toLowerCase().includes('tent') &&
-                   !currentMerchant?.category?.toLowerCase().includes('hostel') &&
-                   !currentMerchant?.category?.toLowerCase().includes('hotel') &&
-                   !currentMerchant?.category?.toLowerCase().includes('resort') &&
-                   !currentMerchant?.category?.toLowerCase().includes('villa') &&
-                   currentMerchant?.archetype !== 'Accommodation' &&
-                   currentMerchant?.archetype !== 'Camping' &&
-                   currentMerchant?.archetype !== 'Hostel' && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        router.push(`/workspace/my-services/${serviceId}/listing/${list.id}/slots`);
-                      }}
-                      className="flex items-center gap-2 px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#162033] dark:hover:bg-[#1f2d47] text-slate-800 dark:text-white text-xs font-bold rounded-lg transition-all border border-slate-200 dark:border-white/10 shadow-sm"
-                    >
-                      <Calendar size={13} className="text-[#ff6325]" />
-                      <span>Slots</span>
-                    </button>
-                  )}
-                  <span className="text-xs font-bold text-[#ff6325] group-hover:translate-x-1 transition-transform ml-auto">Edit Info &rarr;</span>
+
+                {/* Card Content */}
+                <div className="p-4 flex-1 flex flex-col justify-between space-y-3 bg-white dark:bg-[#0f1624]">
+                  <div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium line-clamp-2">
+                      {list.description || 'Configured bookable listing unit with active pricing, timing and amenities.'}
+                    </p>
+
+                    <div className="mt-2.5 flex flex-wrap gap-1">
+                      {list.isTimingEnabled && <span className="px-2 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold rounded">Timing</span>}
+                      {list.isAddonsEnabled && <span className="px-2 py-0.5 bg-[#ff6325]/10 text-[#ff6325] text-[10px] font-bold rounded">Add-ons</span>}
+                      {list.isRulesEnabled && <span className="px-2 py-0.5 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 text-[10px] font-bold rounded">Rules</span>}
+                      {list.isOffersEnabled && <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold rounded">Offers</span>}
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs">
+                    {/* Hourly Slots for Sports/Arenas only */}
+                    {isTurfListing ? (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/workspace/my-services/${serviceId}/listing/${list.id}/slots`);
+                        }}
+                        className="flex items-center gap-1 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-800 dark:text-white text-[11px] font-bold rounded-lg transition-all border border-slate-200 dark:border-white/10 shadow-sm"
+                      >
+                        <Calendar size={12} className="text-[#ff6325]" />
+                        <span>Slots</span>
+                      </button>
+                    ) : (
+                      <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Available
+                      </span>
+                    )}
+
+                    <span className="font-bold text-slate-500 dark:text-slate-400 group-hover:text-[#ff6325] transition-colors text-xs flex items-center gap-1 ml-auto">
+                      Edit Info &rarr;
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {listings.length === 0 && (
-            <div className="col-span-full py-20 px-6 rounded-3xl border-2 border-dashed border-white/10 bg-[#0f1624]/60 flex flex-col items-center justify-center text-center backdrop-blur-sm">
-              <div className="h-16 w-16 bg-[#162033] rounded-2xl flex items-center justify-center mb-4 text-[#ff6325] rotate-3 border border-white/10">
-                <ImageIcon size={32} />
+            <div className="col-span-full py-16 px-6 rounded-2xl border-2 border-dashed border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] flex flex-col items-center justify-center text-center">
+              <div className="h-12 w-12 bg-white dark:bg-[#162033] rounded-2xl flex items-center justify-center mb-3 text-[#ff6325] shadow-sm border border-slate-200 dark:border-white/10">
+                <ImageIcon size={24} />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">No Listings Yet</h3>
-              <p className="text-slate-400 max-w-md text-sm mb-6 leading-relaxed">
-                Click the button below to create the first listing for <strong className="text-white">{category.name}</strong>.
+              <h3 className="text-base font-black text-slate-900 dark:text-white mb-1">No Listings Yet</h3>
+              <p className="text-slate-400 max-w-sm text-xs mb-4">
+                Click below to add the first bookable unit for <strong className="text-slate-700 dark:text-white">{category.name}</strong>.
               </p>
-              <button 
+              <button
                 onClick={() => router.push(`/workspace/my-services/${serviceId}/listing/new`)}
-                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-bold text-sm transition-all shadow-lg shadow-[#ff6325]/25 cursor-pointer"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
               >
                 + Add First Listing
               </button>

@@ -3,7 +3,7 @@ import { ThemeManager } from './(dashboard)/ThemeManager';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'BOKSPOT — Business',
+  title: 'BOKSPOT BUSINESS',
   description: 'Manage your services, bookings, and analytics on BOKSPOT Business Platform',
 };
 

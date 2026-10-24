@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Clock, Package, AlertTriangle, Tag, Users, CheckSquare, Info, X, Save, Bed, Image as ImageIcon, Activity, Heart, Car, Ticket, Briefcase, Zap, CheckCircle2, Plus } from 'lucide-react';
 import DynamicForm from '@/components/DynamicForm';
-import { CATEGORY_TO_ARCHETYPE_MAP, Archetype } from '@/lib/archetypes';
+import { getArchetypeFromCategory, Archetype } from '@/lib/archetypes';
 import { compressImage } from '@/lib/imageUtils';
 
 export default function ListingEditorPage() {
@@ -23,8 +23,13 @@ export default function ListingEditorPage() {
   const [serviceName, setServiceName] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [description, setDescription] = useState('');
-  const [basePrice, setBasePrice] = useState('0');
+  const [basePrice, setBasePrice] = useState('');
   const [addons, setAddons] = useState<{name: string, price: number}[]>([]);
+  
+  // GST Tax State for this Listing
+  const [gstEnabled, setGstEnabled] = useState(false);
+  const [gstPercentage, setGstPercentage] = useState(18); // Default standard 18% (9% SGST + 9% CGST)
+  const [gstNumber, setGstNumber] = useState('');
   
   // Config-Driven Metadata State
   const [metadata, setMetadata] = useState<Record<string, any>>({});
@@ -39,10 +44,16 @@ export default function ListingEditorPage() {
           setServiceName(list.name || '');
           setImageUrl(list.imageUrl || '');
           setDescription(list.description || '');
-          setBasePrice(list.price?.toString() || '0');
+          setBasePrice(list.price !== undefined && list.price !== null ? list.price.toString() : '');
           setMetadata(list.metadata || {});
           setAddons(list.metadata?.addons || []);
+          setGstEnabled(list.metadata?.gstEnabled ?? (category.gstType === 'WITH_GST' || currentMerchant.gstStatus === 'WITH_GST'));
+          setGstPercentage(list.metadata?.gstPercentage ?? 18);
+          setGstNumber(list.metadata?.gstNumber || currentMerchant.gstNumber || '');
         }
+      } else if (category && isCreating) {
+        setGstEnabled(category.gstType === 'WITH_GST' || currentMerchant.gstStatus === 'WITH_GST');
+        setGstNumber(currentMerchant.gstNumber || '');
       }
     }
   }, [services, serviceId, listingId, isCreating, currentMerchant]);
@@ -52,13 +63,26 @@ export default function ListingEditorPage() {
   const category = services.find(s => s.id === serviceId);
   if (!category) return null;
 
-  const catSlug = category?.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  const archetype: Archetype = CATEGORY_TO_ARCHETYPE_MAP[catSlug || ''] || 'EVENT';
+  const archetype: Archetype = 
+    getArchetypeFromCategory(category?.name) || 
+    getArchetypeFromCategory(category?.category) || 
+    getArchetypeFromCategory(currentMerchant?.category) || 
+    'RENTAL';
 
   const handleSaveDetails = () => {
     if (!serviceName.trim()) {
       alert("Please enter a Listing Name");
       setStep(1);
+      return;
+    }
+
+    if (gstEnabled && !gstNumber.trim()) {
+      alert("Please enter a valid 15-character Business GSTIN Number to apply GST Invoice.");
+      return;
+    }
+
+    if (gstEnabled && gstNumber.trim().length !== 15) {
+      alert("GSTIN must be exactly 15 alphanumeric characters (e.g., 33AAAAA0000A1Z5).");
       return;
     }
 
@@ -70,8 +94,39 @@ export default function ListingEditorPage() {
       active: true,
       price: parseFloat(basePrice) || 0,
       duration: 30, // Default duration
-      metadata: { ...metadata, addons }
-    };
+      metadata: { 
+        ...metadata, 
+        addons, 
+        gstEnabled, 
+        gstPercentage: gstEnabled ? gstPercentage : 0, 
+        gstNumber: gstEnabled ? gstNumber : undefined 
+      },
+      // Direct root attributes for instant compatibility with consumer app & templates
+      gstEnabled,
+      gstPercentage: gstEnabled ? gstPercentage : 0,
+      gstNumber: gstEnabled ? gstNumber : undefined,
+      bedType: metadata.bedType,
+      sizeSqFt: metadata.sizeSqFt ? Number(metadata.sizeSqFt) : undefined,
+      maxGuests: metadata.maxGuests ? Number(metadata.maxGuests) : undefined,
+      totalUnits: metadata.totalUnits ? Number(metadata.totalUnits) : undefined,
+      inventoryLeft: metadata.totalUnits ? Number(metadata.totalUnits) : undefined,
+      checkInTime: metadata.checkInTime,
+      checkOutTime: metadata.checkOutTime,
+      viewType: metadata.viewType,
+      petPolicy: metadata.petPolicy,
+      cancellationPolicy: metadata.cancellationPolicy,
+      mealPlanOptions: metadata.mealPlanOptions,
+      perks: Array.isArray(metadata.perks)
+        ? metadata.perks
+        : typeof metadata.perks === 'string' && metadata.perks.trim() !== ''
+          ? metadata.perks.split(',').map((s: string) => s.trim())
+          : [],
+      amenities: Array.isArray(metadata.amenities) 
+        ? metadata.amenities 
+        : typeof metadata.amenities === 'string' && metadata.amenities.trim() !== ''
+          ? metadata.amenities.split(',').map((s: string) => s.trim())
+          : []
+    } as any;
 
     let updatedListings = category.listings || [];
     if (isCreating) {
@@ -90,121 +145,229 @@ export default function ListingEditorPage() {
   };
 
   return (
-    <div className="space-y-8 animate-fade-in pb-24 font-sans max-w-4xl mx-auto">
+    <div className="space-y-6 animate-fade-in pb-24 font-sans max-w-7xl mx-auto px-2 sm:px-4">
       
-      {/* Header */}
-      <div className="py-6">
-        <button 
-          onClick={() => router.push(`/workspace/my-services/${serviceId}`)}
-          className="flex items-center gap-2 text-text-secondary hover:text-[#ff6325] font-bold text-sm mb-4 transition-colors"
-        >
-          <ArrowLeft size={16} /> Back to {category.name} Listings
-        </button>
-        <h1 className="text-3xl font-black text-text-primary tracking-tight flex items-center gap-3">
-          {isCreating ? 'Create New Listing' : 'Edit Listing'}
-        </h1>
-        <p className="text-sm text-text-secondary font-medium mt-2">
-          Listing in type: <strong className="text-text-primary">{category.name}</strong>
-        </p>
-      </div>
-
-      {/* Stepper */}
-      <div className="flex items-center justify-between relative mb-12 px-4">
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-border-brand/40 z-0 rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-[#0a3161] to-[#ff6325] transition-all duration-500" style={{ width: step === 1 ? '0%' : step === 2 ? '50%' : '100%' }}></div>
-        </div>
-        {[
-          { num: 1, label: 'Basic Info', icon: Info },
-          { num: 2, label: 'Dynamic Details', icon: Zap },
-          { num: 3, label: 'Publish', icon: CheckCircle2 }
-        ].map((s) => (
-          <div key={s.num} className="relative z-10 flex flex-col items-center gap-2" onClick={() => setStep(s.num)} style={{ cursor: 'pointer' }}>
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-colors shadow-sm
-              ${step >= s.num ? 'bg-gradient-to-tr from-[#0a3161] to-[#124b8f] text-white ring-4 ring-[#ff6325]/30' : 'bg-bg-tertiary text-text-secondary border-2 border-border-brand/40'}
-            `}>
-              <s.icon size={20} className={step >= s.num ? 'text-[#ff6325]' : 'text-text-secondary'} />
-            </div>
-            <span className={`text-xs font-bold uppercase tracking-wider ${step >= s.num ? 'text-[#ff6325]' : 'text-text-secondary'}`}>
-              {s.label}
+      {/* 1. Header Strip - Clean Non-Overlapping Bar */}
+      <div className="px-6 py-4 rounded-2xl bg-white dark:bg-[#0f1624] border border-slate-200/80 dark:border-white/10 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <button 
+            onClick={() => router.push(`/workspace/my-services/${serviceId}`)}
+            className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-[#ff6325] font-bold mb-1 transition-colors cursor-pointer"
+          >
+            <ArrowLeft size={13} /> Back to {category.category || category.name}
+          </button>
+          <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            <span>{isCreating ? 'Add Bookable Unit' : 'Edit Unit Details'}</span>
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#ff6325]/10 text-[#ff6325] font-black uppercase tracking-wider">
+              {category.category || category.name}
             </span>
-          </div>
-        ))}
+          </h1>
+        </div>
+
+        <div className="flex items-center gap-2.5">
+          <button 
+            type="button"
+            onClick={() => router.push(`/workspace/my-services/${serviceId}`)}
+            className="px-4 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 font-bold text-xs transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button 
+            type="button"
+            onClick={handleSaveDetails}
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md shadow-[#ff6325]/20 active:scale-95 cursor-pointer"
+          >
+            <Save size={15} /> {isCreating ? 'Save & Publish Unit' : 'Save Changes'}
+          </button>
+        </div>
       </div>
 
-      {/* Step Content */}
-      <div className="bg-bg-secondary rounded-[2rem] shadow-2xl border border-border-brand/60 overflow-hidden text-text-primary">
+      {/* 2. Responsive 2-Column Executive Studio Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        {step === 1 && (
-          <div className="p-8 md:p-10 space-y-8 animate-fade-in">
-            <div>
-              <h2 className="text-2xl font-black text-text-primary flex items-center gap-2">
-                <Info className="text-[#ff6325]" /> 1. Basic Information
-              </h2>
-              <p className="text-sm text-text-secondary mt-1">
-                Configure primary details, pricing, description, and optional add-ons.
-              </p>
-            </div>
-            
-            <div className="space-y-6 pt-2">
-              <div>
-                <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">Listing Name <span className="text-red-500">*</span></label>
-                <input
-                  type="text"
-                  value={serviceName}
-                  onChange={(e) => setServiceName(e.target.value)}
-                  placeholder={
-                    category?.name?.toLowerCase().includes('camp') || category?.name?.toLowerCase().includes('tent')
-                      ? "e.g. 2-Person Waterproof Alpine Tent with Sleeping Bags, Stargazing Glamping Dome, Forest Pitch"
-                      : category?.name?.toLowerCase().includes('hostel')
-                      ? "e.g. Bed in 6-Bed Mixed AC Dorm, Lower Bunk in 4-Bed Female Dorm, Private AC Bunk Cabin"
-                      : category?.name?.toLowerCase().includes('resort')
-                      ? "e.g. Beachfront Pool Villa, Luxury Swiss Tent, Lagoon View Cottage, Premium Suite"
-                      : category?.name?.toLowerCase().includes('villa') || category?.name?.toLowerCase().includes('homestay')
-                      ? "e.g. 3BHK Private Pool Villa, Sunset Hill View Cottage, Traditional Courtyard Room"
-                      : category?.name?.toLowerCase().includes('cricket')
-                      ? "e.g. Main Turf Pitch (Pitch 1), Indoor Box Cricket Arena, Practice Net Turf B"
-                      : category?.name?.toLowerCase().includes('meeting') || category?.name?.toLowerCase().includes('coworking')
-                      ? "e.g. Executive Boardroom 1, 10-Pax Brainstorming Pod, Hot Desk A"
-                      : archetype === 'HOME_CALL'
-                      ? "e.g. Split AC Deep Cleaning & Foam Jet Wash, Switchboard & MCB Repair, Kitchen Sink Drain Unclog"
-                      : archetype === 'PASS_ENTRY'
-                      ? "e.g. VIP Standing Fan Pit, Audi 1 Dolby Atmos Recliner, Special Darshan Pass"
-                      : archetype === 'ASSET_RENTAL'
-                      ? "e.g. Royal Enfield Hunter 350 Dapper, Hyundai Creta Automatic, Sony FX3 Cinema Kit"
-                      : archetype === 'RENTAL' || category?.name?.toLowerCase().includes('turf') || category?.name?.toLowerCase().includes('court')
-                      ? "e.g. 7-a-side Main Turf (Pitch 1), Badminton Court A, 5s Cage Pitch"
-                      : archetype === 'APPOINTMENT'
-                      ? "e.g. Senior Doctor OPD Consultation, Hair Styling Session"
-                      : archetype === 'DINING'
-                      ? "e.g. Rooftop 4-Seater Table, Private Dining Room"
-                      : "e.g. Deluxe AC Room, Presidential Suite, Standard King Room"
-                  }
-                  className="w-full px-4 py-3 rounded-xl border border-white/10 focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium bg-[#162033] text-white placeholder-slate-400"
-                />
+        {/* Left Column: Comprehensive Form (8 Cols) */}
+        <div className="lg:col-span-8 space-y-6">
+          
+          {/* Section 1: Overview & Pricing */}
+          <div className="bg-white dark:bg-[#0f1624] rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-sm overflow-hidden transition-all hover:shadow-md">
+            {/* Top Accent Bar */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#ff6325] via-amber-500 to-[#0a3161]" />
+
+            <div className="p-6 sm:p-8 space-y-6">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
+                <div className="flex items-center gap-2.5">
+                  <span className="h-3 w-3 rounded-full bg-[#ff6325] ring-4 ring-[#ff6325]/15" />
+                  <h2 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white">
+                    1. Unit Overview & Pricing
+                  </h2>
+                </div>
+                <span className="text-[11px] font-bold text-slate-400">Step 1 of 4</span>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">Listing Image</label>
-                <div 
-                  onClick={() => document.getElementById('listing-image-upload')?.click()}
-                  className="w-full h-32 rounded-xl border-2 border-dashed border-border-brand/60 hover:border-[#ff6325] bg-bg-tertiary flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden group mb-3"
-                >
-                  {imageUrl ? (
-                    <>
-                      <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                        <span className="text-white font-bold text-sm flex items-center gap-2">
-                          Change Image
-                        </span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-2 space-y-2">
+                  <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                    Unit / Listing Title <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={serviceName}
+                    onChange={(e) => setServiceName(e.target.value)}
+                    placeholder={
+                      category?.name?.toLowerCase().includes('resort') || category?.category?.toLowerCase().includes('resort') || category?.name?.toLowerCase().includes('villa')
+                        ? "e.g. 3BHK Private Pool Villa, Sunset Hill View Cottage, Deluxe Suite"
+                        : "e.g. Deluxe Room 101, Executive Suite, Pitch A"
+                    }
+                    className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-semibold text-sm focus:border-[#ff6325] focus:bg-white dark:focus:bg-[#131d2e] outline-none transition-all shadow-xs"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                    {archetype === 'RENTAL' ? 'Hourly Slot Price (₹)' : archetype === 'ACCOMMODATION' ? 'Tariff Per Night (₹)' : 'Price / Fee (₹)'} <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-400 text-sm">₹</span>
+                    <input
+                      type="number"
+                      value={basePrice}
+                      onChange={(e) => setBasePrice(e.target.value)}
+                      placeholder="e.g. 15000"
+                      min="0"
+                      className="w-full pl-9 pr-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-black text-sm focus:border-[#ff6325] focus:bg-white dark:focus:bg-[#131d2e] outline-none transition-all shadow-xs"
+                      required
+                    />
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Base tariff visible to customers on booking card.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                      Tax & Billing Settlement
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer select-none px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 hover:bg-slate-200 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={gstEnabled}
+                        onChange={(e) => setGstEnabled(e.target.checked)}
+                        className="w-3.5 h-3.5 rounded text-[#ff6325] accent-[#ff6325] cursor-pointer"
+                      />
+                      <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200">
+                        Apply GST
+                      </span>
+                    </label>
+                  </div>
+
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#162033] border border-slate-200 dark:border-white/10 space-y-3 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-black text-xs text-slate-900 dark:text-white block">
+                        {gstEnabled ? `GST Tax Invoice (${gstPercentage}%)` : 'Nett Direct Pricing'}
+                      </span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 block">
+                        {gstEnabled 
+                          ? `${gstPercentage / 2}% SGST + ${gstPercentage / 2}% CGST itemized breakdown` 
+                          : 'Zero extra tax surcharge added to customer'}
+                      </span>
+                    </div>
+
+                    <div className="text-right">
+                      <span className="font-black text-[#ff6325] text-base block">
+                        ₹{gstEnabled 
+                          ? Math.round(Number(basePrice || 0) * (1 + gstPercentage / 100)).toLocaleString() 
+                          : Number(basePrice || 0).toLocaleString()}
+                      </span>
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                        {gstEnabled ? `Total Incl. ${gstPercentage}% GST` : 'Nett Payable'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {gstEnabled && (
+                    <div className="pt-2 border-t border-slate-200 dark:border-white/10 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1">
+                          GST Tax Slab
+                        </label>
+                        <select
+                          value={gstPercentage}
+                          onChange={(e) => setGstPercentage(Number(e.target.value))}
+                          className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-bold text-slate-900 dark:text-white outline-none cursor-pointer"
+                        >
+                          <option value={18}>18% GST (Standard Hospitality & Commercial)</option>
+                          <option value={12}>12% GST (Budget Rooms & Stays under ₹7,500)</option>
+                          <option value={5}>5% GST (Special Exemption & Standalone Dining)</option>
+                          <option value={28}>28% GST (Luxury Suites / Amusement / Events)</option>
+                        </select>
                       </div>
-                    </>
-                  ) : (
-                    <div className="flex flex-col items-center text-text-secondary group-hover:text-[#ff6325] transition-colors">
-                      <span className="font-bold text-sm">Click to choose local image</span>
-                      <span className="text-xs mt-1 opacity-70">PNG, JPG up to 5MB</span>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-1">
+                          Business GSTIN <span className="text-red-500 font-black">* Required</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={gstNumber}
+                          onChange={(e) => setGstNumber(e.target.value.toUpperCase())}
+                          placeholder="e.g. 33AAAAA0000A1Z5"
+                          maxLength={15}
+                          required={gstEnabled}
+                          className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-bold text-slate-900 dark:text-white outline-none uppercase placeholder-slate-400 focus:border-[#ff6325]"
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
+
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  {gstEnabled 
+                    ? `Itemized SGST (${gstPercentage / 2}%) + CGST (${gstPercentage / 2}%) will be shown to the customer on checkout.` 
+                    : 'Customer pays exactly the base tariff without tax surcharge.'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+          {/* Section 2: Photos & Media */}
+          <div className="bg-white dark:bg-[#0f1624] rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-sm overflow-hidden transition-all hover:shadow-md">
+            <div className="h-1.5 w-full bg-gradient-to-r from-emerald-500 to-teal-600" />
+            <div className="p-6 sm:p-8 space-y-6">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
+                <div className="flex items-center gap-2.5">
+                  <span className="h-3 w-3 rounded-full bg-emerald-500 ring-4 ring-emerald-500/15" />
+                  <h2 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white">
+                    2. Photos & Media
+                  </h2>
+                </div>
+                <span className="text-[11px] font-bold text-slate-400">Step 2 of 4</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-center">
+                <div 
+                  onClick={() => document.getElementById('listing-image-upload')?.click()}
+                  className="h-44 rounded-2xl border-2 border-dashed border-slate-200 dark:border-white/15 hover:border-[#ff6325] bg-slate-50/80 dark:bg-[#162033] flex flex-col items-center justify-center cursor-pointer transition-all relative overflow-hidden group shadow-inner"
+                >
+                  {imageUrl ? (
+                    <>
+                      <img src={imageUrl} alt="Unit Preview" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-bold backdrop-blur-xs">
+                        Change Photo
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center p-3">
+                      <ImageIcon size={28} className="mx-auto text-slate-400 mb-2 group-hover:text-[#ff6325] transition-colors" />
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Upload Unit Photo</span>
+                      <span className="text-[10px] text-slate-400">JPG, PNG, WebP</span>
+                    </div>
+                  )}
+                </div>
+
                 <input 
                   id="listing-image-upload"
                   type="file" 
@@ -213,313 +376,311 @@ export default function ListingEditorPage() {
                     const file = e.target.files?.[0];
                     if (file) {
                       try {
-                        const compressed = await compressImage(file, 400, 400, 0.8);
+                        const compressed = await compressImage(file, 800, 600, 0.85);
                         setImageUrl(compressed);
                       } catch (err) {
-                        console.error('Image compression failed', err);
+                        console.error('Image compression error', err);
                       }
                     }
                   }}
                   accept="image/*"
                 />
-                <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">Or enter Image URL</label>
-                <input
-                  type="url"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="https://example.com/image.jpg"
-                  className="w-full px-4 py-3 rounded-xl border border-white/10 focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium bg-[#162033] text-white placeholder-slate-400"
-                />
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">
-                    {archetype === 'HOME_CALL' ? 'Inspection / Starting Rate (₹)' : archetype === 'PASS_ENTRY' ? 'Price per Pass / Ticket (₹)' : archetype === 'ASSET_RENTAL' ? 'Daily Rental Tariff (₹ / 24h)' : archetype === 'RENTAL' ? 'Base Hourly Rate (₹)' : archetype === 'APPOINTMENT' ? 'Doctor Consultation Fee (₹)' : archetype === 'ACCOMMODATION' ? 'Tariff per Night (₹)' : 'Base Price (₹)'} <span className="text-red-500">*</span>
+                <div className="md:col-span-2 space-y-2">
+                  <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                    Or Direct Image Web URL
                   </label>
                   <input
-                    type="number"
-                    value={basePrice}
-                    onChange={(e) => setBasePrice(e.target.value)}
-                    placeholder={
-                      category?.name?.toLowerCase().includes('resort') || currentMerchant?.category?.toLowerCase().includes('resort')
-                        ? "e.g. 4500"
-                        : category?.name?.toLowerCase().includes('villa') || category?.name?.toLowerCase().includes('homestay')
-                        ? "e.g. 3500"
-                        : archetype === 'ACCOMMODATION'
-                        ? "e.g. 2499"
-                        : archetype === 'HOME_CALL' 
-                        ? "e.g. 199" 
-                        : archetype === 'PASS_ENTRY' 
-                        ? "e.g. 599" 
-                        : archetype === 'ASSET_RENTAL' 
-                        ? "e.g. 1500" 
-                        : archetype === 'RENTAL' 
-                        ? "e.g. 1200" 
-                        : archetype === 'APPOINTMENT' 
-                        ? "e.g. 600" 
-                        : "e.g. 500"
-                    }
-                    min="0"
-                    step="0.01"
-                    className="w-full px-4 py-3 rounded-xl border border-white/10 focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium bg-[#162033] text-white placeholder-slate-400"
-                    required
+                    type="url"
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    placeholder="https://images.unsplash.com/photo-..."
+                    className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-medium text-xs focus:border-[#ff6325] focus:bg-white dark:focus:bg-[#131d2e] outline-none transition-all shadow-xs"
                   />
-                  <p className="text-[10px] text-text-secondary mt-1">
-                    {archetype === 'ACCOMMODATION' ? 'Standard per-night room tariff shown to guests.' : archetype === 'HOME_CALL' ? 'Visiting inspection fee or package starting price.' : archetype === 'PASS_ENTRY' ? 'Single admission price per pass/ticket.' : archetype === 'ASSET_RENTAL' ? 'Per-day rental tariff (24 hours window).' : archetype === 'RENTAL' ? 'Hourly court rate charged to players.' : archetype === 'APPOINTMENT' ? 'Standard fee charged per patient consultation.' : 'The starting price shown to customers.'}
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Paste high-resolution photo link or select from local gallery.
                   </p>
                 </div>
+              </div>
+            </div>
+          </div>
 
-                {/* GST Pathway Card based on Branch / Merchant Mode */}
-                <div className="flex flex-col justify-end">
-                  {category?.gstType === 'WITH_GST' || currentMerchant?.gstStatus === 'WITH_GST' ? (
-                    <div className="p-3.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-xs space-y-1.5 animate-fade-in">
-                      <div className="flex items-center justify-between font-bold text-cyan-400">
-                        <span className="flex items-center gap-1.5">📑 Registered GST Mode (18%)</span>
-                        <span>Tax Invoice Enabled</span>
-                      </div>
-                      <div className="flex items-center justify-between text-slate-300 text-[11px] pt-1 border-t border-cyan-500/15">
-                        <span>Base Amount:</span>
-                        <span className="font-semibold">₹{Number(basePrice || 0).toLocaleString()}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-slate-400 text-[11px]">
-                        <span>CGST (9%) + SGST (9%):</span>
-                        <span>₹{(Number(basePrice || 0) * 0.18).toFixed(2)}</span>
-                      </div>
-                      <div className="flex items-center justify-between font-black text-white text-xs pt-1 border-t border-cyan-500/20">
-                        <span>Customer Total (Incl. GST):</span>
-                        <span className="text-cyan-400">₹{(Number(basePrice || 0) * 1.18).toFixed(2)}</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs space-y-1 animate-fade-in">
-                      <div className="flex items-center justify-between font-bold text-emerald-400">
-                        <span className="flex items-center gap-1.5">✨ Non-GST Individual Provider</span>
-                        <span className="text-[10px] bg-emerald-500/20 px-1.5 py-0.5 rounded">Nett Pricing</span>
-                      </div>
-                      <p className="text-[11px] text-slate-300">
-                        No GST surcharge added. Customer pays exact flat rate of <strong className="text-white">₹{Number(basePrice || 0).toLocaleString()}</strong>.
-                      </p>
-                      <span className="text-[10px] text-slate-400 block pt-0.5">Generates direct platform booking receipt.</span>
-                    </div>
-                  )}
+          {/* Section 3: Highlights & Add-ons */}
+          <div className="bg-white dark:bg-[#0f1624] rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-sm overflow-hidden transition-all hover:shadow-md">
+            <div className="h-1.5 w-full bg-gradient-to-r from-blue-500 to-indigo-600" />
+            <div className="p-6 sm:p-8 space-y-6">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
+                <div className="flex items-center gap-2.5">
+                  <span className="h-3 w-3 rounded-full bg-blue-500 ring-4 ring-blue-500/15" />
+                  <h2 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white">
+                    3. Description & Inclusions
+                  </h2>
                 </div>
+                <span className="text-[11px] font-bold text-slate-400">Step 3 of 4</span>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">Short Description</label>
+                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2">
+                  Unit Highlights & Layout
+                </label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder={
-                    category?.name?.toLowerCase().includes('resort') || currentMerchant?.category?.toLowerCase().includes('resort')
-                      ? "Describe villa layout, beach/pool proximity, complimentary breakfast, air-conditioning, private sit-out deck, and guest capacity..."
-                      : category?.name?.toLowerCase().includes('villa') || category?.name?.toLowerCase().includes('homestay')
-                      ? "Describe homestay amenities, kitchen access, surrounding nature/hill view, peaceful courtyard, and family accommodation details..."
-                      : category?.name?.toLowerCase().includes('cricket') || currentMerchant?.category?.toLowerCase().includes('cricket')
-                      ? "Describe this cricket ground/pitch (e.g. 65m boundary, 22-yard natural clay/matting pitch, high-mast floodlights, pavilion & nets)..."
-                      : category?.name?.toLowerCase().includes('meeting') || category?.name?.toLowerCase().includes('studio') || currentMerchant?.category?.toLowerCase().includes('meeting')
-                      ? "Describe this space (e.g. 12-seater boardroom with 4K interactive display, acoustic soundproofing, high-speed Wi-Fi & coffee lounge)..."
-                      : archetype === 'ACCOMMODATION'
-                      ? "Describe room amenities, view (city/garden/pool), bedding type, high-speed Wi-Fi, and 24/7 room service..."
-                      : archetype === 'HOME_CALL'
-                      ? "Describe technician equipment, service process, guarantee terms, and safety precautions followed at doorstep..."
-                      : archetype === 'PASS_ENTRY'
-                      ? "Describe the show/event experience, gate timings, stage proximity, sound clarity, and special privileges included with this pass..."
-                      : archetype === 'ASSET_RENTAL'
-                      ? "Describe vehicle model year, transmission, fuel efficiency, included accessories (helmets, phone mount), and handover terms..."
-                      : archetype === 'RENTAL' || category?.name?.toLowerCase().includes('turf') || category?.name?.toLowerCase().includes('court')
-                      ? "Describe this court/pitch (e.g. FIFA-standard artificial turf with 8 floodlights, changing rooms, and complimentary drinking water)..."
-                      : archetype === 'APPOINTMENT'
-                      ? "Describe doctor's clinical background, treatment approach, and hospital affiliations..."
-                      : "Describe this listing (amenities, view, bedding details)..."
-                  }
-                  className="w-full px-4 py-3 rounded-xl border border-white/10 focus:border-[#ff6325] focus:ring-2 focus:ring-[#ff6325]/20 transition-all font-medium bg-[#162033] text-white placeholder-slate-400 min-h-[120px]"
+                  placeholder="e.g. Spacious beachfront villa featuring private plunge pool, king-size bed, sunset sea views, complimentary breakfast, and signature bath amenities..."
+                  rows={3}
+                  className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-medium text-xs focus:border-[#ff6325] focus:bg-white dark:focus:bg-[#131d2e] outline-none transition-all shadow-xs"
                 />
               </div>
 
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider">
-                    {category?.name?.toLowerCase().includes('cricket') || currentMerchant?.category?.toLowerCase().includes('cricket')
-                      ? 'Match Balls, Gear & Floodlight Add-ons (Optional)'
-                      : archetype === 'HOME_CALL' 
-                      ? 'Spare Parts & Optional Add-on Additions' 
-                      : archetype === 'PASS_ENTRY' 
-                      ? 'F&B Combos & Merchandise Add-ons (Optional)' 
-                      : archetype === 'ASSET_RENTAL' 
-                      ? 'Add-on Gear / Excess Insurance (Optional)' 
-                      : archetype === 'RENTAL' 
-                      ? 'Equipment Add-ons & Surcharges (Optional)' 
-                      : 'Add-ons / Extras (Optional)'}
-                  </label>
-                  <button 
+              <div className="pt-2">
+                <div className="flex items-center justify-between mb-3 bg-slate-50 dark:bg-white/[0.03] p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10">
+                  <div>
+                    <span className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider block">
+                      Optional Unit Add-ons
+                    </span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Extra Bed, BBQ Setup, Candlelight Dinner, Floodlights
+                    </span>
+                  </div>
+                  <button
                     type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setAddons(prev => [...prev, { name: '', price: 0 }]);
-                    }} 
-                    className="text-xs font-bold text-[#ff6325] flex items-center gap-1 hover:brightness-110 bg-[#ff6325]/10 px-3 py-1.5 rounded-lg border border-[#ff6325]/20 cursor-pointer active:scale-95 transition-all"
+                    onClick={() => setAddons(prev => [...prev, { name: '', price: 0 }])}
+                    className="px-4 py-2 rounded-xl bg-[#ff6325] hover:bg-[#e04e13] text-white font-black text-xs flex items-center gap-1.5 cursor-pointer transition-all shadow-md shadow-[#ff6325]/25 active:scale-95"
                   >
-                    <Plus size={14} /> Add Option
+                    <Plus size={15} /> Add Add-on
                   </button>
                 </div>
-                {addons.length === 0 && <p className="text-sm text-text-secondary italic">No add-ons configured.</p>}
-                {addons.map((addon, idx) => (
-                  <div key={idx} className="flex items-center gap-3 mb-3 bg-[#162033] p-3 rounded-xl border border-white/10 animate-fade-in">
-                    <input 
-                      type="text" 
-                      placeholder={
-                        category?.name?.toLowerCase().includes('cricket') || currentMerchant?.category?.toLowerCase().includes('cricket')
-                          ? "e.g. Leather Match Ball (SG Test), Full Batting Kit (Bat, Pads, Helmet), Night Floodlights"
-                          : archetype === 'HOME_CALL'
-                          ? "e.g. Outdoor Unit Foam Jet Cleaning, Antibacterial Spray Coat, Extra Drain Pipe"
-                          : archetype === 'PASS_ENTRY'
-                          ? "e.g. Large Tub Popcorn & Coke, VIP Lounge Pass, Souvenir T-Shirt"
-                          : archetype === 'ASSET_RENTAL'
-                          ? "e.g. Extra Pillion Helmet, Action Camera Mount, Riding Jacket"
-                          : archetype === 'RENTAL' 
-                          ? "e.g. Football / Bibs Rental, Floodlights Surcharge" 
-                          : "Add-on Name (e.g. Extra Bed, Breakfast)"
-                      } 
-                      value={addon.name} 
-                      onChange={(e) => {  
-                        const newA = [...addons]; 
-                        newA[idx].name = e.target.value; 
-                        setAddons(newA); 
-                      }} 
-                      className="flex-1 px-4 py-2.5 rounded-lg border border-white/10 bg-[#0f1624] text-white text-sm font-medium focus:border-[#ff6325] focus:outline-none" 
-                    />
-                    <div className="relative w-28">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">₹</span>
-                      <input 
-                        type="number" 
-                        placeholder="Price" 
-                        value={addon.price || ''} 
-                        onChange={(e) => { 
-                          const newA = [...addons]; 
-                          newA[idx].price = Number(e.target.value); 
-                          setAddons(newA); 
-                        }} 
-                        className="w-full pl-7 pr-3 py-2.5 rounded-lg border border-white/10 bg-[#0f1624] text-white text-sm font-medium focus:border-[#ff6325] focus:outline-none" 
+
+              {addons.length > 0 ? (
+                <div className="space-y-2.5">
+                  {addons.map((addon, idx) => (
+                    <div key={idx} className="flex items-center gap-2.5">
+                      <input
+                        type="text"
+                        placeholder="Add-on item (e.g. Extra Bed / Candlelight Dinner)"
+                        value={addon.name}
+                        onChange={(e) => {
+                          const next = [...addons];
+                          next[idx].name = e.target.value;
+                          setAddons(next);
+                        }}
+                        className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-xs font-medium outline-none text-slate-900 dark:text-white"
                       />
+                      <div className="relative w-32">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">₹</span>
+                        <input
+                          type="number"
+                          placeholder="Price"
+                          value={addon.price || ''}
+                          onChange={(e) => {
+                            const next = [...addons];
+                            next[idx].price = Number(e.target.value);
+                            setAddons(next);
+                          }}
+                          className="w-full pl-8 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-xs font-bold outline-none text-slate-900 dark:text-white"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setAddons(prev => prev.filter((_, i) => i !== idx))}
+                        className="h-9 w-9 rounded-xl bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                      >
+                        <X size={15} />
+                      </button>
                     </div>
-                    <button 
-                      type="button"
-                      title="Remove this add-on"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setAddons(prev => prev.filter((_, i) => i !== idx));
-                      }} 
-                      className="h-10 w-10 flex items-center justify-center text-red-500 hover:text-white bg-red-500/10 hover:bg-red-500 rounded-xl border border-red-500/20 hover:border-red-500 transition-all cursor-pointer shrink-0"
-                    >
-                      <X size={16} strokeWidth={2.5} />
-                    </button>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 italic">No add-ons added yet. Click &quot;Add Add-on&quot; to configure optional upsells.</p>
+              )}
               </div>
             </div>
-
-            <div className="flex justify-end pt-6 border-t border-border-brand/40">
-              <button 
-                onClick={() => setStep(2)}
-                disabled={!serviceName}
-                className="px-8 py-3 bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white rounded-xl font-bold disabled:opacity-50 transition-all shadow-lg shadow-[#ff6325]/25 cursor-pointer"
-              >
-                Next: Dynamic Details
-              </button>
-            </div>
           </div>
-        )}
 
-        {step === 2 && (
-          <div className="p-8 md:p-10 space-y-8 animate-fade-in">
-            <div>
-              <h2 className="text-2xl font-black text-text-primary flex items-center gap-2">
-                <Zap className="text-[#ff6325]" /> 2. Dynamic Details ({category?.name || archetype})
-              </h2>
-              <p className="text-sm text-text-secondary mt-1">
-                These fields are specifically tailored for your business category ({category?.name || archetype}). Fill them out accurately.
-              </p>
-            </div>
-            
-            <div>
+          {/* Section 4: Category Details Dynamic Grid */}
+          <div className="bg-white dark:bg-[#0f1624] rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-sm overflow-hidden transition-all hover:shadow-md">
+            <div className="h-1.5 w-full bg-gradient-to-r from-purple-500 via-violet-600 to-indigo-600" />
+            <div className="p-6 sm:p-8 space-y-6">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
+                <div className="flex items-center gap-2.5">
+                  <span className="h-3 w-3 rounded-full bg-purple-500 ring-4 ring-purple-500/15" />
+                  <h2 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white">
+                    4. {category.name} Specifications & Setup
+                  </h2>
+                </div>
+                <span className="text-[11px] font-bold text-slate-400">Step 4 of 4</span>
+              </div>
+
               <DynamicForm 
                 archetype={archetype}
                 categoryName={category?.name || ''}
                 merchantCategory={currentMerchant?.category || ''}
                 initialData={metadata}
-                onCancel={() => setStep(1)}
+                inlineMode={true}
+                onChange={(data) => {
+                  setMetadata(data);
+                }}
                 onSubmit={(data) => {
                   setMetadata(data);
-                  setStep(3);
                 }}
               />
             </div>
           </div>
-        )}
 
-        {step === 3 && (
-          <div className="p-8 md:p-10 space-y-8 animate-fade-in">
-            <div>
-              <h2 className="text-2xl font-black text-text-primary flex items-center gap-2">
-                <CheckCircle2 className="text-emerald-400" /> 3. Review & Publish
-              </h2>
-              <p className="text-sm text-text-secondary mt-1">
-                Verify all listing parameters before publishing your service.
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <h3 className="font-bold text-text-primary text-lg">Basic Info</h3>
-                <div className="bg-bg-tertiary p-5 rounded-2xl border border-border-brand/60 space-y-2 text-text-primary">
-                  <p className="text-sm"><span className="text-text-secondary">Name:</span> <strong>{serviceName}</strong></p>
-                  <p className="text-sm"><span className="text-text-secondary">Category:</span> <strong>{category.name}</strong></p>
-                  <p className="text-sm"><span className="text-text-secondary">Archetype:</span> <strong>{archetype}</strong></p>
-                  <p className="text-sm"><span className="text-text-secondary">Base Price:</span> <strong className="text-[#ff6325]">₹{basePrice || '0'}</strong></p>
-                </div>
+          {/* Bottom Action Bar (Normal flow - never overlaps content) */}
+          <div className="mt-8 p-5 sm:p-6 rounded-3xl bg-white dark:bg-[#0f1624] border border-slate-200/90 dark:border-white/10 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-[#ff6325]/10 text-[#ff6325] flex items-center justify-center font-black text-sm shrink-0">
+                ✓
               </div>
-              
-              <div className="space-y-4">
-                <h3 className="font-bold text-text-primary text-lg">Dynamic Config</h3>
-                <div className="bg-bg-tertiary p-5 rounded-2xl border border-border-brand/60 space-y-2 max-h-64 overflow-y-auto text-text-primary">
-                  {Object.entries(metadata).length > 0 ? (
-                    Object.entries(metadata).map(([key, val]) => (
-                      <div key={key} className="text-sm border-b border-border-brand/40 pb-2 last:border-0">
-                        <span className="text-text-secondary capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</span> <br/>
-                        <strong>
-                          {Array.isArray(val) 
-                            ? val.map(v => typeof v === 'string' ? v.replace(/([a-z])([A-Z])/g, '$1 $2') : v).join(', ') 
-                            : (typeof val === 'string' ? val.replace(/([a-z])([A-Z])/g, '$1 $2') : String(val))}
-                        </strong>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-text-secondary italic">No dynamic details provided.</p>
-                  )}
-                </div>
+              <div>
+                <span className="text-xs font-black text-slate-900 dark:text-white block">
+                  {serviceName.trim() ? serviceName : 'Ready to save bookable unit'}
+                </span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                  {basePrice ? `₹${Number(basePrice).toLocaleString()} per unit` : 'Set your base tariff to publish'} • {gstEnabled ? `GST Registered (${gstPercentage}%)` : 'Direct Nett'}
+                </span>
               </div>
             </div>
 
-            <div className="flex justify-between pt-6 border-t border-border-brand/40">
+            <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
               <button 
-                onClick={() => setStep(2)}
-                className="px-6 py-3 text-text-secondary hover:text-text-primary hover:bg-bg-tertiary rounded-xl font-bold transition-colors cursor-pointer"
+                type="button"
+                onClick={() => router.push(`/workspace/my-services/${serviceId}`)}
+                className="px-5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 font-bold text-xs cursor-pointer transition-colors"
               >
-                Back to Edit
+                Cancel
               </button>
+
               <button 
+                type="button"
                 onClick={handleSaveDetails}
-                className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white rounded-xl font-bold shadow-lg shadow-[#ff6325]/25 transition-all"
+                className="flex items-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md shadow-[#ff6325]/20 active:scale-95 cursor-pointer"
               >
-                <Save size={18} /> Publish Listing
+                <Save size={16} /> {isCreating ? 'Save & Publish Unit' : 'Save Changes'}
               </button>
             </div>
           </div>
-        )}
+
+        </div>
+
+        {/* Right Column: Sticky Live Customer View Mockup (4 Cols) */}
+        <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
+          
+          {/* Card: Customer Card Real-Time Preview */}
+          <div className="bg-white dark:bg-[#0f1624] rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-lg overflow-hidden p-6 space-y-5">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/5">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+                <span className="text-[11px] font-black uppercase tracking-wider text-slate-800 dark:text-white">
+                  Live Customer Preview
+                </span>
+              </div>
+              <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                Active Simulator
+              </span>
+            </div>
+
+            {/* Simulated Customer Room Card */}
+            <div className="rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden bg-white dark:bg-[#162033] shadow-md group transition-all hover:shadow-xl">
+              <div className="h-48 w-full relative overflow-hidden bg-slate-200 dark:bg-slate-800">
+                <img 
+                  src={imageUrl || 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&auto=format&fit=crop&q=75'} 
+                  alt="Unit Cover"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute top-3 left-3 bg-black/65 backdrop-blur-md px-3 py-1 rounded-xl text-[10px] font-bold text-white flex items-center gap-1.5 shadow-md">
+                  <Bed size={13} className="text-[#ff6325]" />
+                  <span>{metadata.bedType || '1 King Bed'}</span>
+                </div>
+                <div className="absolute bottom-3 right-3 bg-gradient-to-r from-[#0a3161] to-[#142642] text-white px-3 py-1.5 rounded-xl text-xs font-black shadow-xl border border-white/10">
+                  ₹{gstEnabled 
+                    ? Math.round(Number(basePrice || 0) * (1 + gstPercentage / 100)).toLocaleString() 
+                    : (basePrice ? Number(basePrice).toLocaleString() : '0')} 
+                  <span className="text-[10px] font-normal opacity-80">{gstEnabled ? ` (${gstPercentage}% GST)` : ' / night'}</span>
+                </div>
+              </div>
+
+              <div className="p-4 space-y-3">
+                <div>
+                  <h3 className="font-black text-base text-slate-900 dark:text-white leading-tight">
+                    {serviceName.trim() ? serviceName : `${category.name} (Unit Title)`}
+                  </h3>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2 mt-1 leading-relaxed">
+                    {description.trim() ? description : 'Spacious modern unit featuring premium bedding, clean washroom, and essential hospitality amenities.'}
+                  </p>
+                </div>
+
+                {/* Badges preview */}
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300">
+                    📐 {metadata.sizeSqFt || 450} sq.ft
+                  </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300">
+                    👥 Max {metadata.maxGuests || 4} Guests
+                  </span>
+                  {metadata.viewType && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                      🌅 {metadata.viewType}
+                    </span>
+                  )}
+                </div>
+
+                {/* Timing bar */}
+                <div className="p-2.5 rounded-xl bg-white dark:bg-[#0f1624] border border-slate-200 dark:border-white/10 text-[11px] text-slate-600 dark:text-slate-300 flex items-center justify-between">
+                  <span className="flex items-center gap-1 font-medium">
+                    <Clock size={12} className="text-[#ff6325]" /> Check-in: <strong>{metadata.checkInTime || '12:00 PM'}</strong>
+                  </span>
+                  <span className="flex items-center gap-1 font-medium">
+                    <Clock size={12} className="text-amber-500" /> Check-out: <strong>{metadata.checkOutTime || '11:00 AM'}</strong>
+                  </span>
+                </div>
+
+                <button 
+                  type="button" 
+                  disabled 
+                  className="w-full py-2.5 rounded-xl bg-[#ff6325] text-white text-xs font-bold text-center shadow-md shadow-[#ff6325]/20 opacity-90 cursor-default"
+                >
+                  Select & Reserve Unit
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Tips */}
+            <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-500/5 border border-amber-200 dark:border-amber-500/15 text-[11px] text-amber-800 dark:text-amber-300 space-y-1">
+              <span className="font-bold flex items-center gap-1">
+                <CheckCircle2 size={13} className="text-amber-600" /> BOKSPOT Verified Guarantee
+              </span>
+              <p className="text-[10px] text-amber-700/80 dark:text-amber-300/80 leading-normal">
+                Units with high-resolution photos and detailed bed & washroom specs receive 3.4x higher bookings.
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Stats Pill Bar */}
+          <div className="bg-white dark:bg-[#0f1624] rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-sm p-4 space-y-2.5">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+              Unit Configuration Status
+            </span>
+            <div className="space-y-1.5 text-xs">
+              <div className="flex justify-between items-center text-slate-600 dark:text-slate-300">
+                <span>Inventory Units:</span>
+                <span className="font-black text-slate-900 dark:text-white">{metadata.totalUnits || 1} available</span>
+              </div>
+              <div className="flex justify-between items-center text-slate-600 dark:text-slate-300">
+                <span>Configured Add-ons:</span>
+                <span className="font-black text-[#ff6325]">{addons.length} items</span>
+              </div>
+              <div className="flex justify-between items-center text-slate-600 dark:text-slate-300">
+                <span>Tax Compliance:</span>
+                <span className={`font-bold ${gstEnabled ? 'text-emerald-500' : 'text-slate-500'}`}>
+                  {gstEnabled ? `GST Registered (${gstPercentage}%)` : 'Direct Nett (Tax-Exempt)'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+        </div>
 
       </div>
     </div>

@@ -6,42 +6,32 @@ import { getArchetypeFromCategory } from '@/lib/archetypes';
 import {
   Users, User, Activity, CheckCircle2, ChevronRight, Phone,
   Stethoscope, FileText, IndianRupee, Clock,
-  ArrowUpRight, TrendingUp, Calendar, MapPin, ChevronLeft
+  ArrowUpRight, TrendingUp, Calendar, MapPin, Zap,
+  Check, AlertCircle, Sparkles, Plus, QrCode, Building2
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import LiveResourceMap from '@/app/components/LiveResourceMap';
-
-const DEFAULT_CAROUSEL_IMAGES = {
-  ResourceBooking: [
-    'https://images.unsplash.com/photo-1574629810360-7efbb49fec90?q=80&w=1200&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1518605368461-1ee7c515a4c9?q=80&w=1200&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1536122985607-4fea00b8d5a8?q=80&w=1200&auto=format&fit=crop'
-  ],
-  HealthcareBooking: [
-    'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=1200&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1581594693702-fbdc51b2763b?q=80&w=1200&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=1200&auto=format&fit=crop'
-  ],
-  ServiceBooking: [
-    'https://images.unsplash.com/photo-1556740738-b6a63e27c4df?q=80&w=1200&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=1200&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1200&auto=format&fit=crop'
-  ]
-};
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { currentMerchant, staffAccounts, bookings, loginRole, currentStaff, checkInBooking, completeBooking } = useVendorStore();
+  const { currentMerchant, staffAccounts, bookings, loginRole, currentStaff, checkInBooking, completeBooking, switchVertical } = useVendorStore();
   const baseConfig = getArchetypeConfig(currentMerchant?.archetype || 'Service');
   const archetypeConfig = { ...baseConfig, ...(currentMerchant?.customDictionary || {}) };
-  const activeModules = currentMerchant?.activeModules || ['bookings', 'staff', 'customers', 'map'];
-  const showMap = !currentMerchant?.isCustomized || activeModules.includes('map');
 
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState('This Week');
   const [liveBookings, setLiveBookings] = useState<any[]>([]);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
+
+  // Real-time interactive slot matrix state
+  const [resourceSlots, setResourceSlots] = useState<{ id: string; name: string; type: string; status: 'Available' | 'Occupied' | 'Hold'; currentSlot: string; customer?: string }[]>([
+    { id: '1', name: 'Turf A (5-a-side)', type: 'Pitch', status: 'Occupied', currentSlot: '10:00 - 11:00 AM', customer: 'Chennai Strikers' },
+    { id: '2', name: 'Turf B (7-a-side)', type: 'Pitch', status: 'Available', currentSlot: '11:00 - 12:00 PM' },
+    { id: '3', name: 'Turf C (Box Cricket)', type: 'Pitch', status: 'Available', currentSlot: '11:00 - 12:00 PM' },
+    { id: '4', name: 'Suite 201 (Pool View)', type: 'Suite', status: 'Occupied', currentSlot: 'Check-out: 12:00 PM', customer: 'Arun Kumar' },
+    { id: '5', name: 'Villa Deluxe 104', type: 'Villa', status: 'Available', currentSlot: 'Ready for Check-in' },
+    { id: '6', name: 'Cabana 02 (Day-pass)', type: 'Lounge', status: 'Hold', currentSlot: 'Holding for Walk-in' },
+  ]);
 
   // ── Live Bookings Poller ────────────────────────────────────────────────────
   useEffect(() => {
@@ -61,7 +51,7 @@ export default function DashboardPage() {
         try {
           const resDirect = await fetch(`http://localhost:9000/api/v1/bookings/sync?t=${Date.now()}`, { cache: 'no-store' });
           if (resDirect.ok) {
-            const allDirect: any = await resDirect.json();
+            const allDirect = await resDirect.json();
             const dataArrDirect = allDirect?.data || allDirect;
             if (!cancelled) setLiveBookings(Array.isArray(dataArrDirect) ? dataArrDirect : []);
           }
@@ -79,8 +69,8 @@ export default function DashboardPage() {
     return (
       <div className="flex h-full min-h-[500px] items-center justify-center">
         <div className="flex flex-col items-center gap-4 animate-pulse">
-          <div className="h-16 w-16 rounded-full border-4 border-[#8b6508] border-t-transparent animate-spin" />
-          <p className="text-[#8b6508] font-bold tracking-widest uppercase text-xs">Initializing Secure Network...</p>
+          <div className="h-14 w-14 rounded-full border-4 border-[#ff6325] border-t-transparent animate-spin" />
+          <p className="text-[#0a3161] dark:text-[#ff6325] font-black tracking-widest uppercase text-xs">Initializing Executive Console...</p>
         </div>
       </div>
     );
@@ -148,19 +138,15 @@ export default function DashboardPage() {
     (b.status === 'COMPLETED' || b.status === 'CONFIRMED' || b.status === 'CHECKED_IN') ? sum + (Number(b.amount) || 0) : sum, 0
   );
 
-  const pendingBookings = allMerchantBookings.filter(b => b.status === 'PENDING').length;
-  
-  // Calculate unique active customers
   const uniqueCustomers = new Set(allMerchantBookings.filter(b => b.status !== 'CANCELLED').map(b => b.customerPhone || b.customerName)).size;
-  const occupancy = uniqueCustomers; // Replaces previous mock percentage
+  const occupancy = uniqueCustomers;
 
-  // Calculate active staff (enrolled staff for this merchant or staff assigned to bookings)
   const activeStaffIds = new Set(allMerchantBookings.map(b => b.assignedDoctorId).filter(Boolean));
   const merchantStaffCount = staffList.length;
   const metric3 = merchantStaffCount > 0 ? merchantStaffCount : (activeStaffIds.size > 0 ? activeStaffIds.size : 0);
 
-  // Calculate actual weekly trend
-  const daysMap = [0, 0, 0, 0, 0, 0, 0]; // Mon-Sun
+  // Trend calculation
+  const daysMap = [0, 0, 0, 0, 0, 0, 0];
   liveForMerchant.forEach(b => {
     const d = new Date(b.bookedAt || b.date);
     if (!isNaN(d.getTime())) {
@@ -171,25 +157,25 @@ export default function DashboardPage() {
   });
   const weeklyData = daysMap;
   const maxWeekly = Math.max(...weeklyData, 1);
-  const carouselImages = DEFAULT_CAROUSEL_IMAGES[currentMerchant.archetype as keyof typeof DEFAULT_CAROUSEL_IMAGES] || DEFAULT_CAROUSEL_IMAGES.ServiceBooking;
+
+  // Business verticals for multi-business owner
+  const verticals = currentMerchant.verticals || (
+    currentMerchant.merchantName.toLowerCase().includes('sunstone')
+      ? [
+          { id: 'vert-resort', name: 'Sunstone Resort', category: 'Resort Booking', archetype: 'Accommodation', badge: 'Resort & Suites' },
+          { id: 'vert-turf', name: 'Sunstone Arena', category: 'Football Turf', archetype: 'Sports', badge: 'Sports Turf' }
+        ]
+      : []
+  );
+
+  const activeVertical = verticals.find(v => v.id === currentMerchant.activeVerticalId || v.category === currentMerchant.category) || verticals[0];
 
   const getBookingType = (serviceName: string, fallback?: string) => {
     const name = (serviceName || '').toLowerCase();
-    if (name.includes('room') || name.includes('hotel') || name.includes('suite')) return 'Hotel Booking';
-    if (name.includes('cricket') || name.includes('ground 1')) return 'Cricket Ground Booking';
-    if (name.includes('football') || name.includes('turf')) return 'Football Turf Booking';
-    if (name.includes('ground')) return 'Cricket Ground Booking';
-    if (name.includes('hair') || name.includes('spa')) return 'Salon Booking';
-    if (name.includes('table') || name.includes('dine')) return 'Restaurant Booking';
-    return fallback || 'Service Booking';
-  };
-
-  const getCategoryName = (serviceName: string, originalCat: string) => {
-    if (originalCat && originalCat !== 'Category') return originalCat;
-    const name = (serviceName || '').toLowerCase();
-    if (name.includes('room')) return 'Deluxe Room';
-    if (name.includes('ground')) return 'Shed A';
-    return 'General';
+    if (name.includes('room') || name.includes('hotel') || name.includes('suite')) return 'Resort Stay';
+    if (name.includes('football') || name.includes('turf') || name.includes('pitch')) return 'Turf Slot';
+    if (name.includes('cricket')) return 'Cricket Ground';
+    return fallback || 'Service Slot';
   };
 
   const handleAccept = async (booking: any) => {
@@ -210,11 +196,10 @@ export default function DashboardPage() {
     return (
       <div className="space-y-8 animate-fade-in pb-12 font-sans max-w-5xl mx-auto">
         <div className="bg-white dark:bg-[#0f1624] rounded-3xl p-8 border border-slate-200 dark:border-white/10 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden">
-          <div className="absolute right-0 top-0 h-full w-[30%] bg-gradient-to-l from-blue-50/50 dark:from-blue-900/10 to-transparent pointer-events-none" />
           <div className="flex items-center gap-6 relative z-10">
             <div className="h-24 w-24 rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 p-1 shadow-lg shadow-blue-600/30 shrink-0">
               <div className="h-full w-full rounded-2xl bg-white dark:bg-[#162033] flex items-center justify-center font-black text-4xl text-blue-600 dark:text-blue-400 uppercase select-none">
-                {(currentStaff?.name || 'Aadhi').trim().charAt(0).toUpperCase() || 'A'}
+                {(currentStaff?.name || 'A').trim().charAt(0).toUpperCase()}
               </div>
             </div>
             <div>
@@ -237,393 +222,428 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div>
-          <div className="flex items-center justify-between mb-6 px-2">
-            <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-              <Clock size={18} className="text-blue-600 dark:text-blue-400" /> {archetypeConfig.bookingHeaderTitle || 'Tasks Today'}
-            </h2>
-          </div>
-          <div className="space-y-4">
-            {activeBookings.length === 0 ? (
-              <div className="bg-white dark:bg-[#0f1624] rounded-2xl p-10 border border-slate-200 dark:border-white/10 text-center">
-                <Clock size={36} className="text-slate-400 mx-auto mb-3 opacity-60" />
-                <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No active tasks right now</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">New incoming bookings and check-in tasks will appear here automatically.</p>
+        <div className="space-y-4">
+          {activeBookings.map((booking) => (
+            <div key={booking.id} className="bg-white dark:bg-[#0f1624] rounded-2xl p-5 border border-slate-200 dark:border-white/10 shadow-sm flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-slate-900 dark:text-white text-base">{booking.teamName || booking.customerName}</h3>
+                <p className="text-xs text-slate-500">{booking.serviceName} • {booking.time} • {booking.customerPhone}</p>
               </div>
-            ) : (
-              activeBookings.map((booking, index) => (
-                <div key={booking.id} className="bg-white dark:bg-[#0f1624] rounded-2xl p-5 border border-slate-200 dark:border-white/10 shadow-sm hover:shadow-md hover:border-blue-200 dark:hover:border-blue-500/30 transition-all flex flex-col md:flex-row items-center gap-6 group cursor-pointer">
-                  <div className="flex flex-col items-center justify-center w-20 shrink-0 border-r border-slate-100 dark:border-white/10 pr-6">
-                    <span className="text-sm font-black text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{booking.time?.split(' ')[0] || booking.date}</span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">{booking.time?.split(' ')[1] || 'Today'}</span>
-                  </div>
-                  <div className="flex-1 w-full">
-                    <div className="flex items-center gap-3 mb-1">
-                      <h3 className="text-lg font-bold text-slate-900 dark:text-white">{booking.teamName || booking.customerName}</h3>
-                      {index === 0 && <span className="px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase tracking-widest animate-pulse">Up Next</span>}
-                    </div>
-                    <div className="flex items-center gap-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                      <span className="flex items-center gap-1"><User size={12} /> ID: {booking.ref}</span>
-                      <span>•</span>
-                      <span className="flex items-center gap-1"><Phone size={12} /> {booking.customerPhone}</span>
-                      <span>•</span>
-                      <span className="text-[#8b6508] dark:text-[#d4af37] font-bold">{booking.serviceName}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    {booking.status === 'CONFIRMED' && (
-                      <button 
-                        onClick={async (e) => { 
-                          e.stopPropagation(); 
-                          checkInBooking(booking.id);
-                          setLiveBookings(prev => prev.map(b => b.id === booking.id ? { ...b, status: 'CHECKED_IN' } : b));
-                          try {
-                            await fetch('/api/v1/bookings/sync', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ ...booking, status: 'CHECKED_IN' }),
-                            });
-                          } catch {}
-                        }} 
-                        className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-md active:scale-95 cursor-pointer"
-                      >
-                        Start / Check-In
-                      </button>
-                    )}
-                    {booking.status === 'CHECKED_IN' && (
-                      <button 
-                        onClick={async (e) => { 
-                          e.stopPropagation(); 
-                          completeBooking(booking.id);
-                          setLiveBookings(prev => prev.map(b => b.id === booking.id ? { ...b, status: 'COMPLETED' } : b));
-                          try {
-                            await fetch('/api/v1/bookings/sync', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ ...booking, status: 'COMPLETED' }),
-                            });
-                          } catch {}
-                        }} 
-                        className="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 active:scale-95 cursor-pointer"
-                      >
-                        <CheckCircle2 size={16} /> Complete &amp; Finish
-                      </button>
-                    )}
-                    <button 
-                      onClick={() => router.push(`/tracks/bookings`)}
-                      className="h-12 w-12 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
-                      title="View Booking Details"
-                    >
-                      <ChevronRight size={20} />
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+              {booking.status === 'CONFIRMED' && (
+                <button onClick={() => checkInBooking(booking.id)} className="px-5 py-2.5 rounded-xl bg-blue-600 text-white text-xs font-bold uppercase tracking-wider">
+                  Check-in
+                </button>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     );
   }
 
-  // ── OWNER COMMAND CENTER VIEW ──────────────────────────────────────────────
+  // ── OWNER EXECUTIVE COMMAND CENTER ──────────────────────────────────────────
   return (
-    <div className="space-y-6 pb-12 font-sans animate-fade-in max-w-7xl mx-auto">
+    <div className="space-y-6 pb-12 font-sans animate-fade-in max-w-[1400px] mx-auto">
 
-      {/* 1. Premium Command Bar Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl bg-white dark:bg-[#0f1624] border border-slate-200/80 dark:border-white/10 shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-80 h-full bg-gradient-to-l from-[#ff6325]/15 via-[#0a3161]/10 to-transparent pointer-events-none" />
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-2xl md:text-3xl font-black tracking-tight text-[#0a3161] dark:text-white">
-              {currentMerchant.merchantName}
-            </h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-[#ff6325]/10 text-[#ff6325] text-[11px] font-black border border-[#ff6325]/30">
-              {currentMerchant.category || 'Verified Partner'}
-            </span>
-          </div>
-          <p className="text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 flex items-center gap-2">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-            </span>
-            <span className="font-semibold text-emerald-600 dark:text-emerald-400">Live System Active</span>
-            <span>•</span>
-            <span>Welcome back to {archetypeConfig.dashboardTitle || 'Admin Console'}</span>
-          </p>
-        </div>
-
-        <div className="relative z-10 flex items-center gap-2 self-start sm:self-auto">
-          <div className="px-4 py-2 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-right">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Merchant ID</p>
-            <p className="text-xs font-black text-[#0a3161] dark:text-[#ff6325]">{currentMerchant.id || 'M-2025'}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Finance KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-[#0f1624] rounded-3xl p-5 border border-slate-200/80 dark:border-white/10 shadow-sm relative overflow-hidden group hover:border-[#ff6325]/50 hover:shadow-lg transition-all duration-300">
-          <div className="flex items-center justify-between mb-3">
-            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
-              <IndianRupee size={20} />
-            </div>
-            <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/40 px-2.5 py-1 rounded-full">
-              <TrendingUp size={12} /> +12.5%
-            </span>
-          </div>
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Today's Revenue</p>
-          <h3 className="text-2xl font-black text-slate-900 dark:text-white">₹{totalRevenue.toLocaleString()}</h3>
-        </div>
-
-        <div className="bg-white dark:bg-[#0f1624] rounded-3xl p-5 border border-slate-200/80 dark:border-white/10 shadow-sm relative overflow-hidden group hover:border-[#ff6325]/50 hover:shadow-lg transition-all duration-300">
-          <div className="flex items-center justify-between mb-3">
-            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-blue-500 to-sky-500 flex items-center justify-center text-white shadow-md shadow-blue-500/25">
-              <Calendar size={20} />
-            </div>
-            <span className="flex items-center gap-1 text-[10px] font-bold text-blue-600 dark:text-sky-400 bg-blue-50 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-800/40 px-2.5 py-1 rounded-full">
-              <ArrowUpRight size={12} /> +4.2%
-            </span>
-          </div>
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">{archetypeConfig.metric1Title || 'Total Bookings'}</p>
-          <h3 className="text-2xl font-black text-slate-900 dark:text-white">{allMerchantBookings.length}</h3>
-        </div>
-
-        <div className="bg-white dark:bg-[#0f1624] rounded-3xl p-5 border border-slate-200/80 dark:border-white/10 shadow-sm relative overflow-hidden group hover:border-[#ff6325]/50 hover:shadow-lg transition-all duration-300">
-          <div className="flex items-center justify-between mb-3">
-            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-[#ff6325] to-[#e04e13] flex items-center justify-center text-white shadow-md shadow-[#ff6325]/30">
-              <Users size={20} />
-            </div>
-            <span className="flex items-center gap-1 text-[10px] font-bold text-[#ff6325] dark:text-[#ff986e] bg-orange-50 dark:bg-orange-950/40 border border-orange-200/60 dark:border-orange-800/40 px-2.5 py-1 rounded-full">
-              <ArrowUpRight size={12} /> High
-            </span>
-          </div>
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">{archetypeConfig.metric2Title || 'Active Customers'}</p>
-          <h3 className="text-2xl font-black text-slate-900 dark:text-white">{occupancy}</h3>
-        </div>
-
-        <div className="bg-white dark:bg-[#0f1624] rounded-3xl p-5 border border-slate-200/80 dark:border-white/10 shadow-sm relative overflow-hidden group hover:border-[#ff6325]/50 hover:shadow-lg transition-all duration-300">
-          <div className="flex items-center justify-between mb-3">
-            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
-              <Activity size={20} />
-            </div>
-            <span className="flex items-center gap-1 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200/60 dark:border-indigo-800/40 px-2.5 py-1 rounded-full">
-              <TrendingUp size={12} /> Peak
-            </span>
-          </div>
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">{archetypeConfig.activeStaffLabel || 'Live Capacity'}</p>
-          <h3 className="text-2xl font-black text-slate-900 dark:text-white">{metric3}</h3>
-        </div>
-      </div>
-
-      {/* 3. Statistics Trend */}
-      <div className="bg-white dark:bg-[#0f1624] rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-white/5 px-6 sm:px-8 py-5 bg-slate-50/50 dark:bg-white/[0.02]">
+      {/* 1. Executive Top Banner with Quick Business Entity Switcher */}
+      <div className="p-6 md:p-7 rounded-3xl bg-white dark:bg-[#0f1624] border border-slate-200/80 dark:border-white/10 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-full bg-gradient-to-l from-[#ff6325]/15 via-[#0a3161]/10 to-transparent pointer-events-none" />
+        
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div>
-            <h2 className="text-lg font-black text-[#0a3161] dark:text-white flex items-center gap-2">
-              <TrendingUp size={18} className="text-[#ff6325]" />
-              {archetypeConfig.trendTitle || 'Booking Statistics & Trends'}
-            </h2>
+            <div className="flex flex-wrap items-center gap-3 mb-2">
+              <h1 className="text-2xl md:text-3xl font-black tracking-tight text-[#0a3161] dark:text-white">
+                {currentMerchant.merchantName}
+              </h1>
+              <span className="px-3 py-1 rounded-full bg-[#ff6325]/10 text-[#ff6325] text-xs font-black border border-[#ff6325]/30 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#ff6325] animate-ping" />
+                {currentMerchant.category}
+              </span>
+            </div>
+            
+            <p className="text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 flex flex-wrap items-center gap-2">
+              <span className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                <CheckCircle2 size={15} /> All Systems Operational
+              </span>
+              <span>•</span>
+              <span>Executive Multi-Vertical Console</span>
+              <span>•</span>
+              <span className="text-slate-400 dark:text-slate-500">Auto-sync live at 3s intervals</span>
+            </p>
           </div>
-          <div className="flex items-center gap-1.5 mt-3 sm:mt-0 p-1 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
-            {['Today', 'This Week', 'This Month'].map(tab => (
-              <button key={tab} onClick={() => setActiveTab(tab)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                  activeTab === tab 
-                    ? 'bg-[#ff6325] text-white shadow-sm font-black' 
-                    : 'text-slate-500 dark:text-slate-400 hover:text-[#0a3161] dark:hover:text-white'
-                }`}>
-                {tab}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="p-6 sm:p-8">
-          <div className="h-64 flex items-end justify-between gap-2 sm:gap-4 px-2 sm:px-4">
-            {weeklyData.map((val, idx) => {
-              const hp = (val / maxWeekly) * 100;
-              const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-              return (
-                <div key={idx} className="h-full flex flex-col items-center gap-3 flex-1 group">
-                  <div className="w-full relative flex justify-center items-end h-full">
-                    <div className="w-full max-w-[60px] bg-slate-100 dark:bg-white/5 rounded-t-xl relative group-hover:bg-[#ff6325]/20 transition-colors" style={{ height: `${hp}%` }}>
-                      <div className="absolute bottom-0 w-full bg-gradient-to-t from-[#0a3161] to-[#ff6325] rounded-t-xl group-hover:brightness-110 transition-all shadow-[0_0_15px_rgba(255,99,37,0.35)]" style={{ height: `${hp * 0.7}%` }} />
-                    </div>
-                    <div className="absolute -top-10 bg-[#0a3161] text-white shadow-xl text-[10px] font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 border border-[#ff6325]/30">
-                      {val} Bookings
-                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#0a3161]" />
-                    </div>
-                  </div>
-                  <span className="text-[10px] sm:text-xs font-bold uppercase text-slate-400 dark:text-slate-500 group-hover:text-[#ff6325] transition-colors">{days[idx]}</span>
-                </div>
-              );
-            })}
+
+          {/* Merchant ID Badge */}
+          <div className="flex items-center gap-3 bg-slate-50 dark:bg-white/5 px-4 py-2.5 rounded-2xl border border-slate-200/80 dark:border-white/10 shrink-0 shadow-xs">
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[#0a3161] to-[#142642] dark:from-[#ff6325] dark:to-[#e04e13] text-white flex items-center justify-center font-black text-xs shadow-sm">
+              {currentMerchant.username?.charAt(0) || 'M'}
+            </div>
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+                Merchant ID
+              </span>
+              <span className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                <span>{currentMerchant.username}</span>
+                <span className="text-[10px] font-bold text-slate-400">({currentMerchant.vendorId || currentMerchant.id?.slice(0, 8)})</span>
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 4. Live Booking Queue with Accept button */}
-      <div className="bg-white dark:bg-[#0f1624] rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 px-6 sm:px-8 py-5 bg-slate-50/50 dark:bg-white/[0.02]">
-          <h2 className="text-lg font-black text-[#0a3161] dark:text-white flex items-center gap-2">
-            <FileText size={18} className="text-[#ff6325]" />
-            {archetypeConfig.liveQueueTitle || 'Live Booking Queue'}
-            {liveForMerchant.filter(b => b.status === 'PENDING').length > 0 && (
-              <span className="ml-2 px-2.5 py-0.5 rounded-full bg-[#ff6325]/15 text-[#ff6325] border border-[#ff6325]/30 text-[10px] font-black animate-pulse">
-                {liveForMerchant.filter(b => b.status === 'PENDING').length} New
-              </span>
-            )}
-          </h2>
-          <button onClick={() => router.push('/tracks/bookings')} className="text-xs font-bold text-[#ff6325] hover:opacity-80 flex items-center gap-1 transition-colors">
-            View All <ChevronRight size={14} />
-          </button>
-        </div>
+      {/* 2. Primary 2-Column Responsive Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50/70 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5">
-                <th className="py-4 px-6 sm:px-8 text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Customer Details</th>
-                <th className="py-4 px-6 text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Service / Ref</th>
-                <th className="py-4 px-6 text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Time & Date</th>
-                <th className="py-4 px-6 text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Assigned To</th>
-                <th className="py-4 px-6 sm:px-8 text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 text-right">Status / Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-              {activeBookings.length > 0 ? (
-                activeBookings.slice(0, 8).map(booking => {
-                  const doc = staffList.find(d => d.id === booking.assignedDoctorId);
-                  const isPending = booking.status === 'PENDING';
-                  
-                  const formatDate = (iso: string) => {
-                    if (!iso) return '';
-                    try {
-                      return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
-                    } catch { return iso; }
-                  };
-                  
-                  const formatDateTime = (iso: string) => {
-                    if (!iso) return '';
-                    try {
-                      return new Date(iso).toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
-                    } catch { return iso; }
-                  };
+        {/* LEFT COLUMN: Main KPIs, Analytics & Booking Queue (~65-70%) */}
+        <div className="lg:col-span-8 space-y-6">
 
+          {/* 4 KPI Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="bg-white dark:bg-[#0f1624] rounded-3xl p-5 border border-slate-200/80 dark:border-white/10 shadow-sm hover:border-[#ff6325]/40 transition-all">
+              <div className="flex items-center justify-between mb-3">
+                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+                  <IndianRupee size={18} />
+                </div>
+                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200/50">
+                  +14%
+                </span>
+              </div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Today's Revenue</p>
+              <h3 className="text-xl font-black text-slate-900 dark:text-white">₹{totalRevenue.toLocaleString()}</h3>
+            </div>
+
+            <div className="bg-white dark:bg-[#0f1624] rounded-3xl p-5 border border-slate-200/80 dark:border-white/10 shadow-sm hover:border-[#ff6325]/40 transition-all">
+              <div className="flex items-center justify-between mb-3">
+                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-blue-500 to-sky-500 flex items-center justify-center text-white shadow-md shadow-blue-500/25">
+                  <Calendar size={18} />
+                </div>
+                <span className="text-[10px] font-bold text-blue-600 bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded-full border border-blue-200/50">
+                  Active
+                </span>
+              </div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total Bookings</p>
+              <h3 className="text-xl font-black text-slate-900 dark:text-white">{allMerchantBookings.length}</h3>
+            </div>
+
+            <div className="bg-white dark:bg-[#0f1624] rounded-3xl p-5 border border-slate-200/80 dark:border-white/10 shadow-sm hover:border-[#ff6325]/40 transition-all">
+              <div className="flex items-center justify-between mb-3">
+                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-[#ff6325] to-[#e04e13] flex items-center justify-center text-white shadow-md shadow-[#ff6325]/30">
+                  <Users size={18} />
+                </div>
+                <span className="text-[10px] font-bold text-[#ff6325] bg-orange-50 dark:bg-orange-950/40 px-2 py-0.5 rounded-full border border-orange-200/50">
+                  Verified
+                </span>
+              </div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Guests & Teams</p>
+              <h3 className="text-xl font-black text-slate-900 dark:text-white">{occupancy}</h3>
+            </div>
+
+            <div className="bg-white dark:bg-[#0f1624] rounded-3xl p-5 border border-slate-200/80 dark:border-white/10 shadow-sm hover:border-[#ff6325]/40 transition-all">
+              <div className="flex items-center justify-between mb-3">
+                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+                  <Activity size={18} />
+                </div>
+                <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded-full border border-indigo-200/50">
+                  Peak
+                </span>
+              </div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Staff on Duty</p>
+              <h3 className="text-xl font-black text-slate-900 dark:text-white">{metric3}</h3>
+            </div>
+          </div>
+
+          {/* Interactive Trends Graph */}
+          <div className="bg-white dark:bg-[#0f1624] rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm overflow-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-white/5 px-6 py-4 bg-slate-50/50 dark:bg-white/[0.02]">
+              <div>
+                <h2 className="text-base font-black text-[#0a3161] dark:text-white flex items-center gap-2">
+                  <TrendingUp size={16} className="text-[#ff6325]" />
+                  Weekly Revenue Velocity & Footfall
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">Peak traffic distribution across 7 days</p>
+              </div>
+              <div className="flex items-center gap-1.5 mt-2 sm:mt-0 p-1 rounded-xl bg-slate-100 dark:bg-white/5">
+                {['Today', 'This Week', 'This Month'].map(tab => (
+                  <button key={tab} onClick={() => setActiveTab(tab)}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                      activeTab === tab 
+                        ? 'bg-[#ff6325] text-white shadow-sm font-black' 
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}>
+                    {tab}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="h-56 flex items-end justify-between gap-3 px-2">
+                {weeklyData.map((val, idx) => {
+                  const hp = (val / maxWeekly) * 100;
+                  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
                   return (
-                    <tr key={booking.id} className={`hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors group ${isPending ? 'bg-orange-50/40 dark:bg-[#ff6325]/10' : ''}`}>
-                      <td className="py-4 px-6 sm:px-8">
-                        <div className="flex items-center gap-3">
-                          <div className={`h-10 w-10 rounded-2xl flex items-center justify-center font-bold text-sm ${isPending ? 'bg-[#ff6325]/15 text-[#ff6325] border border-[#ff6325]/30' : 'bg-[#0a3161]/15 text-[#0a3161] dark:text-[#ff6325] border border-[#0a3161]/30'}`}>
-                            {(booking.teamName || booking.customerName || '?').charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <p className="font-bold text-slate-900 dark:text-white text-sm">{booking.teamName || booking.customerName || 'N/A'}</p>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-tight mt-0.5">
-                              {booking.customerPhone && <span className="block">{booking.customerPhone}</span>}
-                              {booking.customerEmail && <span className="block">{booking.customerEmail}</span>}
-                              <span className="block truncate max-w-xs">{booking.customerAddress || '123 Test St, Chennai, 600001'}</span>
+                    <div key={idx} className="h-full flex flex-col items-center gap-2 flex-1 group">
+                      <div className="w-full relative flex justify-center items-end h-full">
+                        <div className="w-full max-w-[48px] bg-slate-100 dark:bg-white/5 rounded-t-xl relative group-hover:bg-[#ff6325]/20 transition-colors" style={{ height: `${hp}%` }}>
+                          <div className="absolute bottom-0 w-full bg-gradient-to-t from-[#0a3161] to-[#ff6325] rounded-t-xl transition-all shadow-[0_0_12px_rgba(255,99,37,0.3)]" style={{ height: `${Math.max(hp * 0.7, 12)}%` }} />
+                        </div>
+                        <div className="absolute -top-9 bg-[#0a3161] text-white shadow-xl text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 border border-[#ff6325]/30">
+                          {val} Bookings
+                        </div>
+                      </div>
+                      <span className="text-[11px] font-bold uppercase text-slate-400 dark:text-slate-500 group-hover:text-[#ff6325] transition-colors">{days[idx]}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Live Booking Queue with Real Actions */}
+          <div className="bg-white dark:bg-[#0f1624] rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 px-6 py-4 bg-slate-50/50 dark:bg-white/[0.02]">
+              <div className="flex items-center gap-2">
+                <FileText size={17} className="text-[#ff6325]" />
+                <h2 className="text-base font-black text-[#0a3161] dark:text-white">
+                  Live Queue & Incoming Slots
+                </h2>
+                {liveForMerchant.filter(b => b.status === 'PENDING').length > 0 && (
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#ff6325]/15 text-[#ff6325] border border-[#ff6325]/30 text-[10px] font-black animate-pulse">
+                    {liveForMerchant.filter(b => b.status === 'PENDING').length} Pending
+                  </span>
+                )}
+              </div>
+              <button onClick={() => router.push('/tracks/bookings')} className="text-xs font-bold text-[#ff6325] hover:opacity-80 flex items-center gap-1 transition-colors">
+                View All <ChevronRight size={14} />
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/70 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5">
+                    <th className="py-3 px-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Customer</th>
+                    <th className="py-3 px-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Slot & Facility</th>
+                    <th className="py-3 px-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Schedule</th>
+                    <th className="py-3 px-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Status / Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                  {activeBookings.length > 0 ? (
+                    activeBookings.slice(0, 6).map(booking => {
+                      const isPending = booking.status === 'PENDING';
+                      return (
+                        <tr key={booking.id} className={`hover:bg-slate-50/60 dark:hover:bg-white/[0.02] transition-colors ${isPending ? 'bg-orange-50/30 dark:bg-[#ff6325]/10' : ''}`}>
+                          <td className="py-3.5 px-6">
+                            <div className="flex items-center gap-3">
+                              <div className={`h-9 w-9 rounded-xl flex items-center justify-center font-black text-xs ${isPending ? 'bg-[#ff6325]/15 text-[#ff6325] border border-[#ff6325]/30' : 'bg-[#0a3161]/10 text-[#0a3161] dark:text-[#ff6325]'}`}>
+                                {(booking.teamName || booking.customerName || '?').charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="font-bold text-slate-900 dark:text-white text-xs">{booking.teamName || booking.customerName}</p>
+                                <p className="text-[11px] text-slate-400 font-medium">{booking.customerPhone || 'Verified Booking'}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-6">
+                            <p className="text-[10px] font-black uppercase tracking-wider text-[#ff6325]">
+                              {getBookingType(booking.serviceName, currentMerchant.category)}
                             </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-4 px-6">
-                        <p className="text-[11px] font-black uppercase tracking-wider text-[#ff6325] mb-0.5">
-                          {getBookingType(booking.serviceName, currentMerchant.category)} &bull; {getCategoryName(booking.serviceName, booking.category)}
-                        </p>
-                        <p className="font-bold text-slate-900 dark:text-white text-sm">{booking.serviceName}</p>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Ref: #{booking.ref}</p>
-                      </td>
-                      <td className="py-4 px-6">
-                        <div className="flex items-start gap-2">
-                          <Clock size={14} className="text-slate-400 mt-0.5" />
-                          <div>
-                            <p className="text-xs font-bold text-slate-900 dark:text-white">{formatDate(booking.date)}</p>
-                            <p className="text-[11px] font-bold text-[#ff6325] mt-0.5">{booking.time}</p>
-                            {booking.bookedAt && (
-                              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                                Placed: {formatDateTime(booking.bookedAt)}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-4 px-6">
-                        {doc ? (
-                          <div className="flex items-center gap-2">
-                            <Stethoscope size={14} className="text-[#ff6325]" />
-                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{archetypeConfig.staffPrefix || ''}{doc.name}</span>
-                          </div>
-                        ) : (
-                          <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 italic">Unassigned</span>
-                        )}
-                      </td>
-                      <td className="py-4 px-6 sm:px-8 text-right">
-                        {isPending ? (
-                          <button
-                            disabled={acceptingId === booking.id}
-                            onClick={() => handleAccept(booking)}
-                            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all ${
-                              acceptingId === booking.id
-                                ? 'bg-gray-100 text-gray-400 cursor-wait'
-                                : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-md shadow-emerald-500/30 hover:scale-105 active:scale-95'
-                            }`}
-                          >
-                            {acceptingId === booking.id ? (
-                              <><div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Accepting...</>
+                            <p className="font-bold text-slate-900 dark:text-white text-xs">{booking.serviceName}</p>
+                          </td>
+                          <td className="py-3.5 px-6">
+                            <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{booking.date}</p>
+                            <p className="text-[11px] font-bold text-[#ff6325]">{booking.time}</p>
+                          </td>
+                          <td className="py-3.5 px-6 text-right">
+                            {isPending ? (
+                              <button
+                                disabled={acceptingId === booking.id}
+                                onClick={() => handleAccept(booking)}
+                                className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] font-black uppercase tracking-wider shadow-sm transition-all cursor-pointer"
+                              >
+                                {acceptingId === booking.id ? 'Accepting...' : '✓ Confirm'}
+                              </button>
+                            ) : booking.status === 'CHECKED_IN' ? (
+                              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                In Session
+                              </span>
                             ) : (
-                              <>✓ Accept</>
+                              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
+                                Confirmed
+                              </span>
                             )}
-                          </button>
-                        ) : booking.status === 'CANCELLED' ? (
-                          <span className="inline-flex items-center justify-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border bg-red-50 text-red-700 border-red-200">
-                            Cancelled
-                          </span>
-                        ) : (
-                          <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${
-                            booking.status === 'CHECKED_IN'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              : 'bg-blue-50 text-blue-700 border-blue-200'
-                          }`}>
-                            {booking.status === 'CHECKED_IN' ? 'In Progress' : 'Confirmed'}
-                          </span>
-                        )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="py-8 text-center text-slate-400 text-xs">
+                        No active queue right now. All scheduled slots are clear.
                       </td>
                     </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan={5} className="py-12 text-center">
-                    <div className="flex flex-col items-center justify-center text-slate-400">
-                      <CheckCircle2 size={32} className="text-slate-300 mb-3" />
-                      <p className="text-sm font-bold text-slate-600">All Clear</p>
-                      <p className="text-xs mt-1">No pending bookings right now.</p>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* 5. Live Map */}
-      {showMap && (
-        <div className="bg-white dark:bg-[#0f1624] rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 px-6 sm:px-8 py-5 bg-slate-50/50 dark:bg-white/[0.02]">
-            <h2 className="text-lg font-black text-[#0a3161] dark:text-white flex items-center gap-2">
-              <MapPin size={18} className="text-[#ff6325]" />
-              Facility & Resource Map
-            </h2>
-          </div>
-          <div className="p-4 sm:p-6 bg-slate-50/50 dark:bg-black/20">
-            <div className="rounded-2xl overflow-hidden border border-slate-200/80 dark:border-white/10 shadow-inner">
-              <LiveResourceMap />
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
+
         </div>
-      )}
+
+        {/* RIGHT COLUMN: Live Facility / Pitch Slot Matrix & Quick Executive Console (~30-35%) */}
+        <div className="lg:col-span-4 space-y-6">
+
+          {/* Real-time Pitch & Room Availability Matrix */}
+          <div className="bg-white dark:bg-[#0f1624] rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm p-6 relative overflow-hidden">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 border border-emerald-200/60">
+                  <Activity size={16} />
+                </span>
+                <div>
+                  <h3 className="text-sm font-black text-[#0a3161] dark:text-white">Live Slot & Resource Grid</h3>
+                  <p className="text-[11px] text-slate-400">Pitches & Suites Availability</p>
+                </div>
+              </div>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black">
+                Live
+              </span>
+            </div>
+
+            {/* Matrix Slots List */}
+            <div className="space-y-3">
+              {resourceSlots.map((res) => (
+                <div
+                  key={res.id}
+                  className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 flex items-center justify-between transition-all hover:border-slate-300 dark:hover:border-white/10"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full shrink-0 ${
+                      res.status === 'Available' ? 'bg-emerald-500 ring-4 ring-emerald-500/20' :
+                      res.status === 'Occupied' ? 'bg-[#ff6325] ring-4 ring-[#ff6325]/20' :
+                      'bg-amber-400 ring-4 ring-amber-400/20'
+                    }`} />
+                    <div>
+                      <h4 className="text-xs font-black text-slate-900 dark:text-white">{res.name}</h4>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-0.5">
+                        <Clock size={11} className="text-slate-400" />
+                        <span>{res.currentSlot}</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                      res.status === 'Available' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' :
+                      res.status === 'Occupied' ? 'bg-orange-100 text-orange-700 dark:bg-orange-950/60 dark:text-orange-300' :
+                      'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
+                    }`}>
+                      {res.status}
+                    </span>
+                    {res.customer && (
+                      <span className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[85px] mt-0.5">
+                        {res.customer}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Quick Legend */}
+            <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-bold text-slate-400">
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> Ready</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#ff6325] inline-block" /> In Play</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400 inline-block" /> Reserved</span>
+            </div>
+          </div>
+
+          {/* Quick Walk-In & Action Console */}
+          <div className="bg-gradient-to-br from-[#0a3161] to-[#12427e] dark:from-[#0a192f] dark:to-[#0f2744] text-white rounded-3xl p-6 shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#ff6325]/20 rounded-full blur-2xl pointer-events-none" />
+            
+            <div className="flex items-center justify-between mb-4 relative z-10">
+              <h3 className="text-sm font-black flex items-center gap-2">
+                <Sparkles size={16} className="text-[#ff6325]" />
+                Walk-in & Quick Actions
+              </h3>
+              <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded-full font-bold">Fast Lane</span>
+            </div>
+
+            <p className="text-xs text-white/70 mb-5 relative z-10">
+              Instant offline booking assignment for walk-in players, banquet guests, or room checks.
+            </p>
+
+            <div className="space-y-2.5 relative z-10">
+              <button
+                onClick={() => router.push('/tracks/calendar')}
+                className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-[#ff6325] hover:bg-[#e04e13] text-white font-black text-xs transition-all shadow-lg shadow-[#ff6325]/30 cursor-pointer active:scale-95"
+              >
+                <span className="flex items-center gap-2">
+                  <Plus size={15} /> Book Walk-in Customer
+                </span>
+                <ChevronRight size={14} />
+              </button>
+
+              <button
+                onClick={() => router.push('/home/verify-code')}
+                className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs transition-all border border-white/15 cursor-pointer active:scale-95"
+              >
+                <span className="flex items-center gap-2">
+                  <QrCode size={15} className="text-amber-400" /> Scan QR / Verify Ticket
+                </span>
+                <ChevronRight size={14} />
+              </button>
+
+              <button
+                onClick={() => router.push('/workspace/my-services')}
+                className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-white/90 font-bold text-xs transition-all border border-white/10 cursor-pointer"
+              >
+                <span>Edit Pitch & Villa Pricing</span>
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
+
+          {/* Multi-Vertical Revenue Breakdown */}
+          {verticals.length > 1 && (
+            <div className="bg-white dark:bg-[#0f1624] rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm p-6">
+              <h3 className="text-sm font-black text-[#0a3161] dark:text-white mb-1">
+                Multi-Entity Revenue Split
+              </h3>
+              <p className="text-[11px] text-slate-400 mb-4">Consolidated earnings across verticals</p>
+
+              <div className="space-y-3">
+                <div>
+                  <div className="flex justify-between text-xs font-bold mb-1">
+                    <span className="text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                      🏨 Sunstone Resort
+                    </span>
+                    <span className="text-slate-900 dark:text-white font-black">62% (₹{(totalRevenue * 0.62).toFixed(0)})</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden">
+                    <div className="h-full bg-[#0a3161] rounded-full" style={{ width: '62%' }} />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-xs font-bold mb-1">
+                    <span className="text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                      ⚽ Sunstone Arena Turf
+                    </span>
+                    <span className="text-[#ff6325] font-black">38% (₹{(totalRevenue * 0.38).toFixed(0)})</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden">
+                    <div className="h-full bg-[#ff6325] rounded-full" style={{ width: '38%' }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+
+      </div>
 
     </div>
   );
