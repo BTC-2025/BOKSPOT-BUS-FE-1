@@ -1,6 +1,6 @@
 'use client';
 
-import { useVendorStore, CatalogService, BranchInfo } from '@/lib/store';
+import { useVendorStore, CatalogService, BranchInfo, PRESET_MERCHANTS } from '@/lib/store';
 import { getArchetypeConfig } from '@/lib/businessDictionary';
 import { compressImage } from '@/lib/imageUtils';
 import {
@@ -94,37 +94,59 @@ export default function WorkspacePage() {
   }
 
   // Branches
+  const presetMatch = PRESET_MERCHANTS.find(m => m.id === currentMerchant?.id || m.username.toLowerCase() === currentMerchant?.username?.toLowerCase());
   const effectiveBranches: BranchInfo[] = (currentMerchant?.branches && currentMerchant.branches.length > 0)
     ? currentMerchant.branches
-    : [
-      {
-        id: 'branch-chennai-main',
-        name: `${currentMerchant.merchantName || 'Main'} - Chennai Branch`,
-        city: currentMerchant.city || 'Chennai',
-        address: currentMerchant.address || 'Central Avenue, Chennai',
-        gstStatus: currentMerchant.gstStatus || 'WITH_GST',
-        gstNumber: currentMerchant.gstNumber || '33AAAAA0000A1Z5',
-        offeringsSummary: 'Stays, Sports & Leisure',
-        isMainBranch: true
-      },
-      {
-        id: 'branch-madurai-sports',
-        name: `${currentMerchant.merchantName || 'Sports'} - Madurai Arena Branch`,
-        city: 'Madurai',
-        address: 'Ring Road Arena Complex, Madurai',
-        gstStatus: 'WITHOUT_GST',
-        offeringsSummary: 'Cricket Turf & Banquet',
-        isMainBranch: false
-      }
-    ];
+    : (presetMatch?.branches && presetMatch.branches.length > 0)
+      ? presetMatch.branches
+      : [
+          {
+            id: 'branch-resort-stay',
+            name: 'Suites & Stays',
+            city: currentMerchant.city || 'Chennai',
+            category: 'Resort Booking',
+            businessType: 'Stay & Rooms',
+            address: 'East Coast Road, Chennai',
+            gstStatus: 'WITH_GST',
+            gstNumber: currentMerchant.gstNumber || '33AAAAA0000A1Z5',
+            offeringsSummary: 'Deluxe Suites, Pool Cottages',
+            isMainBranch: true
+          },
+          {
+            id: 'branch-resort-turf',
+            name: 'Sports Turf',
+            city: currentMerchant.city || 'Chennai',
+            category: 'Football Turf',
+            businessType: 'Sports Facility',
+            address: 'East Coast Road (Arena Annex), Chennai',
+            gstStatus: 'WITH_GST',
+            gstNumber: currentMerchant.gstNumber || '33AAAAA0000A1Z5',
+            offeringsSummary: '7v7 FIFA Astro Turf, Floodlit Ground',
+            isMainBranch: false
+          }
+        ];
 
   const activeBranch = effectiveBranches.find(b => b.id === (currentMerchant.activeBranchId || effectiveBranches[0].id)) || effectiveBranches[0];
+  const isTurfBranch = (activeBranch.category?.toLowerCase().includes('turf') || activeBranch.name?.toLowerCase().includes('turf'));
 
-  // Filter services strictly by Active Branch
+  // Filter services strictly by Active Branch and category isolation
   const merchantServices = services.filter(s => {
-    if (s.branchId) return s.branchId === activeBranch.id;
-    if (s.city) return s.city.toLowerCase() === activeBranch.city.toLowerCase();
-    return activeBranch.isMainBranch;
+    // If explicitly tagged with branchId
+    if (s.branchId && s.branchId !== activeBranch.id) return false;
+
+    // Strict Category / Offering isolation between Hotel vs Turf branches
+    const sCat = (s.category || '').toLowerCase();
+    const sName = (s.name || '').toLowerCase();
+    const isServiceTurf = sCat.includes('turf') || sCat.includes('football') || sCat.includes('cricket') || sCat.includes('pitch') || sCat.includes('sport') ||
+      sName.includes('turf') || sName.includes('football') || sName.includes('pitch');
+
+    if (isTurfBranch) {
+      // Turf branch: ONLY show sports / turf services
+      return isServiceTurf;
+    } else {
+      // Stay / Resort branch: ONLY show stay / hotel / villa / resort services
+      return !isServiceTurf;
+    }
   });
 
   const getSmartCover = (catName: string, explicitImg?: string | null) => {
@@ -278,20 +300,60 @@ export default function WorkspacePage() {
   return (
     <div className="space-y-5 animate-fade-in pb-12 font-sans max-w-[1400px] mx-auto">
 
-      {/* 1. Compact Header Strip */}
-      <div className="px-5 py-4 rounded-2xl bg-white dark:bg-[#0f1624] border border-slate-200/80 dark:border-white/10 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <span className="p-2.5 rounded-xl bg-gradient-to-br from-[#0a3161] to-[#162033] shadow-md flex items-center justify-center shrink-0 icon-force-white">
-            <Layers size={18} className="icon-force-white" style={{ color: '#ffffff', stroke: '#ffffff' }} />
+      {/* 1. Interactive Branch Switcher Strip (TL Logic: Branch-Isolated Offerings with Primary GST) */}
+      <div className="px-5 py-4 rounded-2xl bg-white dark:bg-[#0f1624] border border-slate-200/80 dark:border-white/10 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <span className="p-3 rounded-2xl bg-gradient-to-br from-[#ff6325] to-[#d4430c] shadow-lg shadow-[#ff6325]/20 flex items-center justify-center shrink-0">
+            <Layers size={20} className="text-white" />
           </span>
           <div>
-            <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
-              {selectedGroup ? `${selectedGroup} Units` : 'Service Catalog'}
-            </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {activeBranch.name} &bull; <span className="font-bold text-[#ff6325]">{activeBranch.city} Outlet</span>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                {selectedGroup ? `${selectedGroup} Units` : 'Service Catalog & Units'}
+              </h1>
+              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                activeBranch.gstStatus === 'WITH_GST' 
+                  ? 'bg-cyan-500/10 text-cyan-500 border border-cyan-500/30' 
+                  : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/30'
+              }`}>
+                {activeBranch.gstStatus === 'WITH_GST' ? `GST: ${activeBranch.gstNumber || currentMerchant?.gstNumber || '33AAAAA0000A1Z5'}` : 'Non-GST (Nett)'}
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5">
+              <span>Operating Branch:</span>
+              <strong className="text-slate-800 dark:text-slate-200">{activeBranch.name || `${activeBranch.city} Branch`}</strong>
+              <span>&bull;</span>
+              <span className="text-slate-400">{activeBranch.address || `${activeBranch.city} Location`}</span>
             </p>
           </div>
+        </div>
+
+        {/* Branch Quick-Switch Buttons */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 custom-scrollbar">
+          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider shrink-0 mr-1">Switch Branch:</span>
+          {effectiveBranches.map((br) => {
+            const isSelected = br.id === activeBranch.id;
+            return (
+              <button
+                key={br.id}
+                type="button"
+                onClick={() => switchBranch(br.id)}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 border ${
+                  isSelected
+                    ? 'bg-[#ff6325] text-white border-[#ff6325] shadow-md shadow-[#ff6325]/25'
+                    : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:border-[#ff6325]/50'
+                }`}
+              >
+                <span>{br.category?.toLowerCase().includes('turf') || br.name?.toLowerCase().includes('turf') ? '⚽' : '🏨'}</span>
+                <span>{br.name ? br.name.replace(`${currentMerchant?.merchantName || ''} - `, '') : br.city}</span>
+                <span className={`text-[9px] px-1 py-0.2 rounded font-black ${
+                  isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-white/10 text-slate-500'
+                }`}>
+                  {br.gstStatus === 'WITH_GST' ? 'GST' : 'Nett'}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Compact Right Controls */}
@@ -606,6 +668,21 @@ export default function WorkspacePage() {
             </div>
             <div className="p-6 overflow-y-auto flex-1">
               <form id="bookingTypeForm" onSubmit={handleSaveBookingType} className="space-y-4">
+                {/* Branch & GST Binding Indicator */}
+                <div className="p-3 rounded-xl border border-cyan-500/20 bg-cyan-500/5 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 block">Assigned Branch & GST</span>
+                    <strong className="text-white text-xs">{activeBranch.name || `${activeBranch.city} Branch`}</strong>
+                  </div>
+                  <span className={`text-[9px] font-black px-2 py-0.5 rounded ${
+                    activeBranch.gstStatus === 'WITH_GST' 
+                      ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/30' 
+                      : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30'
+                  }`}>
+                    {activeBranch.gstStatus === 'WITH_GST' ? `GST: ${activeBranch.gstNumber || currentMerchant.gstNumber || 'Active'}` : 'Nett (No GST)'}
+                  </span>
+                </div>
+
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Category Name</label>
                   <input

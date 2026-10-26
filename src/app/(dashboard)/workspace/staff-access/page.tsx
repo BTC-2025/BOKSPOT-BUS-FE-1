@@ -33,15 +33,43 @@ export default function StaffPage() {
     canManageAppointments: false
   });
 
+  const [selectedBranchId, setSelectedBranchId] = useState('');
+
+  // Available branches for this merchant
+  const effectiveBranches = (currentMerchant?.branches && currentMerchant.branches.length > 0)
+    ? currentMerchant.branches
+    : [
+        {
+          id: 'branch-resort-stay',
+          name: `${currentMerchant?.merchantName || 'Main'} - Rooms & Stay`,
+          city: currentMerchant?.city || 'Chennai',
+          category: 'Resort Booking',
+          gstStatus: 'WITH_GST' as const,
+          gstNumber: currentMerchant?.gstNumber || '33AAAAA0000A1Z5'
+        },
+        {
+          id: 'branch-resort-turf',
+          name: `${currentMerchant?.merchantName || 'Arena'} - Sports Turf`,
+          city: currentMerchant?.city || 'Chennai',
+          category: 'Football Turf',
+          gstStatus: 'WITH_GST' as const,
+          gstNumber: currentMerchant?.gstNumber || '33AAAAA0000A1Z5'
+        }
+      ];
+
   const handleAddStaff = (e: React.FormEvent) => {
     e.preventDefault();
     if (!subIdEmail.trim() || !newName.trim() || !newRole.trim() || !currentMerchant) return;
+
+    const assignedBranch = effectiveBranches.find(b => b.id === selectedBranchId) || effectiveBranches[0];
 
     const newMember: StaffMember = {
       id: subIdEmail.trim().toLowerCase(),
       merchantId: currentMerchant.id,
       name: newName,
       roleTitle: newRole,
+      assignedBranchId: assignedBranch.id,
+      assignedBranchName: assignedBranch.name || `${assignedBranch.city} Branch`,
       isDoctor: newIsDoctor,
       passwordHash: newPassword, // In a real app this would be securely handled
       permissions: { ...permissions }
@@ -54,6 +82,7 @@ export default function StaffPage() {
     setSubIdEmail('');
     setNewName('');
     setNewRole('');
+    setSelectedBranchId('');
     setNewIsDoctor(false);
     setPermissions({
       canManageVitals: false,
@@ -125,6 +154,7 @@ export default function StaffPage() {
               <tr className="bg-[#162033]/80 border-b border-white/[0.08] text-[10px] uppercase font-bold tracking-wider text-slate-300">
                 <th className="py-3.5 px-5">Staff Member</th>
                 <th className="py-3.5 px-5">Verified Sub-ID (Login)</th>
+                <th className="py-3.5 px-5">Assigned Branch (Scope)</th>
                 <th className="py-3.5 px-5">Active Permissions</th>
                 <th className="py-3.5 px-5 text-right">Actions</th>
               </tr>
@@ -154,6 +184,13 @@ export default function StaffPage() {
                       <Mail size={11} className="inline mr-1" />
                       <span className="text-[#9cc3f5]">{staff.id}</span>
                     </div>
+                  </td>
+
+                  {/* Assigned Branch */}
+                  <td className="py-4 px-5">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#ff6325]/10 border border-[#ff6325]/30 text-[#ff6325] font-bold text-[11px]">
+                      🏢 {staff.assignedBranchName || 'All Branches'}
+                    </span>
                   </td>
 
                   {/* Permissions Badges */}
@@ -266,6 +303,32 @@ export default function StaffPage() {
                   className="rounded border-border-brand bg-transparent text-[#ff6325] focus:ring-[#ff6325] accent-[#ff6325]"
                 />
                 <label htmlFor="isDoctor" className="text-xs font-bold text-text-primary cursor-pointer">This staff member is a Lead/Manager</label>
+              </div>
+
+              {/* Branch Assignment (Restricting Sub-ID to this Branch) */}
+              <div className="space-y-1.5 p-3.5 rounded-xl border border-cyan-500/20 bg-cyan-500/5">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] uppercase font-bold text-cyan-300 flex items-center gap-1.5">
+                    🏢 Assign Operating Branch (Scope Isolation)
+                  </label>
+                  <span className="text-[9px] text-cyan-400 font-semibold">Staff sees only this branch</span>
+                </div>
+                <select
+                  value={selectedBranchId}
+                  onChange={(e) => setSelectedBranchId(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-[#162033] px-3 py-2 text-xs text-white outline-none focus:border-[#ff6325] cursor-pointer"
+                  required
+                >
+                  <option value="" disabled>Select Branch / Outlet</option>
+                  {effectiveBranches.map((branch) => (
+                    <option key={branch.id} value={branch.id}>
+                      {branch.name || `${branch.city} Branch`} ({branch.category || branch.city})
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  💡 Indha staff login pannumbodhu indha branch-oda bookings & services mattum dhaan access panna mudiyum.
+                </p>
               </div>
 
               {/* Sub-ID Mapping */}

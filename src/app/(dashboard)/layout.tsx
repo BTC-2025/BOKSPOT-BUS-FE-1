@@ -11,7 +11,6 @@ import {
   Sun, Moon, Users, Mail, Search, UserCog, MapPin, Clock, ShieldCheck, MessageSquare, Calculator, Ticket, CheckCircle, Headset, Camera
 } from 'lucide-react';
 import { UtilityDrawer } from '@/components/UtilityDrawer';
-import { LocationSelectorModal } from '@/components/LocationSelectorModal';
 import { useState, useEffect, useRef } from 'react';
 import { useVendorStore, PRESET_MERCHANTS, BranchInfo } from '@/lib/store'; 
 import { getArchetypeConfig } from '@/lib/businessDictionary';
@@ -42,17 +41,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { currentMerchant, logoutMerchant, switchStore, loginRole, theme, setTheme, supervisorId, bookings, services, updateMerchantProfile, switchBranch, switchVertical, switchCategory } = useVendorStore();
   const [utilityDrawerOpen, setUtilityDrawerOpen] = useState(false);
   const [activeUtilityTab, setActiveUtilityTab] = useState<'calendar' | 'calc' | 'tasks' | 'contacts' | null>(null);
-  const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
-  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [branchDropdownOpen, setBranchDropdownOpen] = useState(false);
   const branchDropdownRef = useRef<HTMLDivElement>(null);
   const [storeDropdownOpen, setStoreDropdownOpen] = useState(false);
   const storeDropdownRef = useRef<HTMLDivElement>(null);
   const [verticalDropdownOpen, setVerticalDropdownOpen] = useState(false);
   const verticalDropdownRef = useRef<HTMLDivElement>(null);
-  const [city, setCity] = useState('Chennai');
-  const [status, setStatus] = useState<'idle' | 'detecting' | 'detected' | 'error'>('idle');
-  const locationRef = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [hasHydrated, setHasHydrated] = useState(false);
 
@@ -78,10 +72,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   useEffect(() => {
     setIsMounted(true);
-    if (typeof window !== 'undefined') {
-      const storedCity = localStorage.getItem('bus-selected-city');
-      if (storedCity) setCity(storedCity);
-    }
     const cleanupStore = () => {
       setHasHydrated(true);
       const merchant = useVendorStore.getState().currentMerchant;
@@ -198,9 +188,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       
       if (vendorInfoRef.current && !vendorInfoRef.current.contains(event.target as Node)) {
         setVendorInfoOpen(false);
-      }
-      if (locationRef.current && !locationRef.current.contains(event.target as Node)) {
-        setLocationDropdownOpen(false);
       }
       if (branchDropdownRef.current && !branchDropdownRef.current.contains(event.target as Node)) {
         setBranchDropdownOpen(false);
@@ -506,44 +493,49 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <img src="/logo.png?v=3" alt="BokSpot Logo" className="h-10 lg:h-12 object-contain" />
           </Link>
           
-          {/* City / Location Selector (Preserved exactly) */}
-          <div className="relative hidden lg:inline-block">
-            <button
-              onClick={() => setIsLocationModalOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/25 hover:border-white/40 bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer shadow-md text-xs font-bold tracking-wide"
-            >
-              <MapPin size={14} className={status === 'detecting' ? 'animate-bounce' : ''} />
-              <span className="!text-white">{isMounted ? (city || 'Select Location') : 'Chennai'}</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-200" style={{ transform: isLocationModalOpen ? 'rotate(180deg)' : 'none' }}><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </button>
-          </div>
-
           {/* Global Branch Switcher Pill (Always visible across all pages) */}
           {(() => {
+            const presetMatch = PRESET_MERCHANTS.find(m => m.id === currentMerchant?.id || m.username.toLowerCase() === currentMerchant?.username?.toLowerCase());
             const effectiveBranches: BranchInfo[] = (currentMerchant?.branches && currentMerchant.branches.length > 0)
               ? currentMerchant.branches
-              : [
-                  {
-                    id: 'branch-chennai-main',
-                    name: 'Chennai Branch',
-                    city: 'Chennai',
-                    address: 'Central Avenue, Chennai',
-                    gstStatus: currentMerchant?.gstStatus || 'WITH_GST',
-                    gstNumber: currentMerchant?.gstNumber || '33AAAAA0000A1Z5',
-                    offeringsSummary: 'Main Campus',
-                    isMainBranch: true
-                  },
-                  {
-                    id: 'branch-madurai-sports',
-                    name: 'Madurai Branch',
-                    city: 'Madurai',
-                    address: 'Ring Road Arena Complex, Madurai',
-                    gstStatus: 'WITHOUT_GST',
-                    offeringsSummary: 'Arena Campus',
-                    isMainBranch: false
-                  }
-                ];
+              : (presetMatch?.branches && presetMatch.branches.length > 0)
+                ? presetMatch.branches
+                : [
+                    {
+                      id: 'branch-resort-stay',
+                      name: 'Suites & Stays',
+                      city: currentMerchant?.city || 'Chennai',
+                      category: 'Resort Booking',
+                      businessType: 'Stay & Rooms',
+                      address: 'East Coast Road, Chennai',
+                      gstStatus: 'WITH_GST',
+                      gstNumber: currentMerchant?.gstNumber || '33AAAAA0000A1Z5',
+                      offeringsSummary: 'Deluxe Suites, Pool Cottages',
+                      isMainBranch: true
+                    },
+                    {
+                      id: 'branch-resort-turf',
+                      name: 'Sports Turf',
+                      city: currentMerchant?.city || 'Chennai',
+                      category: 'Football Turf',
+                      businessType: 'Sports Facility',
+                      address: 'East Coast Road (Arena Annex), Chennai',
+                      gstStatus: 'WITH_GST',
+                      gstNumber: currentMerchant?.gstNumber || '33AAAAA0000A1Z5',
+                      offeringsSummary: '7v7 FIFA Astro Turf, Floodlit Ground',
+                      isMainBranch: false
+                    }
+                  ];
             const activeBranch = effectiveBranches.find(b => b.id === (currentMerchant?.activeBranchId || effectiveBranches[0].id)) || effectiveBranches[0];
+
+            // Clean short label: remove long prefixes like "Sunstone Resort - ", "Sunstone Arena - ", etc.
+            let branchLabel = activeBranch.name || activeBranch.city || 'Chennai';
+            if (branchLabel.includes(' - ')) {
+              branchLabel = branchLabel.split(' - ').pop() || branchLabel;
+            }
+            if (currentMerchant?.merchantName && branchLabel.startsWith(currentMerchant.merchantName)) {
+              branchLabel = branchLabel.replace(currentMerchant.merchantName, '').trim();
+            }
 
             return (
               <div className="relative hidden sm:inline-block" ref={branchDropdownRef}>
@@ -551,12 +543,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   type="button"
                   onClick={() => setBranchDropdownOpen(!branchDropdownOpen)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/25 hover:border-[#ff6325]/70 bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer shadow-md text-xs font-bold tracking-wide"
-                  title={`Active Branch: ${activeBranch.name || activeBranch.city}`}
+                  title={`Active Branch: ${activeBranch.name || activeBranch.city} (${activeBranch.gstStatus === 'WITH_GST' ? `GST: ${activeBranch.gstNumber || currentMerchant?.gstNumber || 'Active'}` : 'Non-GST'})`}
                 >
                   <Building2 size={13} className="text-[#ff6325] shrink-0" />
                   <span className="text-white flex items-center gap-1">
                     <span className="text-white/60 font-medium">Branch:</span>
-                    <span className="font-bold text-white">{activeBranch.city || 'Chennai'}</span>
+                    <span className="font-bold text-white max-w-[120px] truncate">{branchLabel}</span>
                   </span>
                   <ChevronDown size={12} className={`text-white/80 transition-transform duration-200 ${branchDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -593,17 +585,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                               </div>
                               <div className="flex flex-col">
                                 <span className="font-bold text-xs flex items-center gap-1.5 text-slate-900 dark:text-white">
-                                  {branch.city} Branch
+                                  {branch.name || `${branch.city} Branch`}
                                   {isActive && <Check size={12} className="text-[#ff6325]" />}
                                 </span>
                                 <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                                  {branch.address || `${branch.city} Location`}
+                                  {branch.category ? `${branch.category} • ` : ''}{branch.address || `${branch.city} Location`}
                                 </span>
                               </div>
                             </div>
                             <div className="text-right shrink-0">
                               <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${branch.gstStatus === 'WITH_GST' ? 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30' : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'}`}>
-                                {branch.gstStatus === 'WITH_GST' ? 'GST' : 'Nett'}
+                                {branch.gstStatus === 'WITH_GST' ? (branch.gstNumber ? 'GST: ' + branch.gstNumber.slice(-4) : 'GST') : 'Nett'}
                               </span>
                             </div>
                           </div>
@@ -986,157 +978,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className={`bg-white/80 dark:bg-[#0c121e]/85 backdrop-blur-2xl flex items-center px-6 py-2 shrink-0 shadow-[0_2px_15px_rgba(0,0,0,0.03)] border-b border-black/[0.04] dark:border-white/[0.06] relative z-40 transition-all duration-300 ${
         utilityDrawerOpen ? (activeUtilityTab ? 'lg:pr-[370px]' : 'lg:pr-[50px]') : ''
       }`}>
-        {/* Left side: Subscription + Business Switcher */}
-        <div className="flex-1 hidden md:flex items-center justify-start gap-2.5 pl-2">
-          <Link
-            href="/workspace/subscription"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wider text-[#0a3161] dark:text-[#ff6325] bg-black/[0.03] dark:bg-white/[0.04] border border-black/5 dark:border-white/5 hover:border-[#ff6325]/30 transition-all shrink-0"
-          >
-            <CheckCircle className="h-[13px] w-[13px] text-[#ff6325]" />
-            <span>Subscription</span>
-          </Link>
-
-          {/* Dynamic Business / Category Switcher (strictly filtered by Active Branch) */}
-          {(() => {
-            // Determine active branch
-            const effectiveBranches: BranchInfo[] = (currentMerchant?.branches && currentMerchant.branches.length > 0)
-              ? currentMerchant.branches
-              : [
-                  {
-                    id: 'branch-chennai-main',
-                    name: 'Chennai Branch',
-                    city: 'Chennai',
-                    address: 'Central Avenue, Chennai',
-                    gstStatus: currentMerchant?.gstStatus || 'WITH_GST',
-                    gstNumber: currentMerchant?.gstNumber || '33AAAAA0000A1Z5',
-                    offeringsSummary: 'Main Campus',
-                    isMainBranch: true
-                  },
-                  {
-                    id: 'branch-madurai-sports',
-                    name: 'Madurai Branch',
-                    city: 'Madurai',
-                    address: 'Ring Road Arena Complex, Madurai',
-                    gstStatus: 'WITHOUT_GST',
-                    offeringsSummary: 'Arena Campus',
-                    isMainBranch: false
-                  }
-                ];
-            const activeBranch = effectiveBranches.find(b => b.id === (currentMerchant?.activeBranchId || effectiveBranches[0].id)) || effectiveBranches[0];
-
-            // Filter services that belong to THIS active branch
-            const branchServices = services.filter(s => {
-              if (s.branchId) return s.branchId === activeBranch.id;
-              if (s.city) return s.city.toLowerCase() === activeBranch.city.toLowerCase();
-              return activeBranch.isMainBranch;
-            });
-
-            // Aggregate categories strictly configured for this active branch
-            const configuredCategories = Array.from(new Set(
-              branchServices
-                .map(s => s.category)
-                .filter(Boolean)
-            ));
-
-            // Fallback default category for this branch if none added yet
-            if (configuredCategories.length === 0) {
-              if (activeBranch.city.toLowerCase().includes('madurai')) {
-                configuredCategories.push('Football Turf');
-              } else {
-                configuredCategories.push(currentMerchant?.category || 'Resort Booking');
-              }
-            }
-
-            const activeCategory = configuredCategories.includes(currentMerchant?.category || '') 
-              ? (currentMerchant?.category || configuredCategories[0]) 
-              : configuredCategories[0];
-
-            return (
-              <div className="relative inline-block" ref={storeDropdownRef}>
-                <button
-                  type="button"
-                  onClick={() => setStoreDropdownOpen(!storeDropdownOpen)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/10 hover:border-[#ff6325]/70 bg-white dark:bg-[#162033] text-slate-800 dark:text-white transition-all cursor-pointer shadow-xs text-xs font-bold tracking-wide"
-                  title={`Active Category: ${activeCategory}`}
-                >
-                  <div className="h-4 w-4 rounded-full bg-[#ff6325] text-white flex items-center justify-center text-[9px] font-black shrink-0">
-                    {activeCategory.includes('Turf') || activeCategory.includes('Sport') ? '⚽' : '🏨'}
-                  </div>
-                  <span className="flex items-center gap-1">
-                    <span className="text-slate-400 font-medium">Business:</span>
-                    <span className="font-extrabold text-slate-900 dark:text-white max-w-[140px] truncate">{activeCategory}</span>
-                  </span>
-                  <ChevronDown size={12} className={`text-slate-400 transition-transform duration-200 ${storeDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
-
-                {/* Categories Switcher Dropdown Menu */}
-                {storeDropdownOpen && (
-                  <div className="absolute left-0 mt-2 w-80 bg-white dark:bg-[#0f1624] border border-slate-200 dark:border-white/15 rounded-2xl shadow-2xl z-50 p-2 divide-y divide-slate-100 dark:divide-white/5 animate-fade-in text-left">
-                    <div className="px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center justify-between">
-                      <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
-                        <Building2 size={12} className="text-[#ff6325]" />
-                        <span>Configured Categories</span>
-                      </span>
-                      <span className="text-slate-400">Offerings</span>
-                    </div>
-                    <div className="space-y-1 py-1 max-h-64 overflow-y-auto custom-scrollbar">
-                      {configuredCategories.map((cat) => {
-                        const isActive = cat.toLowerCase() === activeCategory.toLowerCase();
-                        const catServices = services.filter(s => s.category?.toLowerCase() === cat.toLowerCase());
-                        const totalUnits = catServices.reduce((sum, s) => sum + (s.listings?.length || 1), 0);
-                        const isSport = cat.toLowerCase().includes('turf') || cat.toLowerCase().includes('sport') || cat.toLowerCase().includes('court');
-
-                        return (
-                          <div
-                            key={cat}
-                            onClick={() => {
-                              switchCategory(cat);
-                              setStoreDropdownOpen(false);
-                            }}
-                            className={`p-2.5 rounded-xl flex items-center justify-between cursor-pointer transition-colors ${
-                              isActive 
-                                ? 'bg-[#ff6325]/15 border border-[#ff6325]/40' 
-                                : 'hover:bg-slate-100 dark:hover:bg-white/5'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2.5 pr-2">
-                              <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-[#0a3161] to-[#142642] text-white flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
-                                {isSport ? '⚽' : '🏨'}
-                              </div>
-                              <div className="flex flex-col">
-                                <span className="font-bold text-xs flex items-center gap-1 text-slate-900 dark:text-white">
-                                  {cat}
-                                  {isActive && <Check size={12} className="text-[#ff6325]" />}
-                                </span>
-                                <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                                  {totalUnits} {totalUnits === 1 ? 'Bookable Unit' : 'Bookable Units'}
-                                </span>
-                              </div>
-                            </div>
-                            <span className="text-[10px] font-black px-2 py-0.5 rounded bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 shrink-0">
-                              Active
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    
-                    {/* Quick Link to Add More Categories in Workspace */}
-                    <div className="pt-2">
-                      <Link
-                        href="/workspace/my-services"
-                        onClick={() => setStoreDropdownOpen(false)}
-                        className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl bg-[#ff6325]/10 hover:bg-[#ff6325]/20 text-[#ff6325] text-xs font-bold transition-colors cursor-pointer"
-                      >
-                        <span>+ Add Category in Workspace</span>
-                      </Link>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })()}
-        </div>
+        {/* Left side empty space to keep subnav tabs centered */}
+        <div className="flex-1 hidden md:flex items-center justify-start pl-2" />
         
         <div className="flex-auto overflow-x-auto custom-scrollbar flex justify-center py-0.5">
           <nav className="flex items-center gap-1.5 md:gap-2 mx-auto px-1 w-max p-1 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.03] dark:border-white/[0.04]">
@@ -1339,13 +1182,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       )}
       
-      <LocationSelectorModal 
-        isOpen={isLocationModalOpen} 
-        onClose={() => setIsLocationModalOpen(false)}
-        city={city}
-        setCity={setCity}
-        setStatus={setStatus}
-      />
     </div>
     </>
   );

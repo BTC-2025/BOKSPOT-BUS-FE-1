@@ -76,18 +76,53 @@ export default function DashboardPage() {
     );
   }
 
-  const curArch = (getArchetypeFromCategory(currentMerchant.archetype) || getArchetypeFromCategory(currentMerchant.category) || 'ACCOMMODATION');
+  // Active Branch Resolution
+  const effectiveBranches = (currentMerchant.branches && currentMerchant.branches.length > 0)
+    ? currentMerchant.branches
+    : [
+        {
+          id: 'branch-resort-stay',
+          name: 'Suites & Stays',
+          city: currentMerchant.city || 'Chennai',
+          category: 'Resort Booking',
+          businessType: 'Stay & Rooms',
+          address: 'East Coast Road, Chennai',
+          gstStatus: 'WITH_GST' as const,
+          gstNumber: currentMerchant.gstNumber || '33AAAAA0000A1Z5'
+        },
+        {
+          id: 'branch-resort-turf',
+          name: 'Sports Turf',
+          city: currentMerchant.city || 'Chennai',
+          category: 'Football Turf',
+          businessType: 'Sports Facility',
+          address: 'East Coast Road (Arena Annex), Chennai',
+          gstStatus: 'WITH_GST' as const,
+          gstNumber: currentMerchant.gstNumber || '33AAAAA0000A1Z5'
+        }
+      ];
+
+  const activeBranch = effectiveBranches.find(b => b.id === (currentMerchant.activeBranchId || effectiveBranches[0].id)) || effectiveBranches[0];
+  const isTurfBranch = (activeBranch.category?.toLowerCase().includes('turf') || activeBranch.name?.toLowerCase().includes('turf'));
+
+  // Active Category & Archetype aligned with active branch
+  const activeBranchCategory = activeBranch.category || (isTurfBranch ? 'Football Turf' : (currentMerchant.category || 'Resort Booking'));
+  const curArch = (getArchetypeFromCategory(activeBranchCategory) || 'ACCOMMODATION');
 
   const isValidForMerchant = (b: any) => {
     const bCategory = (b.category || '').toLowerCase().trim();
     const bServiceName = (b.serviceName || '').toLowerCase();
     const bArch = getArchetypeFromCategory(bCategory);
 
-    const mCat = (currentMerchant.category || '').toLowerCase().trim();
-    if (curArch === 'ACCOMMODATION' || ['homestay / villa', 'homestay-villa', 'villas', 'hotels', 'resorts'].includes(mCat)) {
-      if (bArch === 'TRANSPORT' || ['buses', 'trains', 'flights', 'cabs'].includes(bCategory)) return false;
-      if (/bus|train|flight|shatabdi|volvo/i.test(bServiceName)) return false;
+    // Branch Isolation Check
+    if (isTurfBranch) {
+      if (bCategory.includes('room') || bCategory.includes('hotel') || bCategory.includes('resort') || bCategory.includes('suite')) return false;
+      if (/suite|deluxe|villa|cottage|room/i.test(bServiceName)) return false;
+    } else {
+      if (bCategory.includes('turf') || bCategory.includes('football') || bCategory.includes('cricket') || bCategory.includes('pitch')) return false;
+      if (/turf|pitch|ground|court/i.test(bServiceName)) return false;
     }
+
     if (curArch && bArch && curArch !== bArch) return false;
     return true;
   };
@@ -253,11 +288,18 @@ export default function DashboardPage() {
           <div>
             <div className="flex flex-wrap items-center gap-3 mb-2">
               <h1 className="text-2xl md:text-3xl font-black tracking-tight text-[#0a3161] dark:text-white">
-                {currentMerchant.merchantName}
+                {isTurfBranch ? 'Sunstone Arena Turf' : 'Sunstone Resort'}
               </h1>
               <span className="px-3 py-1 rounded-full bg-[#ff6325]/10 text-[#ff6325] text-xs font-black border border-[#ff6325]/30 flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-[#ff6325] animate-ping" />
-                {currentMerchant.category}
+                {activeBranch.name || activeBranchCategory}
+              </span>
+              <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                activeBranch.gstStatus === 'WITH_GST' 
+                  ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30' 
+                  : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+              }`}>
+                {activeBranch.gstStatus === 'WITH_GST' ? `GST: ${activeBranch.gstNumber || currentMerchant.gstNumber || '33AAAAA0000A1Z5'}` : 'Nett'}
               </span>
             </div>
             
@@ -510,9 +552,11 @@ export default function DashboardPage() {
               </span>
             </div>
 
-            {/* Matrix Slots List */}
+            {/* Matrix Slots List Filtered by Active Branch */}
             <div className="space-y-3">
-              {resourceSlots.map((res) => (
+              {resourceSlots
+                .filter(res => isTurfBranch ? res.type === 'Pitch' : (res.type === 'Suite' || res.type === 'Villa' || res.type === 'Lounge'))
+                .map((res) => (
                 <div
                   key={res.id}
                   className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 flex items-center justify-between transition-all hover:border-slate-300 dark:hover:border-white/10"

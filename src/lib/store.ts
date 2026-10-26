@@ -261,13 +261,16 @@ export interface CatalogService {
 
 export interface BranchInfo {
   id: string;
-  name: string;        // e.g. "Chennai Branch (Hotels & Pool)" or "Madurai Branch (Cricket Turf)"
+  name: string;        // e.g. "Balaji Hotel - Rooms" or "Balaji Hotel - Turf"
   city: string;        // e.g. "Chennai", "Madurai"
+  category?: string;   // e.g. "Resort Booking", "Football Turf", "Hotel Rooms"
+  businessType?: string; // Sub-vertical tag
   address?: string;
   gstStatus: 'WITH_GST' | 'WITHOUT_GST';
   gstNumber?: string;
-  offeringsSummary?: string; // e.g. "Hotels, Swimming Pool"
+  offeringsSummary?: string; // e.g. "Deluxe Rooms, Suite Stays" or "7v7 Astro Turf, Cricket Pitch"
   isMainBranch?: boolean;
+  assignedStaffIds?: string[]; // Staff / Sub-IDs with access to this branch
 }
 
 export interface BusinessVertical {
@@ -337,6 +340,8 @@ export interface StaffMember {
   merchantId: string;
   name: string;
   roleTitle: string;
+  assignedBranchId?: string; // Specific branch sub-ID is restricted to (e.g. "branch-turf")
+  assignedBranchName?: string;
   isDoctor?: boolean;
   passwordHash: string;
   permissions: StaffPermissions;
@@ -437,13 +442,44 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
   {
     id: '7d24a2aa-b792-554b-1bf8-b3f392999a3f',
     username: 'H102',
-    merchantName: 'Sunstone Resort',
+    merchantName: 'Sunstone Resort & Arena',
     category: 'Resort Booking',
     logoLetter: 'S',
-    aboutText: 'Welcome to Sunstone Resort & Arena. We provide luxury resort suites and premier FIFA-grade sports turf facilities.',
+    aboutText: 'Welcome to Sunstone Resort & Arena. Primary Hotel Suites and Premier FIFA Turf.',
     vendorId: '20260001',
     email: 'h102@bnxmail.com',
     archetype: 'Accommodation',
+    gstStatus: 'WITH_GST',
+    gstNumber: '33AAAAA0000A1Z5',
+    activeBranchId: 'branch-resort-stay',
+    branches: [
+      {
+        id: 'branch-resort-stay',
+        name: 'Suites & Stays',
+        city: 'Chennai',
+        category: 'Resort Booking',
+        businessType: 'Stay & Rooms',
+        address: 'East Coast Road, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5', // Inherits Primary Business GST
+        offeringsSummary: 'Deluxe Suites, Pool Cottages',
+        isMainBranch: true,
+        assignedStaffIds: ['staff-reception-1']
+      },
+      {
+        id: 'branch-resort-turf',
+        name: 'Sports Turf',
+        city: 'Chennai',
+        category: 'Football Turf',
+        businessType: 'Sports Facility',
+        address: 'East Coast Road (Arena Annex), Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5', // Same Primary Business GST as instructed by TL
+        offeringsSummary: '7v7 FIFA Astro Turf, Floodlit Ground',
+        isMainBranch: false,
+        assignedStaffIds: ['staff-turfboy-1']
+      }
+    ],
     activeVerticalId: 'vert-resort',
     verticals: [
       {
@@ -1242,10 +1278,35 @@ export const useVendorStore = create<VendorStoreState>()(
   // Branch action implementations
   switchBranch: (branchId: string) => set((state) => {
     if (!state.currentMerchant) return state;
+    const branches = state.currentMerchant.branches || [];
+    const targetBranch = branches.find(b => b.id === branchId);
+
+    // If branch has a specific category, auto-align active category and archetype
+    let updatedCategory = state.currentMerchant.category;
+    let updatedArchetype = state.currentMerchant.archetype;
+    let updatedMerchantName = state.currentMerchant.merchantName;
+
+    if (targetBranch) {
+      if (targetBranch.category) {
+        updatedCategory = targetBranch.category;
+        updatedArchetype = getArchetypeFromCategory(targetBranch.category) as any;
+      }
+      // Derive clean business name for this branch
+      const isTurf = targetBranch.category?.toLowerCase().includes('turf') || targetBranch.name?.toLowerCase().includes('turf');
+      if (isTurf && !updatedMerchantName.toLowerCase().includes('arena') && !updatedMerchantName.toLowerCase().includes('turf')) {
+        updatedMerchantName = updatedMerchantName.replace(/Resort|Hotel|Villa/gi, 'Arena').trim();
+      } else if (!isTurf && updatedMerchantName.toLowerCase().includes('arena')) {
+        updatedMerchantName = updatedMerchantName.replace(/Arena/gi, 'Resort').trim();
+      }
+    }
+
     return {
       currentMerchant: {
         ...state.currentMerchant,
-        activeBranchId: branchId
+        activeBranchId: branchId,
+        merchantName: updatedMerchantName,
+        category: updatedCategory,
+        archetype: updatedArchetype
       }
     };
   }),
@@ -1399,7 +1460,16 @@ export const useVendorStore = create<VendorStoreState>()(
         if (staffAcc) {
           const found = PRESET_MERCHANTS.find((m) => m.id === staffAcc.merchantId);
           if (found) {
-            set({ currentMerchant: found, loginRole: 'staff', supervisorId: null, currentStaff: staffAcc });
+            // Lock merchant context and automatically set active branch to staff's assigned branch
+            const merchantWithActiveBranch = staffAcc.assignedBranchId 
+              ? { ...found, activeBranchId: staffAcc.assignedBranchId }
+              : found;
+            set({ 
+              currentMerchant: merchantWithActiveBranch, 
+              loginRole: 'staff', 
+              supervisorId: null, 
+              currentStaff: staffAcc 
+            });
             return true;
           }
         }
