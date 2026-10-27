@@ -52,10 +52,57 @@ export default function CalendarPage() {
     return <div className="text-center text-slate-500 py-12">Loading calendar session...</div>;
   }
 
-  // Filter bookings for this merchant
-  const merchantBookings = bookings.filter(
-    (b) => b.merchantName.toLowerCase() === currentMerchant.merchantName.toLowerCase()
-  );
+  // Effective branch and offerings isolation
+  const effectiveBranches = (currentMerchant.branches && currentMerchant.branches.length > 0)
+    ? currentMerchant.branches
+    : [
+        {
+          id: 'branch-resort-stay',
+          name: 'Suites & Stays',
+          city: currentMerchant.city || 'Chennai',
+          category: 'Resort Booking',
+          businessType: 'Stay & Rooms',
+          address: 'East Coast Road, Chennai',
+          gstStatus: 'WITH_GST',
+          gstNumber: currentMerchant.gstNumber || '33AAAAA0000A1Z5',
+          offeringsSummary: 'Deluxe Suites, Pool Cottages',
+          isMainBranch: true
+        },
+        {
+          id: 'branch-resort-turf',
+          name: 'Sports Turf',
+          city: currentMerchant.city || 'Chennai',
+          category: 'Football Turf',
+          businessType: 'Sports Facility',
+          address: 'East Coast Road (Arena Annex), Chennai',
+          gstStatus: 'WITH_GST',
+          gstNumber: currentMerchant.gstNumber || '33AAAAA0000A1Z5',
+          offeringsSummary: '7v7 FIFA Astro Turf, Floodlit Ground',
+          isMainBranch: false
+        }
+      ];
+  const activeBranch = effectiveBranches.find(b => b.id === (currentMerchant.activeBranchId || effectiveBranches[0].id)) || effectiveBranches[0];
+  const isTurfBranch = (activeBranch.category?.toLowerCase().includes('turf') || activeBranch.name?.toLowerCase().includes('turf'));
+  const curName = (currentMerchant.merchantName || '').toLowerCase().trim();
+
+  // Filter bookings for this merchant & active branch
+  const merchantBookings = bookings.filter((b) => {
+    const bName = (b.merchantName || '').toLowerCase().trim();
+    let matchesMerchant = bName === curName || bName.includes(curName) || curName.includes(bName);
+    if (!matchesMerchant && (curName.includes('sunstone') || curName.includes('resort') || curName.includes('arena'))) {
+      if (bName.includes('sunstone') || bName.includes('arena 5') || bName.includes('arena')) {
+        matchesMerchant = true;
+      }
+    }
+    if (!matchesMerchant) return false;
+
+    const bCategory = (b.category || '').toLowerCase().trim();
+    const bServiceName = (b.serviceName || '').toLowerCase();
+    const isBookingTurf = bCategory.includes('turf') || bCategory.includes('football') || bCategory.includes('cricket') || bCategory.includes('pitch') || bCategory.includes('sport') ||
+      bServiceName.includes('turf') || bServiceName.includes('football') || bServiceName.includes('pitch');
+
+    return isTurfBranch ? isBookingTurf : !isBookingTurf;
+  });
 
   // Filter services for this merchant to populate form dropdown
   const merchantServices = services.filter(

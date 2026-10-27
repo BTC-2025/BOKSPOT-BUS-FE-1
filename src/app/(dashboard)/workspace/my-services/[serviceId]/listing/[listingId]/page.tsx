@@ -22,8 +22,14 @@ export default function ListingEditorPage() {
   // Form State
   const [serviceName, setServiceName] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [newGalleryInput, setNewGalleryInput] = useState('');
   const [description, setDescription] = useState('');
   const [basePrice, setBasePrice] = useState('');
+  const [originalPrice, setOriginalPrice] = useState('');
+  const [discountPercentage, setDiscountPercentage] = useState('');
+  const [offerBadge, setOfferBadge] = useState('');
+  const [bannerTagline, setBannerTagline] = useState('');
   const [addons, setAddons] = useState<{name: string, price: number}[]>([]);
   
   // GST Tax State for this Listing
@@ -43,8 +49,36 @@ export default function ListingEditorPage() {
         if (list) {
           setServiceName(list.name || '');
           setImageUrl(list.imageUrl || '');
+          const existingGallery = Array.isArray(list.metadata?.gallery) 
+            ? list.metadata.gallery 
+            : Array.isArray((list as any).images) 
+              ? (list as any).images 
+              : list.imageUrl ? [list.imageUrl] : [];
+          setGalleryImages(existingGallery);
           setDescription(list.description || '');
           setBasePrice(list.price !== undefined && list.price !== null ? list.price.toString() : '');
+          const orig = list.metadata?.originalPrice || (list as any).originalPrice;
+          const disc = list.metadata?.discountPercentage || (list as any).discountPercentage;
+          const currentBase = list.price !== undefined && list.price !== null ? Number(list.price) : 0;
+          
+          if (orig && Number(orig) > currentBase) {
+            setOriginalPrice(orig.toString());
+          } else if (disc && Number(disc) > 0 && currentBase > 0) {
+            setOriginalPrice(Math.round(currentBase / (1 - Number(disc) / 100)).toString());
+          } else {
+            setOriginalPrice('');
+          }
+
+          if (disc && Number(disc) > 0) {
+            setDiscountPercentage(disc.toString());
+          } else if (orig && Number(orig) > currentBase && currentBase > 0) {
+            setDiscountPercentage(Math.round(((Number(orig) - currentBase) / Number(orig)) * 100).toString());
+          } else {
+            setDiscountPercentage('');
+          }
+
+          setOfferBadge(list.metadata?.offerBadge || (list as any).offerBadge || '');
+          setBannerTagline(list.metadata?.bannerTagline || (list as any).bannerTagline || '');
           setMetadata(list.metadata || {});
           setAddons(list.metadata?.addons || []);
           setGstEnabled(list.metadata?.gstEnabled ?? (category.gstType === 'WITH_GST' || currentMerchant.gstStatus === 'WITH_GST'));
@@ -89,14 +123,24 @@ export default function ListingEditorPage() {
     const updatedListing: CatalogListing = {
       id: isCreating ? `list-${Date.now()}` : listingId,
       name: serviceName.trim(),
-      imageUrl: imageUrl.trim() || undefined,
+      imageUrl: imageUrl.trim() || (galleryImages.length > 0 ? galleryImages[0] : undefined),
+      images: galleryImages.length > 0 ? galleryImages : (imageUrl.trim() ? [imageUrl.trim()] : []),
       description: description.trim() || undefined,
       active: true,
       price: parseFloat(basePrice) || 0,
+      originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
+      discountPercentage: discountPercentage ? parseFloat(discountPercentage) : undefined,
+      offerBadge: offerBadge.trim() || undefined,
+      bannerTagline: bannerTagline.trim() || undefined,
       duration: 30, // Default duration
       metadata: { 
         ...metadata, 
+        gallery: galleryImages.length > 0 ? galleryImages : (imageUrl.trim() ? [imageUrl.trim()] : []),
         addons, 
+        originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
+        discountPercentage: discountPercentage ? parseFloat(discountPercentage) : undefined,
+        offerBadge: offerBadge.trim() || undefined,
+        bannerTagline: bannerTagline.trim() || undefined,
         gstEnabled, 
         gstPercentage: gstEnabled ? gstPercentage : 0, 
         gstNumber: gstEnabled ? gstNumber : undefined 
@@ -223,25 +267,129 @@ export default function ListingEditorPage() {
                   />
                 </div>
 
+                {/* 1. Original Rate (Rack Price / MRP) */}
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                    {archetype === 'RENTAL' ? 'Hourly Slot Price (₹)' : archetype === 'ACCOMMODATION' ? 'Tariff Per Night (₹)' : 'Price / Fee (₹)'} <span className="text-red-500">*</span>
+                    {archetype === 'RENTAL' ? 'Original Hourly Rate (₹)' : archetype === 'ACCOMMODATION' ? 'Original Rate / Rack Price (₹)' : 'Original Price / MRP (₹)'} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-400 text-sm">₹</span>
                     <input
                       type="number"
-                      value={basePrice}
-                      onChange={(e) => setBasePrice(e.target.value)}
-                      placeholder="e.g. 15000"
+                      value={originalPrice}
+                      onChange={(e) => {
+                        const orig = e.target.value;
+                        setOriginalPrice(orig);
+                        if (orig && Number(orig) > 0) {
+                          const disc = discountPercentage ? Number(discountPercentage) : 0;
+                          const finalSelling = Math.round(Number(orig) * (1 - disc / 100));
+                          setBasePrice(finalSelling.toString());
+                        } else {
+                          setBasePrice('');
+                        }
+                      }}
+                      placeholder="e.g. 16111 or 15000"
                       min="0"
                       className="w-full pl-9 pr-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-black text-sm focus:border-[#ff6325] focus:bg-white dark:focus:bg-[#131d2e] outline-none transition-all shadow-xs"
                       required
                     />
                   </div>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Base tariff visible to customers on booking card.
+                    Your standard rack tariff before applying discount.
                   </p>
+                </div>
+
+                {/* 2. Discount Percentage (% OFF) */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                      Discount Percentage (% OFF) <span className="text-slate-400 font-normal">(Optional)</span>
+                    </label>
+                    {discountPercentage && Number(discountPercentage) > 0 ? (
+                      <span className="text-[10px] font-black text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded border border-rose-200 dark:border-rose-900/40">
+                        -{discountPercentage}% OFF Applied
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={discountPercentage}
+                      onChange={(e) => {
+                        const disc = e.target.value;
+                        setDiscountPercentage(disc);
+                        if (originalPrice && Number(originalPrice) > 0) {
+                          const pct = disc ? Number(disc) : 0;
+                          const finalSelling = Math.round(Number(originalPrice) * (1 - pct / 100));
+                          setBasePrice(finalSelling.toString());
+                        }
+                      }}
+                      placeholder="e.g. 10 (Leave empty for 0%)"
+                      min="0"
+                      max="95"
+                      className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-black text-sm focus:border-[#ff6325] focus:bg-white dark:focus:bg-[#131d2e] outline-none transition-all shadow-xs"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 font-black text-slate-400 text-sm">%</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Type 10 for 10% discount, 20 for 20% discount.
+                  </p>
+                </div>
+
+                {/* 3. Auto-Calculated Final Tariff Per Night & Deal Badges */}
+                <div className="md:col-span-2 p-4 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200 dark:border-white/10 space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
+                        Final Tariff (Guest Checkout Price)
+                      </span>
+                      <div className="flex items-baseline gap-2 mt-1">
+                        <span className="text-2xl font-black text-[#ff6325]">
+                          ₹{basePrice ? Number(basePrice).toLocaleString() : '0'}
+                        </span>
+                        {originalPrice && Number(originalPrice) > Number(basePrice || 0) && (
+                          <span className="text-xs text-slate-400 line-through">
+                            ₹{Number(originalPrice).toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                        {discountPercentage && Number(discountPercentage) > 0
+                          ? `Guest saves ₹${(Number(originalPrice) - Number(basePrice)).toLocaleString()} (${discountPercentage}% OFF)`
+                          : 'Full price tariff without discount.'}
+                      </span>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                        Deal Label / Urgency Badge <span className="text-slate-400 font-normal">(Optional)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={offerBadge}
+                        onChange={(e) => setOfferBadge(e.target.value)}
+                        placeholder="e.g. Early Bird 10% Offer, Limited Period"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Promo Getaway Banner Tagline Field */}
+                  <div className="pt-2 border-t border-slate-200 dark:border-white/10">
+                    <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                      Promotional Getaway Banner Tagline <span className="text-slate-400 font-normal">(Shown on bottom getaway card)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={bannerTagline}
+                      onChange={(e) => setBannerTagline(e.target.value)}
+                      placeholder="e.g. Your Perfect Getaway Awaits, Serene Waterfront Escape, Luxury Weekend Treat"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                    />
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      Custom caption overlaid onto the room card's atmospheric getaway banner.
+                    </p>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -347,60 +495,224 @@ export default function ListingEditorPage() {
                 <span className="text-[11px] font-bold text-slate-400">Step 2 of 4</span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-center">
-                <div 
-                  onClick={() => document.getElementById('listing-image-upload')?.click()}
-                  className="h-44 rounded-2xl border-2 border-dashed border-slate-200 dark:border-white/15 hover:border-[#ff6325] bg-slate-50/80 dark:bg-[#162033] flex flex-col items-center justify-center cursor-pointer transition-all relative overflow-hidden group shadow-inner"
-                >
-                  {imageUrl ? (
-                    <>
-                      <img src={imageUrl} alt="Unit Preview" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-bold backdrop-blur-xs">
-                        Change Photo
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                
+                {/* 1. Dedicated Primary Cover Image Dropzone */}
+                <div className="flex flex-col space-y-3">
+                  <div className="flex items-center justify-between h-6">
+                    <label className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                      <span>Primary Cover Photo</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#ff6325]/10 text-[#ff6325] font-black">Main Card</span>
+                    </label>
+                  </div>
+
+                  <div 
+                    onClick={() => document.getElementById('cover-image-upload')?.click()}
+                    className="h-44 rounded-2xl border-2 border-dashed border-slate-200 dark:border-white/10 hover:border-[#ff6325] bg-slate-50/70 dark:bg-[#162033] flex flex-col items-center justify-center cursor-pointer transition-all relative overflow-hidden group shadow-inner"
+                  >
+                    {imageUrl ? (
+                      <>
+                        <img src={imageUrl} alt="Cover Preview" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-bold backdrop-blur-xs">
+                          Change Cover Photo
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center p-4">
+                        <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/10 text-[#ff6325] flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
+                          <ImageIcon size={20} />
+                        </div>
+                        <span className="text-xs font-black text-slate-800 dark:text-slate-200 block">Upload Main Cover</span>
+                        <span className="text-[10px] text-slate-400 mt-0.5 block">Visible first on search & card headers</span>
                       </div>
-                    </>
-                  ) : (
-                    <div className="text-center p-3">
-                      <ImageIcon size={28} className="mx-auto text-slate-400 mb-2 group-hover:text-[#ff6325] transition-colors" />
-                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Upload Unit Photo</span>
-                      <span className="text-[10px] text-slate-400">JPG, PNG, WebP</span>
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
 
-                <input 
-                  id="listing-image-upload"
-                  type="file" 
-                  className="hidden"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      try {
-                        const compressed = await compressImage(file, 800, 600, 0.85);
-                        setImageUrl(compressed);
-                      } catch (err) {
-                        console.error('Image compression error', err);
+                  <input 
+                    id="cover-image-upload"
+                    type="file" 
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        try {
+                          const compressed = await compressImage(file, 1200, 800, 0.88);
+                          setImageUrl(compressed);
+                          if (!galleryImages.includes(compressed)) {
+                            setGalleryImages(prev => [compressed, ...prev]);
+                          }
+                        } catch (err) {
+                          console.error('Image compression error', err);
+                        }
                       }
-                    }
-                  }}
-                  accept="image/*"
-                />
-
-                <div className="md:col-span-2 space-y-2">
-                  <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                    Or Direct Image Web URL
-                  </label>
-                  <input
-                    type="url"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    placeholder="https://images.unsplash.com/photo-..."
-                    className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-medium text-xs focus:border-[#ff6325] focus:bg-white dark:focus:bg-[#131d2e] outline-none transition-all shadow-xs"
+                    }}
+                    accept="image/*"
                   />
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Paste high-resolution photo link or select from local gallery.
-                  </p>
+
+                  <div className="h-10 flex items-center">
+                    <input
+                      type="url"
+                      value={imageUrl}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setImageUrl(val);
+                        if (val.trim() && !galleryImages.includes(val.trim())) {
+                          setGalleryImages(prev => [val.trim(), ...prev]);
+                        }
+                      }}
+                      placeholder="Or paste Direct Cover URL..."
+                      className="w-full h-full px-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white font-medium text-xs focus:border-[#ff6325] outline-none"
+                    />
+                  </div>
                 </div>
+
+                {/* 2. Dedicated Folder / Bulk Gallery Dropzone */}
+                <div className="flex flex-col space-y-3">
+                  <div className="flex items-center justify-between h-6">
+                    <label className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                      Room & Facility Gallery Photos
+                    </label>
+                    <span className="text-[11px] font-bold text-slate-400">
+                      {galleryImages.length} uploaded
+                    </span>
+                  </div>
+
+                  {/* Bulk / Folder Dropzone */}
+                  <div 
+                    onClick={() => document.getElementById('gallery-bulk-upload')?.click()}
+                    className="h-44 rounded-2xl border-2 border-dashed border-slate-200 dark:border-white/10 hover:border-[#ff6325] bg-slate-50/70 dark:bg-[#162033] flex flex-col items-center justify-center cursor-pointer transition-all relative overflow-hidden group shadow-inner"
+                  >
+                    <div className="text-center p-4">
+                      <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/10 text-amber-500 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
+                        📁
+                      </div>
+                      <span className="text-xs font-black text-slate-800 dark:text-slate-200 block">
+                        Upload Folder or Select Multiple Photos
+                      </span>
+                      <span className="text-[10px] text-slate-400 mt-0.5 block">
+                        Select multiple files together (Bedroom, Jacuzzi, Balcony, Sunset View)
+                      </span>
+                    </div>
+                  </div>
+
+                  <input 
+                    id="gallery-bulk-upload"
+                    type="file" 
+                    multiple
+                    className="hidden"
+                    onChange={async (e) => {
+                      const files = e.target.files;
+                      if (files && files.length > 0) {
+                        try {
+                          const newCompressed: string[] = [];
+                          for (let i = 0; i < files.length; i++) {
+                            const compressed = await compressImage(files[i], 1200, 800, 0.85);
+                            newCompressed.push(compressed);
+                          }
+                          if (!imageUrl && newCompressed.length > 0) {
+                            setImageUrl(newCompressed[0]);
+                          }
+                          setGalleryImages(prev => Array.from(new Set([...prev, ...newCompressed])));
+                        } catch (err) {
+                          console.error('Gallery bulk error', err);
+                        }
+                      }
+                    }}
+                    accept="image/*"
+                  />
+
+                  {/* Direct URL input for quick web image add - auto adds on paste or enter */}
+                  <div className="h-10 flex items-center">
+                    <input
+                      type="url"
+                      value={newGalleryInput}
+                      onChange={(e) => setNewGalleryInput(e.target.value)}
+                      onPaste={(e) => {
+                        const pasted = e.clipboardData.getData('text')?.trim();
+                        if (pasted) {
+                          e.preventDefault();
+                          if (!galleryImages.includes(pasted)) {
+                            setGalleryImages(prev => [...prev, pasted]);
+                          }
+                          if (!imageUrl) setImageUrl(pasted);
+                          setNewGalleryInput('');
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (newGalleryInput.trim()) {
+                            const trimmed = newGalleryInput.trim();
+                            if (!galleryImages.includes(trimmed)) {
+                              setGalleryImages(prev => [...prev, trimmed]);
+                            }
+                            if (!imageUrl) setImageUrl(trimmed);
+                            setNewGalleryInput('');
+                          }
+                        }
+                      }}
+                      onBlur={() => {
+                        if (newGalleryInput.trim()) {
+                          const trimmed = newGalleryInput.trim();
+                          if (!galleryImages.includes(trimmed)) {
+                            setGalleryImages(prev => [...prev, trimmed]);
+                          }
+                          if (!imageUrl) setImageUrl(trimmed);
+                          setNewGalleryInput('');
+                        }
+                      }}
+                      placeholder="Or paste photo web link here..."
+                      className="w-full h-full px-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white font-medium text-xs focus:border-[#ff6325] outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Multi-Photo Gallery Preview Thumbnails - Full width across both columns */}
+                {galleryImages.length > 0 && (
+                  <div className="col-span-1 md:col-span-2 pt-2 border-t border-slate-100 dark:border-white/5">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                        Unit Gallery ({galleryImages.length} {galleryImages.length === 1 ? 'Photo' : 'Photos'})
+                      </span>
+                      <span className="text-[10px] text-slate-400">
+                        Click image to set as Primary Cover
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2.5 max-h-40 overflow-y-auto custom-scrollbar p-1">
+                      {galleryImages.map((img, idx) => (
+                        <div 
+                          key={idx}
+                          onClick={() => setImageUrl(img)}
+                          className={`h-16 w-20 rounded-xl relative overflow-hidden group cursor-pointer border-2 transition-all ${
+                            img === imageUrl ? 'border-[#ff6325] ring-2 ring-[#ff6325]/30' : 'border-slate-200 dark:border-white/10 hover:border-slate-400'
+                          }`}
+                        >
+                          <img src={img} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover" />
+                          {img === imageUrl && (
+                            <span className="absolute top-1 left-1 bg-[#ff6325] text-white text-[8px] font-black px-1.5 py-0.2 rounded-full shadow">
+                              Cover
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const updated = galleryImages.filter((_, i) => i !== idx);
+                              setGalleryImages(updated);
+                              if (img === imageUrl) {
+                                setImageUrl(updated[0] || '');
+                              }
+                            }}
+                            className="absolute top-1 right-1 h-4 w-4 bg-black/70 hover:bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Delete photo"
+                          >
+                            &times;
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -581,68 +893,122 @@ export default function ListingEditorPage() {
               </span>
             </div>
 
-            {/* Simulated Customer Room Card */}
-            <div className="rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden bg-white dark:bg-[#162033] shadow-md group transition-all hover:shadow-xl">
-              <div className="h-48 w-full relative overflow-hidden bg-slate-200 dark:bg-slate-800">
+            {/* Exact Agoda-style Live Customer Booking Card Preview */}
+            <div className="rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden bg-white dark:bg-[#162033] shadow-md p-4 space-y-4">
+              
+              {/* Photo with Units Badge & Image Pill */}
+              <div className="h-44 w-full relative rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-800">
                 <img 
-                  src={imageUrl || 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&auto=format&fit=crop&q=75'} 
+                  src={imageUrl || (galleryImages.length > 0 ? galleryImages[0] : 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&auto=format&fit=crop&q=75')} 
                   alt="Unit Cover"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover"
                 />
-                <div className="absolute top-3 left-3 bg-black/65 backdrop-blur-md px-3 py-1 rounded-xl text-[10px] font-bold text-white flex items-center gap-1.5 shadow-md">
-                  <Bed size={13} className="text-[#ff6325]" />
-                  <span>{metadata.bedType || '1 King Bed'}</span>
+                <div className="absolute top-2.5 left-2.5 bg-[#033266]/90 dark:bg-[#ff6325]/90 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] font-black text-white flex items-center gap-1 shadow-md">
+                  <Users size={11} />
+                  <span>{metadata.totalUnits ? `${metadata.totalUnits} UNITS LEFT` : '3 UNITS LEFT'}</span>
                 </div>
-                <div className="absolute bottom-3 right-3 bg-gradient-to-r from-[#0a3161] to-[#142642] text-white px-3 py-1.5 rounded-xl text-xs font-black shadow-xl border border-white/10">
-                  ₹{gstEnabled 
-                    ? Math.round(Number(basePrice || 0) * (1 + gstPercentage / 100)).toLocaleString() 
-                    : (basePrice ? Number(basePrice).toLocaleString() : '0')} 
-                  <span className="text-[10px] font-normal opacity-80">{gstEnabled ? ` (${gstPercentage}% GST)` : ' / night'}</span>
+                <div className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-black/75 backdrop-blur-md text-white text-[10px] font-bold">
+                  📷 See Photos ({galleryImages.length || 1})
                 </div>
               </div>
 
-              <div className="p-4 space-y-3">
-                <div>
-                  <h3 className="font-black text-base text-slate-900 dark:text-white leading-tight">
-                    {serviceName.trim() ? serviceName : `${category.name} (Unit Title)`}
-                  </h3>
-                  <p className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2 mt-1 leading-relaxed">
-                    {description.trim() ? description : 'Spacious modern unit featuring premium bedding, clean washroom, and essential hospitality amenities.'}
-                  </p>
-                </div>
-
-                {/* Badges preview */}
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300">
-                    📐 {metadata.sizeSqFt || 450} sq.ft
+              {/* Title & Review */}
+              <div>
+                <h3 className="font-black text-base text-slate-900 dark:text-white leading-tight">
+                  {serviceName.trim() ? serviceName : `${category.name} (Unit Title)`}
+                </h3>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-emerald-600 text-white font-black text-[10px]">
+                    ★ 4.8
                   </span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300">
-                    👥 Max {metadata.maxGuests || 4} Guests
-                  </span>
-                  {metadata.viewType && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                      🌅 {metadata.viewType}
-                    </span>
-                  )}
-                </div>
-
-                {/* Timing bar */}
-                <div className="p-2.5 rounded-xl bg-white dark:bg-[#0f1624] border border-slate-200 dark:border-white/10 text-[11px] text-slate-600 dark:text-slate-300 flex items-center justify-between">
-                  <span className="flex items-center gap-1 font-medium">
-                    <Clock size={12} className="text-[#ff6325]" /> Check-in: <strong>{metadata.checkInTime || '12:00 PM'}</strong>
-                  </span>
-                  <span className="flex items-center gap-1 font-medium">
-                    <Clock size={12} className="text-amber-500" /> Check-out: <strong>{metadata.checkOutTime || '11:00 AM'}</strong>
+                  <span className="text-[10px] font-semibold text-slate-400">
+                    (120 Reviews)
                   </span>
                 </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-1 leading-relaxed">
+                  {description.trim() ? description : 'Spacious modern unit featuring premium bedding, clean washroom, and essential hospitality amenities.'}
+                </p>
+              </div>
 
-                <button 
-                  type="button" 
-                  disabled 
-                  className="w-full py-2.5 rounded-xl bg-[#ff6325] text-white text-xs font-bold text-center shadow-md shadow-[#ff6325]/20 opacity-90 cursor-default"
-                >
-                  Select & Reserve Unit
-                </button>
+              {/* Inclusions pill */}
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 font-bold text-[10px] border border-emerald-200 dark:border-emerald-800/50">
+                <CheckCircle2 size={11} />
+                <span>Instant Confirmation • Free Cancellation</span>
+              </div>
+
+              {/* Specs Grid */}
+              <div className="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-sky-50/60 dark:bg-sky-950/20 border border-sky-100 dark:border-sky-900/30 text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                <div className="flex items-center gap-1">
+                  <Users size={12} className="text-[#033266] dark:text-[#ff6325] shrink-0" />
+                  <span>Max {metadata.maxGuests || 4} Adults</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Bed size={12} className="text-[#033266] dark:text-[#ff6325] shrink-0" />
+                  <span className="truncate">{metadata.bedType || 'King Bed'}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span>📐</span>
+                  <span>{metadata.sizeSqFt || 450} sq.ft</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span>🚿</span>
+                  <span>Ensuite Bath</span>
+                </div>
+              </div>
+
+              {/* Deal Pricing & CTA matching Consumer UI */}
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    {originalPrice && Number(originalPrice) > Number(basePrice || 0) && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] text-slate-400 line-through">
+                          ₹{Number(originalPrice).toLocaleString()}
+                        </span>
+                        {discountPercentage && Number(discountPercentage) > 0 && (
+                          <span className="px-1.5 py-0.2 rounded bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-[10px] font-black border border-rose-200 dark:border-rose-900/40">
+                            -{discountPercentage}%
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    <div className="flex items-baseline gap-1 mt-0.5">
+                      <span className="text-xl font-black text-[#033266] dark:text-[#ff6325]">
+                        ₹{basePrice ? Number(basePrice).toLocaleString() : '0'}
+                      </span>
+                      <span className="text-[10px] text-slate-400">/ night</span>
+                    </div>
+                  </div>
+
+                  <button 
+                    type="button" 
+                    disabled 
+                    className="px-4 py-2 rounded-xl bg-[#033266] dark:bg-[#ff6325] text-white text-[11px] font-black uppercase tracking-wider shadow-sm opacity-90 cursor-default"
+                  >
+                    BOOK ROOM &rarr;
+                  </button>
+                </div>
+
+                {offerBadge && (
+                  <div className="pt-1.5 border-t border-slate-200 dark:border-white/10 flex items-center gap-1 text-[10px] font-bold text-[#033266] dark:text-[#ff6325]">
+                    <span>⚡</span>
+                    <span className="truncate">{offerBadge}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Getaway Banner Preview */}
+              <div className="h-24 rounded-xl overflow-hidden relative shadow-inner border border-slate-200 dark:border-white/10">
+                <img
+                  src={imageUrl || (galleryImages.length > 0 ? galleryImages[0] : 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&auto=format&fit=crop&q=75')}
+                  alt="Getaway"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-end p-2.5">
+                  <span className="font-serif italic text-white text-xs font-bold drop-shadow-md">
+                    {bannerTagline.trim() ? bannerTagline : 'Your Perfect Getaway Awaits'}
+                  </span>
+                </div>
               </div>
             </div>
 

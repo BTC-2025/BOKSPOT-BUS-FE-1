@@ -63,14 +63,20 @@ export default function ServiceListingsPage() {
               className="hover:text-[#ff6325] transition-colors flex items-center gap-1 cursor-pointer font-bold"
             >
               <ArrowLeft size={13} />
-              <span>Categories</span>
+              <span>Services</span>
             </button>
+            {category.category && (
+              <>
+                <span>/</span>
+                <span className="font-bold">{category.category}</span>
+              </>
+            )}
             <span>/</span>
-            <span className="text-[#ff6325] font-black">{category.category || category.name}</span>
+            <span className="text-[#ff6325] font-black">{category.name}</span>
           </div>
 
           <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <span>{category.category || category.name}</span>
+            <span>{category.name}</span>
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#ff6325]/10 text-[#ff6325] font-bold">
               {listings.length} Bookable {listings.length === 1 ? 'Unit' : 'Units'}
             </span>

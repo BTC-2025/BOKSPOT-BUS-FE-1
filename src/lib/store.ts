@@ -153,6 +153,9 @@ export interface CatalogListing {
   description?: string;
   imageUrl?: string;
   price?: number;
+  originalPrice?: number;
+  discountPercentage?: number;
+  offerBadge?: string;
   duration?: number;
   active?: boolean;
 
@@ -317,12 +320,20 @@ export interface MerchantUser {
   about?: string;
   amenities?: string[];
   
+  phone?: string;
+  website?: string;
   city?: string;
+  state?: string;
+  postalCode?: string;
   address?: string;
   latitude?: number;
   longitude?: number;
+  checkInTime?: string;
+  checkOutTime?: string;
+  operatingHours?: string;
   aroundProperty?: Array<{ name: string; distance: string }>;
   policies?: Record<string, any> | string[];
+  highlights?: Array<{ title: string; description: string; icon?: string }>;
   
   // Custom auth info for sign up
   passwordHash?: string;
@@ -1377,6 +1388,10 @@ export const useVendorStore = create<VendorStoreState>()(
       if (profileData.about || profileData.aboutText) payload.description = profileData.about || profileData.aboutText;
       if (profileData.amenities || profileData.thingsToKnow) payload.amenities = profileData.amenities || profileData.thingsToKnow;
       if (profileData.gallery) payload.images = profileData.gallery;
+      if (profileData.phone) payload.phone = profileData.phone;
+      if (profileData.website) payload.website = profileData.website;
+      if (profileData.postalCode) payload.postalCode = profileData.postalCode;
+      if (profileData.state) payload.state = profileData.state;
       if (profileData.address) payload.address = profileData.address;
       if (profileData.city) payload.city = profileData.city;
       if (profileData.latitude !== undefined) payload.latitude = Number(profileData.latitude);
@@ -1385,6 +1400,10 @@ export const useVendorStore = create<VendorStoreState>()(
       const meta: any = {};
       if (profileData.policies) meta.policies = profileData.policies;
       if (profileData.aroundProperty) meta.aroundProperty = profileData.aroundProperty;
+      if (profileData.highlights) meta.highlights = profileData.highlights;
+      if (profileData.checkInTime) meta.checkInTime = profileData.checkInTime;
+      if (profileData.checkOutTime) meta.checkOutTime = profileData.checkOutTime;
+      if (profileData.operatingHours) meta.operatingHours = profileData.operatingHours;
       if (Object.keys(meta).length > 0) payload.metadata = meta;
       
       const res = await fetch(`${baseUrl}/merchants/${merchantId}`, {

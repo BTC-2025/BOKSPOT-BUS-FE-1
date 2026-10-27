@@ -206,17 +206,44 @@ export default function WorkspacePage() {
   const totalSubTypesCount = Object.values(groupedCategories).reduce((s: number, g: any) => s + (g.count || 0), 0);
   const totalBookableUnitsCount = Object.values(groupedCategories).reduce((s: number, g: any) => s + (g.totalListings || 0), 0);
 
-  // Filter Categories by search and tab
-  const categoryEntries = Object.entries(groupedCategories).filter(([cat]: any) => {
+  // Filter Categories by search (Category name, service/unit names, and listing titles) and tab
+  const categoryEntries = Object.entries(groupedCategories).filter(([cat, info]: any) => {
+    const q = searchFilter.trim().toLowerCase();
+    if (q) {
+      const matchCat = cat.toLowerCase().includes(q);
+      const matchTypes = (info.types || []).some((t: string) => (t || '').toLowerCase().includes(q));
+      // Also match individual services & listing unit names under this category in current branch
+      const matchServices = merchantServices.some((s: any) => {
+        if (s.category !== cat) return false;
+        const nameMatch = (s.name || '').toLowerCase().includes(q);
+        const descMatch = (s.description || '').toLowerCase().includes(q);
+        const listingMatch = (s.listings || []).some((l: any) => 
+          (l.name || l.title || l.unitNumber || '').toLowerCase().includes(q)
+        );
+        return nameMatch || descMatch || listingMatch;
+      });
+
+      if (!matchCat && !matchTypes && !matchServices) return false;
+    }
+
     const lower = cat.toLowerCase();
-    if (searchFilter.trim() && !lower.includes(searchFilter.toLowerCase())) return false;
     if (activeCategoryTab === 'STAYS' && !lower.includes('resort') && !lower.includes('hotel') && !lower.includes('villa') && !lower.includes('stay') && !lower.includes('hostel')) return false;
     if (activeCategoryTab === 'SPORTS' && !lower.includes('football') && !lower.includes('turf') && !lower.includes('ground') && !lower.includes('cricket') && !lower.includes('court')) return false;
     if (activeCategoryTab === 'SERVICES' && (lower.includes('resort') || lower.includes('hotel') || lower.includes('football') || lower.includes('turf'))) return false;
     return true;
   });
 
-  const currentGroupCategories = merchantServices.filter(s => s.category === selectedGroup && s.name !== '__BOKSPOT_GROUP__');
+  const currentGroupCategories = merchantServices.filter(s => {
+    if (s.category !== selectedGroup || s.name === '__BOKSPOT_GROUP__') return false;
+    const q = searchFilter.trim().toLowerCase();
+    if (!q) return true;
+    const nameMatch = (s.name || '').toLowerCase().includes(q);
+    const descMatch = (s.description || '').toLowerCase().includes(q);
+    const listingMatch = (s.listings || []).some((l: any) => 
+      (l.name || l.title || l.unitNumber || '').toLowerCase().includes(q)
+    );
+    return nameMatch || descMatch || listingMatch;
+  });
 
   const handleSaveBookingType = (e: React.FormEvent) => {
     e.preventDefault();
@@ -328,48 +355,18 @@ export default function WorkspacePage() {
           </div>
         </div>
 
-        {/* Branch Quick-Switch Buttons */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 custom-scrollbar">
-          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider shrink-0 mr-1">Switch Branch:</span>
-          {effectiveBranches.map((br) => {
-            const isSelected = br.id === activeBranch.id;
-            return (
-              <button
-                key={br.id}
-                type="button"
-                onClick={() => switchBranch(br.id)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 border ${
-                  isSelected
-                    ? 'bg-[#ff6325] text-white border-[#ff6325] shadow-md shadow-[#ff6325]/25'
-                    : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:border-[#ff6325]/50'
-                }`}
-              >
-                <span>{br.category?.toLowerCase().includes('turf') || br.name?.toLowerCase().includes('turf') ? '⚽' : '🏨'}</span>
-                <span>{br.name ? br.name.replace(`${currentMerchant?.merchantName || ''} - `, '') : br.city}</span>
-                <span className={`text-[9px] px-1 py-0.2 rounded font-black ${
-                  isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-white/10 text-slate-500'
-                }`}>
-                  {br.gstStatus === 'WITH_GST' ? 'GST' : 'Nett'}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
         {/* Compact Right Controls */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          {!selectedGroup && (
-            <div className="relative w-full sm:w-64">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                value={searchFilter}
-                onChange={(e) => setSearchFilter(e.target.value)}
-                placeholder="Search categories..."
-                className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-medium focus:border-[#ff6325] outline-none shadow-xs text-slate-900 dark:text-white"
-              />
-            </div>
-          )}
+          <div className="relative w-full sm:w-64">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={searchFilter}
+              onChange={(e) => setSearchFilter(e.target.value)}
+              placeholder="Search services, units..."
+              className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-medium focus:border-[#ff6325] outline-none shadow-xs text-slate-900 dark:text-white"
+            />
+          </div>
 
           {!selectedGroup ? (
             <button
@@ -381,7 +378,7 @@ export default function WorkspacePage() {
               }}
               className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer shrink-0"
             >
-              <Plus size={15} /> Add Category
+              <Plus size={15} /> Add Service
             </button>
           ) : (
             <div className="flex items-center gap-2">
@@ -416,15 +413,20 @@ export default function WorkspacePage() {
               const coverImg = getSmartCover(cat, info.mainImage);
               const isTurf = cat.toLowerCase().includes('turf') || cat.toLowerCase().includes('football') || cat.toLowerCase().includes('ground');
 
-              const targetService = merchantServices.find(s => s.category === cat && s.name !== '__BOKSPOT_GROUP__');
-              const targetServiceId = targetService?.id;
+              const categoryServices = merchantServices.filter(s => s.category === cat && s.name !== '__BOKSPOT_GROUP__');
+              const hasMultipleTypes = categoryServices.length > 1;
+              const singleTargetService = categoryServices.length === 1 ? categoryServices[0] : null;
 
               return (
                 <div
                   key={cat}
                   onClick={() => {
-                    if (targetServiceId) {
-                      router.push(`/workspace/my-services/${targetServiceId}`);
+                    if (hasMultipleTypes) {
+                      // Has multiple formats/types (e.g. "sunstone villa", "beach resort") -> open Level 2 formats view
+                      setSelectedGroup(cat);
+                    } else if (singleTargetService) {
+                      // Only 1 service format -> open listings/units directly
+                      router.push(`/workspace/my-services/${singleTargetService.id}`);
                     } else {
                       setSelectedGroup(cat);
                     }
