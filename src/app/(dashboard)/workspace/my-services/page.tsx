@@ -101,52 +101,40 @@ export default function WorkspacePage() {
       ? presetMatch.branches
       : [
           {
-            id: 'branch-resort-stay',
-            name: 'Suites & Stays',
+            id: `branch-main-${currentMerchant.id || 'default'}`,
+            name: `${currentMerchant.city || 'Main'} Branch`,
             city: currentMerchant.city || 'Chennai',
-            category: 'Resort Booking',
-            businessType: 'Stay & Rooms',
-            address: 'East Coast Road, Chennai',
-            gstStatus: 'WITH_GST',
-            gstNumber: currentMerchant.gstNumber || '33AAAAA0000A1Z5',
-            offeringsSummary: 'Deluxe Suites, Pool Cottages',
+            category: currentMerchant.category || 'General Service',
+            businessType: currentMerchant.category || 'Service Facility',
+            address: currentMerchant.address || `${currentMerchant.city || 'Chennai'} Location`,
+            gstStatus: (currentMerchant.gstStatus as any) || 'WITHOUT_GST',
+            gstNumber: currentMerchant.gstNumber || '',
+            offeringsSummary: currentMerchant.category || 'Primary Offerings',
             isMainBranch: true
-          },
-          {
-            id: 'branch-resort-turf',
-            name: 'Sports Turf',
-            city: currentMerchant.city || 'Chennai',
-            category: 'Football Turf',
-            businessType: 'Sports Facility',
-            address: 'East Coast Road (Arena Annex), Chennai',
-            gstStatus: 'WITH_GST',
-            gstNumber: currentMerchant.gstNumber || '33AAAAA0000A1Z5',
-            offeringsSummary: '7v7 FIFA Astro Turf, Floodlit Ground',
-            isMainBranch: false
           }
         ];
 
   const activeBranch = effectiveBranches.find(b => b.id === (currentMerchant.activeBranchId || effectiveBranches[0].id)) || effectiveBranches[0];
   const isTurfBranch = (activeBranch.category?.toLowerCase().includes('turf') || activeBranch.name?.toLowerCase().includes('turf'));
+  const isStayBranch = (activeBranch.category?.toLowerCase().includes('resort') || activeBranch.category?.toLowerCase().includes('hotel') || activeBranch.category?.toLowerCase().includes('villa') || activeBranch.category?.toLowerCase().includes('stay') || activeBranch.name?.toLowerCase().includes('stay') || activeBranch.name?.toLowerCase().includes('suite'));
 
   // Filter services strictly by Active Branch and category isolation
   const merchantServices = services.filter(s => {
     // If explicitly tagged with branchId
     if (s.branchId && s.branchId !== activeBranch.id) return false;
 
-    // Strict Category / Offering isolation between Hotel vs Turf branches
+    // Strict Category / Offering isolation between branches
     const sCat = (s.category || '').toLowerCase();
     const sName = (s.name || '').toLowerCase();
     const isServiceTurf = sCat.includes('turf') || sCat.includes('football') || sCat.includes('cricket') || sCat.includes('pitch') || sCat.includes('sport') ||
       sName.includes('turf') || sName.includes('football') || sName.includes('pitch');
 
     if (isTurfBranch) {
-      // Turf branch: ONLY show sports / turf services
       return isServiceTurf;
-    } else {
-      // Stay / Resort branch: ONLY show stay / hotel / villa / resort services
+    } else if (isStayBranch) {
       return !isServiceTurf;
     }
+    return true;
   });
 
   const getSmartCover = (catName: string, explicitImg?: string | null) => {
@@ -252,7 +240,7 @@ export default function WorkspacePage() {
 
     const newService: CatalogService = {
       id: crypto.randomUUID(),
-      name: '__BOKSPOT_GROUP__',
+      name: finalCategory,
       merchant: currentMerchant.merchantName,
       price: 0,
       duration: 30,
@@ -368,6 +356,15 @@ export default function WorkspacePage() {
             />
           </div>
 
+          <button
+            onClick={() => router.push('/workspace/about')}
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-white font-bold text-xs transition-all border border-slate-200/80 dark:border-white/10 cursor-pointer shadow-sm shrink-0"
+            title="Manage Venue Profile, Photos & Location"
+          >
+            <Building2 size={14} className="text-[#ff6325]" />
+            <span>Venue Profile</span>
+          </button>
+
           {!selectedGroup ? (
             <button
               onClick={() => {
@@ -421,14 +418,20 @@ export default function WorkspacePage() {
                 <div
                   key={cat}
                   onClick={() => {
-                    if (hasMultipleTypes) {
-                      // Has multiple formats/types (e.g. "sunstone villa", "beach resort") -> open Level 2 formats view
-                      setSelectedGroup(cat);
-                    } else if (singleTargetService) {
-                      // Only 1 service format -> open listings/units directly
+                    if (singleTargetService) {
+                      // 1 service format -> open listings/units directly
                       router.push(`/workspace/my-services/${singleTargetService.id}`);
-                    } else {
+                    } else if (hasMultipleTypes) {
+                      // Multiple format types -> open Level 2 formats view
                       setSelectedGroup(cat);
+                    } else {
+                      // No explicit service child created yet: Find group service or auto-create service to open listings
+                      const groupService = merchantServices.find(s => s.category === cat);
+                      if (groupService) {
+                        router.push(`/workspace/my-services/${groupService.id}`);
+                      } else {
+                        setSelectedGroup(cat);
+                      }
                     }
                   }}
                   className="bg-white dark:bg-[#0f1624] rounded-2xl border border-slate-200/80 dark:border-white/10 hover:border-[#ff6325]/50 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 overflow-hidden flex flex-col cursor-pointer group"
@@ -532,6 +535,21 @@ export default function WorkspacePage() {
                 </div>
               );
             })}
+            {categoryEntries.length === 0 && (
+              <div className="col-span-full py-16 px-6 rounded-3xl border-2 border-dashed border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] flex flex-col items-center justify-center text-center">
+                <Package size={36} className="text-[#ff6325] mb-3" />
+                <h3 className="text-lg font-black text-slate-900 dark:text-white">No Services Found For This Branch</h3>
+                <p className="text-xs text-slate-400 max-w-sm mt-1 mb-5">
+                  Click below to add a service category (like Football Turf or Resort Booking) or configure units.
+                </p>
+                <button
+                  onClick={() => setShowBookingTypeModal(true)}
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] text-white font-black text-xs uppercase tracking-wider cursor-pointer shadow-md active:scale-95 transition-all"
+                >
+                  + Add Service Category
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           // LEVEL 2: SUB-TYPES / LISTINGS FOR SELECTED GROUP (Matching Level 1 size)
@@ -642,15 +660,23 @@ export default function WorkspacePage() {
             {currentGroupCategories.length === 0 && (
               <div className="py-16 px-6 rounded-3xl border-2 border-dashed border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] flex flex-col items-center justify-center text-center">
                 <Package size={36} className="text-[#ff6325] mb-3" />
-                <h3 className="text-lg font-black text-slate-900 dark:text-white">No Format Types Added</h3>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white">Configure {selectedGroup} Units</h3>
                 <p className="text-xs text-slate-400 max-w-sm mt-1 mb-5">
-                  Add specific pitch or room types under {selectedGroup} (e.g. 5-a-side AstroTurf or Deluxe Suite).
+                  Create specific pitch, court, or room units with pricing, schedules, and timing under {selectedGroup}.
                 </p>
                 <button
-                  onClick={() => setShowCategoryModal(true)}
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] text-white font-black text-xs uppercase tracking-wider"
+                  onClick={() => {
+                    // Check if group root service exists or auto create to jump straight to units
+                    const existingGroup = merchantServices.find(s => s.category === selectedGroup);
+                    if (existingGroup) {
+                      router.push(`/workspace/my-services/${existingGroup.id}`);
+                    } else {
+                      setShowCategoryModal(true);
+                    }
+                  }}
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] text-white font-black text-xs uppercase tracking-wider cursor-pointer shadow-md active:scale-95 transition-all"
                 >
-                  + Add First Type
+                  + Add Bookable Unit / Type
                 </button>
               </div>
             )}
@@ -671,15 +697,15 @@ export default function WorkspacePage() {
             <div className="p-6 overflow-y-auto flex-1">
               <form id="bookingTypeForm" onSubmit={handleSaveBookingType} className="space-y-4">
                 {/* Branch & GST Binding Indicator */}
-                <div className="p-3 rounded-xl border border-cyan-500/20 bg-cyan-500/5 flex items-center justify-between text-xs">
+                <div className="p-3.5 rounded-2xl border border-cyan-500/30 bg-cyan-50 dark:bg-cyan-950/20 flex items-center justify-between text-xs">
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 block">Assigned Branch & GST</span>
-                    <strong className="text-white text-xs">{activeBranch.name || `${activeBranch.city} Branch`}</strong>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-cyan-700 dark:text-cyan-400 block mb-0.5">Assigned Branch & GST</span>
+                    <strong className="text-slate-900 dark:text-white text-xs font-black">{activeBranch.name || `${activeBranch.city} Branch`}</strong>
                   </div>
-                  <span className={`text-[9px] font-black px-2 py-0.5 rounded ${
+                  <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg ${
                     activeBranch.gstStatus === 'WITH_GST' 
-                      ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/30' 
-                      : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30'
+                      ? 'bg-cyan-100 text-cyan-800 border border-cyan-300 dark:bg-cyan-500/15 dark:text-cyan-300 dark:border-cyan-500/30' 
+                      : 'bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30'
                   }`}>
                     {activeBranch.gstStatus === 'WITH_GST' ? `GST: ${activeBranch.gstNumber || currentMerchant.gstNumber || 'Active'}` : 'Nett (No GST)'}
                   </span>

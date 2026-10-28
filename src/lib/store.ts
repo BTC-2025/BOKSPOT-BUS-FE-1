@@ -1385,6 +1385,10 @@ export const useVendorStore = create<VendorStoreState>()(
       
       const payload: any = {};
       // Handle both formats depending on what is passed by components
+      if (profileData.merchantName) {
+        payload.name = profileData.merchantName;
+        payload.merchantName = profileData.merchantName;
+      }
       if (profileData.about || profileData.aboutText) payload.description = profileData.about || profileData.aboutText;
       if (profileData.amenities || profileData.thingsToKnow) payload.amenities = profileData.amenities || profileData.thingsToKnow;
       if (profileData.gallery) payload.images = profileData.gallery;
@@ -1810,19 +1814,12 @@ export const useVendorStore = create<VendorStoreState>()(
               'Service': [], // Generic — show all
             };
             
-            // Filter: match by activeMerchantId OR merchantName (case-insensitive) OR fallback to all returned for this merchant
-            const filteredData = servicesData.filter((s: any) => {
-              if (s.merchantId === activeMerchantId || s.merchant?.id === activeMerchantId) return true;
-              if (currentMerchantName && s.metadata?.merchantName && s.metadata.merchantName.trim().toLowerCase() === currentMerchantName.trim().toLowerCase()) return true;
-              if (currentMerchantName && s.merchant?.name && s.merchant.name.trim().toLowerCase() === currentMerchantName.trim().toLowerCase()) return true;
-              return false;
-            });
-
-            // If backend already filtered by merchantId, and by-name filter was empty, use servicesData directly
-            const finalDataToMap = filteredData.length > 0 ? filteredData : servicesData;
+            // If backend returned services for activeMerchantId, use them directly
+            const finalDataToMap = servicesData.length > 0 ? servicesData : [];
 
             const mapped = finalDataToMap.map((s: any) => {
               let fetchedMerchantName = s.metadata?.merchantName || s.merchant?.name || currentMerchantName || 'Grand Hotel';
+              const rawCat = s.metadata?.originalCategory || (typeof s.category === 'object' ? (s.category?.name || s.category?.slug) : s.category) || 'General';
               
               return {
                 id: s.id,
@@ -1830,7 +1827,8 @@ export const useVendorStore = create<VendorStoreState>()(
                 merchant: fetchedMerchantName,
                 price: s.basePrice || 0,
                 duration: s.durationMinutes || 60,
-                category: s.metadata?.originalCategory || s.category?.name || 'General',
+                branchId: s.branchId || s.metadata?.branchId,
+                category: rawCat,
                 active: s.isActive ?? true,
                 rating: s.rating || 0,
                 bookingsCount: s.reviewCount || 0,
@@ -2062,6 +2060,11 @@ export const useVendorStore = create<VendorStoreState>()(
             console.warn('Could not fetch categories, using fallback ID');
           }
           
+          const listingImages = (source as any)?.images || (source as any)?.metadata?.gallery || [];
+          const serviceImages = (updated.imageUrl || source.imageUrl) 
+            ? [updated.imageUrl || source.imageUrl, ...(Array.isArray(listingImages) ? listingImages : [])] 
+            : (Array.isArray(listingImages) && listingImages.length > 0 ? listingImages : []);
+
           const payload = {
             name: updated.name,
             categoryId: validCategoryId,
@@ -2070,10 +2073,14 @@ export const useVendorStore = create<VendorStoreState>()(
             durationMinutes: Number(source.duration) || 60,
             basePrice: Number(source.price) || 0,
             maxCapacity: Number((source as any).maxCapacity) || 1,
-            images: (updated.imageUrl || source.imageUrl) ? [updated.imageUrl || source.imageUrl] : [],
+            images: serviceImages,
             metadata: { 
               ...(updated.metadata || {}),
               merchantName: get().currentMerchant?.merchantName || updated.merchant,
+              facilityName: get().currentMerchant?.merchantName || updated.merchant,
+              branchName: updated.branchName || updated.metadata?.branchName,
+              mainImageUrl: serviceImages[0] || updated.metadata?.mainImageUrl,
+              originalCategory: updated.category || updated.metadata?.originalCategory,
               listings: updated.listings 
             },
             isTimingEnabled: Boolean(source.isTimingEnabled),

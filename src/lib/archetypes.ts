@@ -203,11 +203,12 @@ export const ARCHETYPE_SCHEMAS: Record<Archetype, any> = {
   RENTAL: {
     title: "Facility, Turf & Court Rental Details",
     fields: [
-      { name: "facilityName", type: "text", label: "Court / Pitch / Room Name", placeholder: "e.g., 7s Main AstroTurf A, Court 1 (Teak Wood), Meeting Room 3", required: true },
+      { name: "facilityName", type: "text", label: "Court / Pitch / Unit Specification", placeholder: "e.g., 7s Main AstroTurf A, 5s Cage Pitch 2", required: true },
+      { name: "totalUnits", type: "number", label: "Available Inventory / Pitches Count", placeholder: "e.g., 1 (Single Pitch) or 3 (Identical 5s Pitches)", required: false },
       { name: "turfSize", type: "text", label: "Court Dimensions & Geometry", placeholder: "e.g., 100ft x 65ft (7-a-side) / Full Court (Auto-locks Half Courts)", required: false },
       { name: "surfaceType", type: "text", label: "Surface / Floor Type", placeholder: "e.g., FIFA Certified 50mm AstroTurf / Yonex Synthetic Mat", required: false },
       { name: "hourlyRate", type: "number", label: "Standard Hourly Rate (₹)", placeholder: "e.g., 1200", required: true },
-      { name: "peakHourlyRate", type: "number", label: "Peak / Evening Hourly Rate (₹)", placeholder: "e.g., 1600 (Post 6:00 PM)", required: false },
+      { name: "peakHourlyRate", type: "number", label: "Peak / Evening Hourly Rate (₹)", placeholder: "e.g., 1600", required: false },
       { name: "floodlightsSurcharge", type: "number", label: "Night Floodlights Surcharge (₹ / Hour)", placeholder: "e.g., 200", required: false },
       { name: "equipmentAddons", type: "text", label: "Rental Equipment & Gear Available", placeholder: "e.g., Bibs & Ball (Free), Professional Rackets (₹50/ea), Shuttles (₹100)", required: false },
       { name: "refereeOrManager", type: "text", label: "Match Referee / Ground Manager In-charge", placeholder: "e.g., Certified KFA Referee / Ground Supervisor on duty", required: false }

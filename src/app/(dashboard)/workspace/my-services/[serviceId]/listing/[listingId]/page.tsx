@@ -31,6 +31,7 @@ export default function ListingEditorPage() {
   const [offerBadge, setOfferBadge] = useState('');
   const [bannerTagline, setBannerTagline] = useState('');
   const [addons, setAddons] = useState<{name: string, price: number}[]>([]);
+  const [equipmentAddons, setEquipmentAddons] = useState('');
   
   // GST Tax State for this Listing
   const [gstEnabled, setGstEnabled] = useState(false);
@@ -81,6 +82,7 @@ export default function ListingEditorPage() {
           setBannerTagline(list.metadata?.bannerTagline || (list as any).bannerTagline || '');
           setMetadata(list.metadata || {});
           setAddons(list.metadata?.addons || []);
+          setEquipmentAddons(list.metadata?.equipmentAddons || '');
           setGstEnabled(list.metadata?.gstEnabled ?? (category.gstType === 'WITH_GST' || currentMerchant.gstStatus === 'WITH_GST'));
           setGstPercentage(list.metadata?.gstPercentage ?? 18);
           setGstNumber(list.metadata?.gstNumber || currentMerchant.gstNumber || '');
@@ -97,7 +99,20 @@ export default function ListingEditorPage() {
   const category = services.find(s => s.id === serviceId);
   if (!category) return null;
 
+  // Clean human-readable category name
+  const categoryDisplayName = (!category.name || category.name === '__BOKSPOT_GROUP__')
+    ? (category.category || 'Service')
+    : category.name;
+
+  const isTurfCategory = (categoryDisplayName || '').toLowerCase().includes('turf') ||
+    (categoryDisplayName || '').toLowerCase().includes('football') ||
+    (categoryDisplayName || '').toLowerCase().includes('cricket') ||
+    (categoryDisplayName || '').toLowerCase().includes('court') ||
+    (category.category || '').toLowerCase().includes('turf') ||
+    (category.category || '').toLowerCase().includes('football');
+
   const archetype: Archetype = 
+    isTurfCategory ? 'RENTAL' :
     getArchetypeFromCategory(category?.name) || 
     getArchetypeFromCategory(category?.category) || 
     getArchetypeFromCategory(currentMerchant?.category) || 
@@ -137,6 +152,7 @@ export default function ListingEditorPage() {
         ...metadata, 
         gallery: galleryImages.length > 0 ? galleryImages : (imageUrl.trim() ? [imageUrl.trim()] : []),
         addons, 
+        equipmentAddons: equipmentAddons.trim() || undefined,
         originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
         discountPercentage: discountPercentage ? parseFloat(discountPercentage) : undefined,
         offerBadge: offerBadge.trim() || undefined,
@@ -198,12 +214,12 @@ export default function ListingEditorPage() {
             onClick={() => router.push(`/workspace/my-services/${serviceId}`)}
             className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-[#ff6325] font-bold mb-1 transition-colors cursor-pointer"
           >
-            <ArrowLeft size={13} /> Back to {category.category || category.name}
+            <ArrowLeft size={13} /> Back to <span className="capitalize">{categoryDisplayName}</span>
           </button>
           <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             <span>{isCreating ? 'Add Bookable Unit' : 'Edit Unit Details'}</span>
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#ff6325]/10 text-[#ff6325] font-black uppercase tracking-wider">
-              {category.category || category.name}
+              {categoryDisplayName}
             </span>
           </h1>
         </div>
@@ -251,16 +267,16 @@ export default function ListingEditorPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2 space-y-2">
                   <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                    Unit / Listing Title <span className="text-red-500">*</span>
+                    {isTurfCategory ? 'Pitch / Court / Unit Title' : 'Unit / Listing Title'} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={serviceName}
                     onChange={(e) => setServiceName(e.target.value)}
                     placeholder={
-                      category?.name?.toLowerCase().includes('resort') || category?.category?.toLowerCase().includes('resort') || category?.name?.toLowerCase().includes('villa')
-                        ? "e.g. 3BHK Private Pool Villa, Sunset Hill View Cottage, Deluxe Suite"
-                        : "e.g. Deluxe Room 101, Executive Suite, Pitch A"
+                      isTurfCategory
+                        ? "e.g. 7-a-side Main Astro Turf A, 5s Cage Pitch B, Box Cricket Arena"
+                        : "e.g. 3BHK Private Pool Villa, Sunset Hill View Cottage, Deluxe Suite"
                     }
                     className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-semibold text-sm focus:border-[#ff6325] focus:bg-white dark:focus:bg-[#131d2e] outline-none transition-all shadow-xs"
                     required
@@ -270,7 +286,7 @@ export default function ListingEditorPage() {
                 {/* 1. Original Rate (Rack Price / MRP) */}
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                    {archetype === 'RENTAL' ? 'Original Hourly Rate (₹)' : archetype === 'ACCOMMODATION' ? 'Original Rate / Rack Price (₹)' : 'Original Price / MRP (₹)'} <span className="text-red-500">*</span>
+                    {isTurfCategory ? 'Original Hourly Slot Rate (₹)' : archetype === 'ACCOMMODATION' ? 'Original Rate / Rack Price (₹)' : 'Original Price / MRP (₹)'} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-400 text-sm">₹</span>
@@ -288,14 +304,14 @@ export default function ListingEditorPage() {
                           setBasePrice('');
                         }
                       }}
-                      placeholder="e.g. 16111 or 15000"
+                      placeholder={isTurfCategory ? "e.g. 1500 or 1200" : "e.g. 16111 or 15000"}
                       min="0"
                       className="w-full pl-9 pr-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-black text-sm focus:border-[#ff6325] focus:bg-white dark:focus:bg-[#131d2e] outline-none transition-all shadow-xs"
                       required
                     />
                   </div>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Your standard rack tariff before applying discount.
+                    {isTurfCategory ? 'Standard hourly court/pitch tariff before discount.' : 'Your standard rack tariff before applying discount.'}
                   </p>
                 </div>
 
@@ -341,7 +357,7 @@ export default function ListingEditorPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
                     <div>
                       <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
-                        Final Tariff (Guest Checkout Price)
+                        {isTurfCategory ? 'Final Tariff (Customer Hourly Checkout Price)' : 'Final Tariff (Guest Checkout Price)'}
                       </span>
                       <div className="flex items-baseline gap-2 mt-1">
                         <span className="text-2xl font-black text-[#ff6325]">
@@ -352,10 +368,11 @@ export default function ListingEditorPage() {
                             ₹{Number(originalPrice).toLocaleString()}
                           </span>
                         )}
+                        <span className="text-xs text-slate-400 font-bold">{isTurfCategory ? '/ hour' : '/ night'}</span>
                       </div>
                       <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
                         {discountPercentage && Number(discountPercentage) > 0
-                          ? `Guest saves ₹${(Number(originalPrice) - Number(basePrice)).toLocaleString()} (${discountPercentage}% OFF)`
+                          ? `Customer saves ₹${(Number(originalPrice) - Number(basePrice)).toLocaleString()} (${discountPercentage}% OFF)`
                           : 'Full price tariff without discount.'}
                       </span>
                     </div>
@@ -368,26 +385,32 @@ export default function ListingEditorPage() {
                         type="text"
                         value={offerBadge}
                         onChange={(e) => setOfferBadge(e.target.value)}
-                        placeholder="e.g. Early Bird 10% Offer, Limited Period"
+                        placeholder={isTurfCategory ? "e.g. Prime Evening Slot, Weekend Match Offer" : "e.g. Early Bird 10% Offer, Limited Period"}
                         className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
                       />
                     </div>
                   </div>
 
-                  {/* Promo Getaway Banner Tagline Field */}
+                  {/* Promo Banner Tagline Field */}
                   <div className="pt-2 border-t border-slate-200 dark:border-white/10">
                     <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-                      Promotional Getaway Banner Tagline <span className="text-slate-400 font-normal">(Shown on bottom getaway card)</span>
+                      {isTurfCategory ? 'Arena / Pitch Banner Tagline' : 'Promotional Getaway Banner Tagline'} <span className="text-slate-400 font-normal">(Shown on bottom card)</span>
                     </label>
                     <input
                       type="text"
                       value={bannerTagline}
                       onChange={(e) => setBannerTagline(e.target.value)}
-                      placeholder="e.g. Your Perfect Getaway Awaits, Serene Waterfront Escape, Luxury Weekend Treat"
+                      placeholder={
+                        isTurfCategory 
+                          ? "e.g. Premier FIFA 7v7 Astro Arena, Floodlit Night Tournament Pitch" 
+                          : "e.g. Your Perfect Getaway Awaits, Serene Waterfront Escape, Luxury Weekend Treat"
+                      }
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
                     />
                     <p className="text-[10px] text-slate-400 mt-1">
-                      Custom caption overlaid onto the room card's atmospheric getaway banner.
+                      {isTurfCategory 
+                        ? "Custom promotional caption overlaid onto the turf card's showcase banner." 
+                        : "Custom caption overlaid onto the room card's atmospheric getaway banner."}
                     </p>
                   </div>
                 </div>
@@ -570,7 +593,7 @@ export default function ListingEditorPage() {
                 <div className="flex flex-col space-y-3">
                   <div className="flex items-center justify-between h-6">
                     <label className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                      Room & Facility Gallery Photos
+                      {isTurfCategory ? 'Pitch & Arena Action Photos' : 'Room & Facility Gallery Photos'}
                     </label>
                     <span className="text-[11px] font-bold text-slate-400">
                       {galleryImages.length} uploaded
@@ -590,7 +613,9 @@ export default function ListingEditorPage() {
                         Upload Folder or Select Multiple Photos
                       </span>
                       <span className="text-[10px] text-slate-400 mt-0.5 block">
-                        Select multiple files together (Bedroom, Jacuzzi, Balcony, Sunset View)
+                        {isTurfCategory 
+                          ? 'Select photos of Pitch Grass, Goal Posts, Floodlights, Dugout'
+                          : 'Select multiple files together (Bedroom, Jacuzzi, Balcony, Sunset View)'}
                       </span>
                     </div>
                   </div>
@@ -733,25 +758,50 @@ export default function ListingEditorPage() {
 
               <div>
                 <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2">
-                  Unit Highlights & Layout
+                  {isTurfCategory ? 'Pitch Highlights & Ground Rules' : 'Unit Highlights & Layout'}
                 </label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="e.g. Spacious beachfront villa featuring private plunge pool, king-size bed, sunset sea views, complimentary breakfast, and signature bath amenities..."
+                  placeholder={
+                    isTurfCategory
+                      ? "e.g. FIFA certified 50mm monofilament turf, high-intensity LED floodlights, professional dugout, complimentary match bibs and ball, shower facilities..."
+                      : "e.g. Spacious beachfront villa featuring private plunge pool, king-size bed, sunset sea views, complimentary breakfast, and signature bath amenities..."
+                  }
                   rows={3}
                   className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-medium text-xs focus:border-[#ff6325] focus:bg-white dark:focus:bg-[#131d2e] outline-none transition-all shadow-xs"
                 />
+              </div>
+
+              {/* Complimentary / Included Gear or Inclusions */}
+              <div>
+                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2">
+                  {isTurfCategory ? '⚽ Complimentary / Included Playing Gear' : 'Included Amenities / Welcome Gear'}
+                </label>
+                <input
+                  type="text"
+                  value={equipmentAddons}
+                  onChange={(e) => setEquipmentAddons(e.target.value)}
+                  placeholder={
+                    isTurfCategory
+                      ? "e.g. 2 Match Balls (Size 5), 14 Team Bibs (Neon Green & Orange), Goalkeeper Gloves"
+                      : "e.g. Welcome Drinks, High-Speed WiFi, Beach Towels, Snorkeling Kit"
+                  }
+                  className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-medium text-xs focus:border-[#ff6325] outline-none transition-all shadow-xs"
+                />
+                <span className="text-[11px] text-slate-400 mt-1 block">
+                  Items you provide for free with this booking (displayed in the green banner on the customer page).
+                </span>
               </div>
 
               <div className="pt-2">
                 <div className="flex items-center justify-between mb-3 bg-slate-50 dark:bg-white/[0.03] p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10">
                   <div>
                     <span className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider block">
-                      Optional Unit Add-ons
+                      {isTurfCategory ? 'Optional Turf Add-ons' : 'Optional Unit Add-ons'}
                     </span>
                     <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                      Extra Bed, BBQ Setup, Candlelight Dinner, Floodlights
+                      {isTurfCategory ? 'Match Referee, Mineral Water Dispenser, Extra Match Ball, Video Recording' : 'Extra Bed, BBQ Setup, Candlelight Dinner, Airport Pickup'}
                     </span>
                   </div>
                   <button
@@ -769,7 +819,13 @@ export default function ListingEditorPage() {
                     <div key={idx} className="flex items-center gap-2.5">
                       <input
                         type="text"
-                        placeholder="Add-on item (e.g. Extra Bed / Candlelight Dinner)"
+                        placeholder={
+                          isTurfCategory 
+                            ? "Add-on item (e.g. Match Referee / Video Recording / Energy Drinks)" 
+                            : archetype === 'APPOINTMENT'
+                            ? "Add-on service (e.g. Blood Sugar Test / ECG / Diet Plan)"
+                            : "Add-on item (e.g. Extra Bed / Candlelight Dinner / Airport Pickup)"
+                        }
                         value={addon.name}
                         onChange={(e) => {
                           const next = [...addons];
@@ -817,7 +873,7 @@ export default function ListingEditorPage() {
                 <div className="flex items-center gap-2.5">
                   <span className="h-3 w-3 rounded-full bg-purple-500 ring-4 ring-purple-500/15" />
                   <h2 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white">
-                    4. {category.name} Specifications & Setup
+                    4. <span className="capitalize">{categoryDisplayName}</span> Specifications & Setup
                   </h2>
                 </div>
                 <span className="text-[11px] font-bold text-slate-400">Step 4 of 4</span>
@@ -897,17 +953,22 @@ export default function ListingEditorPage() {
             <div className="rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden bg-white dark:bg-[#162033] shadow-md p-4 space-y-4">
               
               {/* Photo with Units Badge & Image Pill */}
-              <div className="h-44 w-full relative rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-800">
-                <img 
-                  src={imageUrl || (galleryImages.length > 0 ? galleryImages[0] : 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&auto=format&fit=crop&q=75')} 
-                  alt="Unit Cover"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-2.5 left-2.5 bg-[#033266]/90 dark:bg-[#ff6325]/90 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] font-black text-white flex items-center gap-1 shadow-md">
+              <div 
+                className="h-44 w-full relative rounded-xl overflow-hidden bg-cover bg-center bg-slate-800"
+                style={{
+                  backgroundImage: `url("${imageUrl || (galleryImages.length > 0 ? galleryImages[0] : (isTurfCategory ? 'https://images.unsplash.com/photo-1574629810360-7efbb49fec90?w=800&auto=format&fit=crop&q=80' : 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop&q=80'))}"), linear-gradient(135deg, ${isTurfCategory ? '#0d381e, #1a5632' : '#1e293b, #0f172a'})`
+                }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
+                <div className="absolute top-2.5 left-2.5 bg-[#033266]/90 dark:bg-[#ff6325]/90 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] font-black text-white flex items-center gap-1 shadow-md z-10">
                   <Users size={11} />
-                  <span>{metadata.totalUnits ? `${metadata.totalUnits} UNITS LEFT` : '3 UNITS LEFT'}</span>
+                  <span>
+                    {metadata.totalUnits 
+                      ? `${metadata.totalUnits} ${isTurfCategory ? (Number(metadata.totalUnits) > 1 ? 'PITCHES OPEN' : 'PITCH AVAILABLE') : 'UNITS LEFT'}` 
+                      : (isTurfCategory ? 'PITCH AVAILABLE' : '3 UNITS LEFT')}
+                  </span>
                 </div>
-                <div className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-black/75 backdrop-blur-md text-white text-[10px] font-bold">
+                <div className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-black/75 backdrop-blur-md text-white text-[10px] font-bold z-10">
                   📷 See Photos ({galleryImages.length || 1})
                 </div>
               </div>
@@ -915,7 +976,7 @@ export default function ListingEditorPage() {
               {/* Title & Review */}
               <div>
                 <h3 className="font-black text-base text-slate-900 dark:text-white leading-tight">
-                  {serviceName.trim() ? serviceName : `${category.name} (Unit Title)`}
+                  {serviceName.trim() ? serviceName : `${categoryDisplayName} (Unit Title)`}
                 </h3>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-emerald-600 text-white font-black text-[10px]">
@@ -926,34 +987,156 @@ export default function ListingEditorPage() {
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-1 leading-relaxed">
-                  {description.trim() ? description : 'Spacious modern unit featuring premium bedding, clean washroom, and essential hospitality amenities.'}
+                  {description.trim() 
+                    ? description 
+                    : (isTurfCategory 
+                        ? 'FIFA certified astro turf with high-mast floodlights, dugout seating, and match ball gear.'
+                        : 'Spacious modern unit featuring premium bedding, clean washroom, and essential hospitality amenities.')}
                 </p>
               </div>
 
               {/* Inclusions pill */}
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 font-bold text-[10px] border border-emerald-200 dark:border-emerald-800/50">
                 <CheckCircle2 size={11} />
-                <span>Instant Confirmation • Free Cancellation</span>
+                <span>Instant Confirmation • {isTurfCategory ? 'Free Equipment' : 'Free Cancellation'}</span>
               </div>
 
               {/* Specs Grid */}
               <div className="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-sky-50/60 dark:bg-sky-950/20 border border-sky-100 dark:border-sky-900/30 text-[10px] font-bold text-slate-700 dark:text-slate-300">
-                <div className="flex items-center gap-1">
-                  <Users size={12} className="text-[#033266] dark:text-[#ff6325] shrink-0" />
-                  <span>Max {metadata.maxGuests || 4} Adults</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Bed size={12} className="text-[#033266] dark:text-[#ff6325] shrink-0" />
-                  <span className="truncate">{metadata.bedType || 'King Bed'}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span>📐</span>
-                  <span>{metadata.sizeSqFt || 450} sq.ft</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span>🚿</span>
-                  <span>Ensuite Bath</span>
-                </div>
+                {isTurfCategory ? (
+                  <>
+                    <div className="flex items-center gap-1">
+                      <Users size={12} className="text-[#033266] dark:text-[#ff6325] shrink-0" />
+                      <span>{metadata.turfSize || '7-a-side Pitch'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>⚡</span>
+                      <span className="truncate">{metadata.floodlightsSurcharge ? 'Night Floodlit' : 'Day & Night Play'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>🌱</span>
+                      <span>{metadata.surfaceType || 'FIFA 50mm Astro'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>⚽</span>
+                      <span>Bibs & Ball Inc.</span>
+                    </div>
+                  </>
+                ) : archetype === 'APPOINTMENT' ? (
+                  <>
+                    <div className="flex items-center gap-1">
+                      <span>🩺</span>
+                      <span className="truncate">{metadata.doctorName || metadata.speciality || 'Specialist Consult'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>⏱️</span>
+                      <span>{metadata.consultationDuration || 20} Mins Slot</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>🏥</span>
+                      <span>{metadata.opdRoomNumber || 'Consultation Cabin'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>🎟️</span>
+                      <span>Verified Token</span>
+                    </div>
+                  </>
+                ) : archetype === 'DINING' ? (
+                  <>
+                    <div className="flex items-center gap-1">
+                      <span>🍽️</span>
+                      <span>Cost for Two: ₹{metadata.costForTwo || 1200}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>🍷</span>
+                      <span>Table Reservation</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>✨</span>
+                      <span>AC & Outdoor</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>⚡</span>
+                      <span>Instant Booking</span>
+                    </div>
+                  </>
+                ) : archetype === 'ASSET_RENTAL' ? (
+                  <>
+                    <div className="flex items-center gap-1">
+                      <span>🚗</span>
+                      <span className="truncate">{metadata.assetModel || 'Vehicle Rental'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>🛣️</span>
+                      <span>{metadata.freeKmPerDay || '250 km / Day'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>🛡️</span>
+                      <span>Deposit: ₹{metadata.securityDeposit || 2000}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>📄</span>
+                      <span>Original DL Req.</span>
+                    </div>
+                  </>
+                ) : archetype === 'PASS_ENTRY' || archetype === 'EVENT' ? (
+                  <>
+                    <div className="flex items-center gap-1">
+                      <span>🎟️</span>
+                      <span className="truncate">{metadata.passTitle || 'Entry Ticket / Pass'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>📍</span>
+                      <span className="truncate">{metadata.originDeparturePoint || 'Main Venue Gate'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>🕒</span>
+                      <span>{metadata.scheduleTimings || 'Event Schedule'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>📱</span>
+                      <span>Digital QR Pass</span>
+                    </div>
+                  </>
+                ) : archetype === 'HOME_CALL' ? (
+                  <>
+                    <div className="flex items-center gap-1">
+                      <span>🔧</span>
+                      <span className="truncate">{metadata.serviceTitle || 'Doorstep Service'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>⏱️</span>
+                      <span>{metadata.serviceDuration || '60 Mins'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>🛡️</span>
+                      <span>30 Days Warranty</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>✅</span>
+                      <span>Verified Pro</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-1">
+                      <Users size={12} className="text-[#033266] dark:text-[#ff6325] shrink-0" />
+                      <span>Max {metadata.maxGuests || 4} Adults</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Bed size={12} className="text-[#033266] dark:text-[#ff6325] shrink-0" />
+                      <span className="truncate">{metadata.bedType || 'King Bed'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>📐</span>
+                      <span>{metadata.sizeSqFt || 450} sq.ft</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>🚿</span>
+                      <span>Ensuite Bath</span>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Deal Pricing & CTA matching Consumer UI */}
@@ -976,7 +1159,9 @@ export default function ListingEditorPage() {
                       <span className="text-xl font-black text-[#033266] dark:text-[#ff6325]">
                         ₹{basePrice ? Number(basePrice).toLocaleString() : '0'}
                       </span>
-                      <span className="text-[10px] text-slate-400">/ night</span>
+                      <span className="text-[10px] text-slate-400">
+                        {isTurfCategory ? '/ hour' : archetype === 'ACCOMMODATION' ? '/ night' : archetype === 'ASSET_RENTAL' ? '/ day' : archetype === 'APPOINTMENT' ? '/ consult' : '/ person'}
+                      </span>
                     </div>
                   </div>
 
@@ -985,7 +1170,7 @@ export default function ListingEditorPage() {
                     disabled 
                     className="px-4 py-2 rounded-xl bg-[#033266] dark:bg-[#ff6325] text-white text-[11px] font-black uppercase tracking-wider shadow-sm opacity-90 cursor-default"
                   >
-                    BOOK ROOM &rarr;
+                    {isTurfCategory ? 'BOOK SLOT →' : archetype === 'ACCOMMODATION' ? 'BOOK ROOM →' : archetype === 'APPOINTMENT' ? 'BOOK APPOINTMENT →' : archetype === 'DINING' ? 'RESERVE TABLE →' : archetype === 'ASSET_RENTAL' ? 'RENT NOW →' : 'BOOK NOW →'}
                   </button>
                 </div>
 
@@ -997,16 +1182,16 @@ export default function ListingEditorPage() {
                 )}
               </div>
 
-              {/* Getaway Banner Preview */}
-              <div className="h-24 rounded-xl overflow-hidden relative shadow-inner border border-slate-200 dark:border-white/10">
-                <img
-                  src={imageUrl || (galleryImages.length > 0 ? galleryImages[0] : 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&auto=format&fit=crop&q=75')}
-                  alt="Getaway"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-end p-2.5">
+              {/* Getaway / Turf Showcase Banner Preview */}
+              <div 
+                className="h-24 rounded-xl overflow-hidden relative shadow-inner border border-slate-200 dark:border-white/10 bg-cover bg-center"
+                style={{
+                  backgroundImage: `url("${imageUrl || (galleryImages.length > 0 ? galleryImages[0] : (isTurfCategory ? 'https://images.unsplash.com/photo-1574629810360-7efbb49fec90?w=800&auto=format&fit=crop&q=80' : 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop&q=80'))}"), linear-gradient(135deg, ${isTurfCategory ? '#0d381e, #1a5632' : '#1e293b, #0f172a'})`
+                }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent flex items-end p-2.5">
                   <span className="font-serif italic text-white text-xs font-bold drop-shadow-md">
-                    {bannerTagline.trim() ? bannerTagline : 'Your Perfect Getaway Awaits'}
+                    {bannerTagline.trim() ? bannerTagline : (isTurfCategory ? 'Premier FIFA Astro Turf Arena' : 'Your Perfect Getaway Awaits')}
                   </span>
                 </div>
               </div>

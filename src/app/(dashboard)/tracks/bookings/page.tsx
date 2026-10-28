@@ -17,84 +17,84 @@ export default function BookingsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   
-  const baseConfig = getArchetypeConfig(currentMerchant?.category || currentMerchant?.archetype || 'Service');
-  const archetypeConfig = { ...baseConfig, ...(currentMerchant?.customDictionary || {}) };
-
-  // Prescription Form (Healthcare)
-  
-
-  // Match Notes (Turf)
   const [matchNotesInput, setMatchNotesInput] = useState('');
-
   const [liveBookings, setLiveBookings] = useState<any[]>([]);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
+
+  const effectiveBranches = (currentMerchant?.branches && currentMerchant.branches.length > 0)
+    ? currentMerchant.branches
+    : [
+        {
+          id: 'branch-resort-stay',
+          name: 'Suites & Stays',
+          city: currentMerchant?.city || 'Chennai',
+          category: 'Resort Booking',
+          businessType: 'Stay & Rooms',
+          address: 'East Coast Road, Chennai',
+          gstStatus: 'WITH_GST',
+          gstNumber: currentMerchant?.gstNumber || '33AAAAA0000A1Z5',
+          offeringsSummary: 'Deluxe Suites, Pool Cottages',
+          isMainBranch: true
+        },
+        {
+          id: 'branch-resort-turf',
+          name: 'Sports Turf',
+          city: currentMerchant?.city || 'Chennai',
+          category: 'Football Turf',
+          businessType: 'Sports Facility',
+          address: 'East Coast Road (Arena Annex), Chennai',
+          gstStatus: 'WITH_GST',
+          gstNumber: currentMerchant?.gstNumber || '33AAAAA0000A1Z5',
+          offeringsSummary: '7v7 FIFA Astro Turf, Floodlit Ground',
+          isMainBranch: false
+        }
+      ];
+
+  const curId = String(currentMerchant?.id || '').trim();
+  const curName = (currentMerchant?.merchantName || '').toLowerCase().trim();
+  const activeBranch = effectiveBranches.find(b => b.id === (currentMerchant?.activeBranchId || effectiveBranches[0].id)) || effectiveBranches[0];
+  const isTurfBranch = Boolean(activeBranch.category?.toLowerCase().includes('turf') || activeBranch.name?.toLowerCase().includes('turf'));
+  const activeBranchCategory = activeBranch.category || (isTurfBranch ? 'Football Turf' : (currentMerchant?.category || 'Resort Booking'));
+
+  const baseConfig = getArchetypeConfig(activeBranchCategory || currentMerchant?.archetype || 'Service');
+  const archetypeConfig = { ...baseConfig, ...(currentMerchant?.customDictionary || {}) };
+
+  const isMatch = (b: any) => {
+    if (!b) return false;
+    const bId = String(b.merchantId || '').trim();
+    const bName = (b.merchantName || '').toLowerCase().trim();
+    
+    // Match by ID or Name
+    let matchesMerchant = (curId && bId && curId === bId) || 
+                          (curName && bName && (curName === bName || bName.includes(curName) || curName.includes(bName)));
+    
+    // Also match if booking has merchantName starting with Sunstone / Arena or matching active branch
+    if (!matchesMerchant && (curName.includes('sunstone') || curName.includes('resort') || curName.includes('arena'))) {
+      if (bName.includes('sunstone') || bName.includes('arena 5') || bName.includes('arena')) {
+        matchesMerchant = true;
+      }
+    }
+
+    if (!matchesMerchant) return false;
+
+    const bCategory = (b.category || '').toLowerCase().trim();
+    const bServiceName = (b.serviceName || '').toLowerCase();
+    const isBookingTurf = bCategory.includes('turf') || bCategory.includes('football') || bCategory.includes('cricket') || bCategory.includes('pitch') || bCategory.includes('sport') ||
+      bServiceName.includes('turf') || bServiceName.includes('football') || bServiceName.includes('pitch');
+
+    // Strict Branch Offering Isolation:
+    // If user switched to "Sports Turf" branch -> show Turf bookings
+    // If user switched to "Suites & Stays" branch -> show Accommodation/Resort bookings
+    if (isTurfBranch) {
+      return isBookingTurf;
+    } else {
+      return !isBookingTurf;
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
     if (!currentMerchant) return;
-
-    const effectiveBranches = (currentMerchant.branches && currentMerchant.branches.length > 0)
-      ? currentMerchant.branches
-      : [
-          {
-            id: 'branch-resort-stay',
-            name: 'Suites & Stays',
-            city: currentMerchant.city || 'Chennai',
-            category: 'Resort Booking',
-            businessType: 'Stay & Rooms',
-            address: 'East Coast Road, Chennai',
-            gstStatus: 'WITH_GST',
-            gstNumber: currentMerchant.gstNumber || '33AAAAA0000A1Z5',
-            offeringsSummary: 'Deluxe Suites, Pool Cottages',
-            isMainBranch: true
-          },
-          {
-            id: 'branch-resort-turf',
-            name: 'Sports Turf',
-            city: currentMerchant.city || 'Chennai',
-            category: 'Football Turf',
-            businessType: 'Sports Facility',
-            address: 'East Coast Road (Arena Annex), Chennai',
-            gstStatus: 'WITH_GST',
-            gstNumber: currentMerchant.gstNumber || '33AAAAA0000A1Z5',
-            offeringsSummary: '7v7 FIFA Astro Turf, Floodlit Ground',
-            isMainBranch: false
-          }
-        ];
-    const activeBranch = effectiveBranches.find(b => b.id === (currentMerchant.activeBranchId || effectiveBranches[0].id)) || effectiveBranches[0];
-    const isTurfBranch = (activeBranch.category?.toLowerCase().includes('turf') || activeBranch.name?.toLowerCase().includes('turf'));
-
-    const isMatch = (b: any) => {
-      const bId = String(b.merchantId || '').trim();
-      const bName = (b.merchantName || '').toLowerCase().trim();
-      
-      // Match by ID or Name
-      let matchesMerchant = (curId && bId && curId === bId) || 
-                            (curName && bName && (curName === bName || bName.includes(curName) || curName.includes(bName)));
-      
-      // Also match if booking has merchantName starting with Sunstone / Arena or matching active branch
-      if (!matchesMerchant && (curName.includes('sunstone') || curName.includes('resort') || curName.includes('arena'))) {
-        if (bName.includes('sunstone') || bName.includes('arena 5') || bName.includes('arena')) {
-          matchesMerchant = true;
-        }
-      }
-
-      if (!matchesMerchant) return false;
-
-      const bCategory = (b.category || '').toLowerCase().trim();
-      const bServiceName = (b.serviceName || '').toLowerCase();
-      const isBookingTurf = bCategory.includes('turf') || bCategory.includes('football') || bCategory.includes('cricket') || bCategory.includes('pitch') || bCategory.includes('sport') ||
-        bServiceName.includes('turf') || bServiceName.includes('football') || bServiceName.includes('pitch');
-
-      // Strict Branch Offering Isolation:
-      // If user switched to "Sports Turf" branch -> show Turf bookings
-      // If user switched to "Suites & Stays" branch -> show Accommodation/Resort bookings
-      if (isTurfBranch) {
-        return isBookingTurf;
-      } else {
-        return !isBookingTurf;
-      }
-    };
 
     const fetchSync = async () => {
       try {
@@ -123,7 +123,7 @@ export default function BookingsPage() {
     fetchSync();
     const interval = setInterval(fetchSync, 2000);
     return () => clearInterval(interval);
-  }, [currentMerchant]);
+  }, [currentMerchant, isTurfBranch, curId, curName]);
 
   const handleAccept = async (b: any) => {
     setAcceptingId(b.id);
@@ -208,66 +208,8 @@ export default function BookingsPage() {
   // Strict Filter logic — ONLY show bookings that explicitly belong to THIS merchant (by ID or exact Merchant Name)
   // and guarantee strict archetype / category isolation so Villa never sees Bus/Train bookings.
   const curArch = getArchetypeFromCategory(currentMerchant.archetype) || getArchetypeFromCategory(currentMerchant.category);
-  const curName = (currentMerchant.merchantName || '').toLowerCase().trim();
-  const curId = String(currentMerchant.id || '').trim();
 
-  let merchantBookings = allMergedBookings.filter((b) => {
-    const bMerchantName = (b.merchantName || '').toLowerCase().trim();
-    const bMerchantId = String(b.merchantId || '').trim();
-
-    // 1. Direct Merchant ID Match
-    const matchesId = Boolean(curId && bMerchantId && curId === bMerchantId);
-    const effectiveBranches = (currentMerchant.branches && currentMerchant.branches.length > 0)
-      ? currentMerchant.branches
-      : [
-          {
-            id: 'branch-resort-stay',
-            name: 'Suites & Stays',
-            city: currentMerchant.city || 'Chennai',
-            category: 'Resort Booking',
-            businessType: 'Stay & Rooms',
-            address: 'East Coast Road, Chennai',
-            gstStatus: 'WITH_GST',
-            gstNumber: currentMerchant.gstNumber || '33AAAAA0000A1Z5',
-            offeringsSummary: 'Deluxe Suites, Pool Cottages',
-            isMainBranch: true
-          },
-          {
-            id: 'branch-resort-turf',
-            name: 'Sports Turf',
-            city: currentMerchant.city || 'Chennai',
-            category: 'Football Turf',
-            businessType: 'Sports Facility',
-            address: 'East Coast Road (Arena Annex), Chennai',
-            gstStatus: 'WITH_GST',
-            gstNumber: currentMerchant.gstNumber || '33AAAAA0000A1Z5',
-            offeringsSummary: '7v7 FIFA Astro Turf, Floodlit Ground',
-            isMainBranch: false
-          }
-        ];
-    const activeBranch = effectiveBranches.find(b => b.id === (currentMerchant.activeBranchId || effectiveBranches[0].id)) || effectiveBranches[0];
-    const isTurfBranch = (activeBranch.category?.toLowerCase().includes('turf') || activeBranch.name?.toLowerCase().includes('turf'));
-
-    let matchesMerchant = matchesId || matchesName || matchesServiceFallback;
-    if (!matchesMerchant && (curName.includes('sunstone') || curName.includes('resort') || curName.includes('arena'))) {
-      if (bMerchantName.includes('sunstone') || bMerchantName.includes('arena 5') || bMerchantName.includes('arena')) {
-        matchesMerchant = true;
-      }
-    }
-
-    if (!matchesMerchant) return false;
-
-    // Strict Branch Offering Isolation:
-    const bCategory = (b.category || '').toLowerCase().trim();
-    const isBookingTurf = bCategory.includes('turf') || bCategory.includes('football') || bCategory.includes('cricket') || bCategory.includes('pitch') || bCategory.includes('sport') ||
-      bServiceName.includes('turf') || bServiceName.includes('football') || bServiceName.includes('pitch');
-
-    if (isTurfBranch) {
-      return isBookingTurf;
-    } else {
-      return !isBookingTurf;
-    }
-  });
+  let merchantBookings = allMergedBookings.filter(isMatch);
 
   const isStaffView = loginRole === 'staff';
   if (isStaffView && currentStaff) {
@@ -284,13 +226,19 @@ export default function BookingsPage() {
     return searchTarget.toLowerCase().includes(searchQuery.toLowerCase()) || 
            (b.ref || '').toLowerCase().includes(searchQuery.toLowerCase());
   }).sort((a, b) => {
-    const timeA = a.time || '12:00 PM';
-    const timeB = b.time || '12:00 PM';
-    const dateA = a.date || '2026-01-01';
-    const dateB = b.date || '2026-01-01';
-    const tA = new Date(`${dateA} ${timeA}`).getTime() || new Date(dateA).getTime() || 0;
-    const tB = new Date(`${dateB} ${timeB}`).getTime() || new Date(dateB).getTime() || 0;
-    return tB - tA;
+    const parseTime = (item: any) => {
+      if (item.bookedAt) {
+        const d = new Date(item.bookedAt).getTime();
+        if (!isNaN(d)) return d;
+      }
+      if (item.id && !isNaN(Number(item.id)) && Number(item.id) > 1700000000000) {
+        return Number(item.id);
+      }
+      const dateStr = item.date || '2026-01-01';
+      const d = new Date(dateStr).getTime();
+      return !isNaN(d) ? d : 0;
+    };
+    return parseTime(b) - parseTime(a);
   });
 
   const selectedBooking = allMergedBookings.find((b) => b.id === selectedBookingId);
@@ -326,46 +274,8 @@ export default function BookingsPage() {
                   const res = await fetch(`http://localhost:9000/api/v1/bookings/sync?t=${Date.now()}`);
                   const raw = await res.json();
                   const items = Array.isArray(raw?.data) ? raw.data : (Array.isArray(raw) ? raw : []);
-                  const curName = (currentMerchant?.merchantName || '').toLowerCase().trim();
-                  const curId = String(currentMerchant?.id || '').trim();
-                  const curArch = currentMerchant?.archetype || getArchetypeFromCategory(currentMerchant?.category);
-
-                  const merchantOnly = items.filter((b: any) => {
-                    const bId = String(b.merchantId || '').trim();
-                    const bName = (b.merchantName || '').toLowerCase().trim();
-                    const matches = (curId && bId && curId === bId) || (curName && bName && curName === bName);
-                    if (!matches) return false;
-
-                    const bCategory = (b.category || '').toLowerCase().trim();
-                    const bServiceName = (b.serviceName || '').toLowerCase();
-                    const bArch = getArchetypeFromCategory(bCategory);
-
-                    if (curArch === 'ACCOMMODATION' || ['homestay / villa', 'homestay-villa', 'villas', 'hotels', 'resorts'].includes((currentMerchant?.category || '').toLowerCase().trim())) {
-                      if (bArch === 'TRANSPORT' || ['buses', 'trains', 'flights', 'cabs'].includes(bCategory)) return false;
-                      if (/bus|train|flight|shatabdi|volvo/i.test(bServiceName)) return false;
-                    }
-                    if (curArch && bArch && curArch !== bArch) return false;
-                    return true;
-                  });
+                  const merchantOnly = items.filter(isMatch);
                   setLiveBookings(merchantOnly);
-
-                  // Also cleanse store's persisted bookings
-                  const currentStored = useVendorStore.getState().bookings;
-                  const cleanedStore = currentStored.filter((b: any) => {
-                    const bId = String(b.merchantId || '').trim();
-                    const bName = (b.merchantName || '').toLowerCase().trim();
-                    const matches = (curId && bId && curId === bId) || (curName && bName && curName === bName);
-                    if (!matches) return false;
-                    const bCategory = (b.category || '').toLowerCase().trim();
-                    const bServiceName = (b.serviceName || '').toLowerCase();
-                    const bArch = getArchetypeFromCategory(bCategory);
-                    if (curArch === 'ACCOMMODATION' || ['homestay / villa', 'homestay-villa', 'villas', 'hotels', 'resorts'].includes((currentMerchant?.category || '').toLowerCase().trim())) {
-                      if (bArch === 'TRANSPORT' || ['buses', 'trains', 'flights', 'cabs'].includes(bCategory)) return false;
-                      if (/bus|train|flight|shatabdi|volvo/i.test(bServiceName)) return false;
-                    }
-                    return true;
-                  });
-                  useVendorStore.setState({ bookings: cleanedStore });
                 } catch(e) {}
               }} 
               className="px-2 py-0.5 rounded bg-[#ff6325] text-white font-bold text-[10px] ml-2 hover:opacity-90 active:scale-95"

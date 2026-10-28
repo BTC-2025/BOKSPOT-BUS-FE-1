@@ -15,8 +15,6 @@ import { useRouter } from 'next/navigation';
 export default function DashboardPage() {
   const router = useRouter();
   const { currentMerchant, staffAccounts, bookings, loginRole, currentStaff, checkInBooking, completeBooking, switchVertical } = useVendorStore();
-  const baseConfig = getArchetypeConfig(currentMerchant?.archetype || 'Service');
-  const archetypeConfig = { ...baseConfig, ...(currentMerchant?.customDictionary || {}) };
 
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState('This Week');
@@ -108,6 +106,9 @@ export default function DashboardPage() {
   // Active Category & Archetype aligned with active branch
   const activeBranchCategory = activeBranch.category || (isTurfBranch ? 'Football Turf' : (currentMerchant.category || 'Resort Booking'));
   const curArch = (getArchetypeFromCategory(activeBranchCategory) || 'ACCOMMODATION');
+
+  const baseConfig = getArchetypeConfig(activeBranchCategory || currentMerchant?.archetype || 'Service');
+  const archetypeConfig = { ...baseConfig, ...(currentMerchant?.customDictionary || {}) };
 
   const isValidForMerchant = (b: any) => {
     const bCategory = (b.category || '').toLowerCase().trim();
@@ -207,10 +208,10 @@ export default function DashboardPage() {
 
   const getBookingType = (serviceName: string, fallback?: string) => {
     const name = (serviceName || '').toLowerCase();
-    if (name.includes('room') || name.includes('hotel') || name.includes('suite')) return 'Resort Stay';
-    if (name.includes('football') || name.includes('turf') || name.includes('pitch')) return 'Turf Slot';
+    if (name.includes('room') || name.includes('hotel') || name.includes('suite') || name.includes('villa') || name.includes('resort') || name.includes('cottage') || name.includes('stay')) return 'Resort Stay';
+    if (name.includes('football') || name.includes('turf') || name.includes('pitch') || name.includes('court') || name.includes('arena')) return 'Turf Slot';
     if (name.includes('cricket')) return 'Cricket Ground';
-    return fallback || 'Service Slot';
+    return isTurfBranch ? 'Turf Slot' : 'Resort Stay';
   };
 
   const handleAccept = async (booking: any) => {
@@ -362,7 +363,9 @@ export default function DashboardPage() {
                   Active
                 </span>
               </div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total Bookings</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                {isTurfBranch ? 'Total Matches' : (archetypeConfig.kpiTotalBookings || 'Total Reservations')}
+              </p>
               <h3 className="text-xl font-black text-slate-900 dark:text-white">{allMerchantBookings.length}</h3>
             </div>
 
@@ -375,7 +378,9 @@ export default function DashboardPage() {
                   Verified
                 </span>
               </div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Guests & Teams</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                {isTurfBranch ? 'Teams & Players' : 'Guests & Visitors'}
+              </p>
               <h3 className="text-xl font-black text-slate-900 dark:text-white">{occupancy}</h3>
             </div>
 
@@ -399,9 +404,11 @@ export default function DashboardPage() {
               <div>
                 <h2 className="text-base font-black text-[#0a3161] dark:text-white flex items-center gap-2">
                   <TrendingUp size={16} className="text-[#ff6325]" />
-                  Weekly Revenue Velocity & Footfall
+                  {isTurfBranch ? 'Weekly Revenue Velocity & Footfall' : 'Weekly Occupancy & Revenue Trend'}
                 </h2>
-                <p className="text-xs text-slate-400 mt-0.5">Peak traffic distribution across 7 days</p>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {isTurfBranch ? 'Peak traffic distribution across 7 days' : 'Guest check-ins & booking distribution across 7 days'}
+                </p>
               </div>
               <div className="flex items-center gap-1.5 mt-2 sm:mt-0 p-1 rounded-xl bg-slate-100 dark:bg-white/5">
                 {['Today', 'This Week', 'This Month'].map(tab => (
@@ -429,7 +436,7 @@ export default function DashboardPage() {
                           <div className="absolute bottom-0 w-full bg-gradient-to-t from-[#0a3161] to-[#ff6325] rounded-t-xl transition-all shadow-[0_0_12px_rgba(255,99,37,0.3)]" style={{ height: `${Math.max(hp * 0.7, 12)}%` }} />
                         </div>
                         <div className="absolute -top-9 bg-[#0a3161] text-white shadow-xl text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 border border-[#ff6325]/30">
-                          {val} Bookings
+                          {val} {isTurfBranch ? 'Bookings' : 'Reservations'}
                         </div>
                       </div>
                       <span className="text-[11px] font-bold uppercase text-slate-400 dark:text-slate-500 group-hover:text-[#ff6325] transition-colors">{days[idx]}</span>
@@ -446,7 +453,7 @@ export default function DashboardPage() {
               <div className="flex items-center gap-2">
                 <FileText size={17} className="text-[#ff6325]" />
                 <h2 className="text-base font-black text-[#0a3161] dark:text-white">
-                  Live Queue & Incoming Slots
+                  {isTurfBranch ? 'Live Queue & Incoming Slots' : 'Live Queue & Upcoming Reservations'}
                 </h2>
                 {liveForMerchant.filter(b => b.status === 'PENDING').length > 0 && (
                   <span className="px-2.5 py-0.5 rounded-full bg-[#ff6325]/15 text-[#ff6325] border border-[#ff6325]/30 text-[10px] font-black animate-pulse">
@@ -464,7 +471,9 @@ export default function DashboardPage() {
                 <thead>
                   <tr className="bg-slate-50/70 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5">
                     <th className="py-3 px-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Customer</th>
-                    <th className="py-3 px-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Slot & Facility</th>
+                    <th className="py-3 px-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                      {isTurfBranch ? 'Slot & Facility' : 'Suite & Accommodation'}
+                    </th>
                     <th className="py-3 px-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Schedule</th>
                     <th className="py-3 px-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Status / Action</th>
                   </tr>
@@ -543,8 +552,12 @@ export default function DashboardPage() {
                   <Activity size={16} />
                 </span>
                 <div>
-                  <h3 className="text-sm font-black text-[#0a3161] dark:text-white">Live Slot & Resource Grid</h3>
-                  <p className="text-[11px] text-slate-400">Pitches & Suites Availability</p>
+                  <h3 className="text-sm font-black text-[#0a3161] dark:text-white">
+                    {isTurfBranch ? 'Live Slot & Pitch Grid' : 'Live Suite & Room Inventory'}
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    {isTurfBranch ? 'Pitches & Court Availability' : 'Suites & Cottages Availability'}
+                  </p>
                 </div>
               </div>
               <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black">
@@ -597,7 +610,7 @@ export default function DashboardPage() {
             {/* Quick Legend */}
             <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-bold text-slate-400">
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> Ready</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#ff6325] inline-block" /> In Play</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#ff6325] inline-block" /> {isTurfBranch ? 'In Play' : 'Occupied'}</span>
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400 inline-block" /> Reserved</span>
             </div>
           </div>
@@ -615,7 +628,9 @@ export default function DashboardPage() {
             </div>
 
             <p className="text-xs text-white/70 mb-5 relative z-10">
-              Instant offline booking assignment for walk-in players, banquet guests, or room checks.
+              {isTurfBranch 
+                ? 'Instant offline booking assignment for walk-in players, teams, or pitch checks.' 
+                : 'Instant offline reservation for walk-in guests, banquet events, or room check-ins.'}
             </p>
 
             <div className="space-y-2.5 relative z-10">
@@ -624,7 +639,7 @@ export default function DashboardPage() {
                 className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-[#ff6325] hover:bg-[#e04e13] text-white font-black text-xs transition-all shadow-lg shadow-[#ff6325]/30 cursor-pointer active:scale-95"
               >
                 <span className="flex items-center gap-2">
-                  <Plus size={15} /> Book Walk-in Customer
+                  <Plus size={15} /> {isTurfBranch ? 'Book Walk-in Slot' : 'Book Walk-in Guest'}
                 </span>
                 <ChevronRight size={14} />
               </button>
@@ -643,7 +658,7 @@ export default function DashboardPage() {
                 onClick={() => router.push('/workspace/my-services')}
                 className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-white/90 font-bold text-xs transition-all border border-white/10 cursor-pointer"
               >
-                <span>Edit Pitch & Villa Pricing</span>
+                <span>{isTurfBranch ? 'Edit Pitch & Turf Pricing' : 'Edit Suite & Villa Tariff'}</span>
                 <ChevronRight size={14} />
               </button>
             </div>

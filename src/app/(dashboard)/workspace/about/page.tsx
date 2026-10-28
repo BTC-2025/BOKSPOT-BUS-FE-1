@@ -58,6 +58,41 @@ export default function VenueProfilePage() {
   const [longitude, setLongitude] = useState('');
   const [aroundProperty, setAroundProperty] = useState<Array<{ name: string; distance: string }>>([]);
   const [newLandmarkName, setNewLandmarkName] = useState('');
+  const [showIconPicker, setShowIconPicker] = useState(false);
+
+  // Smart Keyword to Icon Auto-Detection Dictionary
+  const detectIconFromText = (text: string): string => {
+    const t = text.toLowerCase().trim();
+    if (!t) return '⭐';
+
+    if (/breakfast|egg|omelet|dosa|idli|morning meal/i.test(t)) return '🍳';
+    if (/pool|swim|jacuzzi|water/i.test(t)) return '🏊';
+    if (/food|dining|restaurant|dinner|lunch|buffet|culinary|chef|meal|kitchen|snack/i.test(t)) return '🍽️';
+    if (/coffee|tea|cafe|espresso|beverage/i.test(t)) return '☕';
+    if (/bar|cocktail|drinks|lounge|pub|brew/i.test(t)) return '🍸';
+    if (/wifi|internet|speed|broadband|network/i.test(t)) return '📶';
+    if (/clean|hygiene|sanitized|tidy|spotless|housekeeping|linen/i.test(t)) return '✨';
+    if (/service|concierge|front desk|reception|butler|staff|bellboy/i.test(t)) return '🛎️';
+    if (/park|parking|valet|garage|car/i.test(t)) return '🚗';
+    if (/pet|dog|cat|puppy|animal/i.test(t)) return '🐾';
+    if (/ac|air condition|climate|cooling|cool/i.test(t)) return '❄️';
+    if (/tv|screen|netflix|smart tv|entertainment|theatre/i.test(t)) return '📺';
+    if (/gym|fitness|workout|exercise|dumbbell|yoga/i.test(t)) return '🏋️';
+    if (/spa|massage|sauna|wellness|relax|steam/i.test(t)) return '💆';
+    if (/beach|sea|ocean|coast|sand|shore/i.test(t)) return '🏖️';
+    if (/mountain|hill|view|valley|peak/i.test(t)) return '⛰️';
+    if (/garden|lawn|nature|green|flora|park/i.test(t)) return '🌿';
+    if (/turf|football|cricket|sports|arena|ground|play/i.test(t)) return '⚽';
+    if (/security|safe|guard|cctv|lock|shield|secure/i.test(t)) return '🛡️';
+    if (/power|generator|backup|electricity|charging|ev/i.test(t)) return '⚡';
+    if (/bed|room|suite|pillow|sleep|comfort/i.test(t)) return '🛏️';
+    if (/child|kid|play area|family|baby/i.test(t)) return '🧸';
+    if (/music|party|bonfire|campfire|dance|dj/i.test(t)) return '🔥';
+    if (/location|center|prime|accessible|near/i.test(t)) return '📍';
+    if (/award|luxury|star|premium|vip|elite|best/i.test(t)) return '🏆';
+
+    return '⭐';
+  };
   const [newLandmarkDist, setNewLandmarkDist] = useState('');
 
   useEffect(() => {
@@ -709,35 +744,82 @@ export default function VenueProfilePage() {
           </div>
 
           <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-[#121a29] border border-slate-200/70 dark:border-white/10 space-y-3">
-            <h4 className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-              Add New Highlight
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-              <div className="sm:col-span-1">
-                <input
-                  type="text"
-                  value={newHighlightIcon}
-                  onChange={(e) => setNewHighlightIcon(e.target.value)}
-                  placeholder="Emoji / Icon (🍳)"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#162033] text-slate-900 dark:text-white text-xs font-medium outline-none focus:border-[#ff6325]"
-                />
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles size={14} className="text-[#ff6325]" />
+                Add New Highlight
+              </h4>
+              <span className="text-[10px] text-slate-400 font-medium">✨ Icon auto-detected from title</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Auto-detected Icon button with quick-selector popover */}
+              <div className="relative shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setShowIconPicker(!showIconPicker)}
+                  title="Click to change icon"
+                  className="h-10 w-11 rounded-xl border-2 border-dashed border-[#ff6325]/40 hover:border-[#ff6325] bg-white dark:bg-[#162033] flex items-center justify-center text-lg shadow-2xs hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                >
+                  {newHighlightIcon}
+                </button>
+
+                {/* Quick Icon Selector Dropdown */}
+                {showIconPicker && (
+                  <div className="absolute left-0 top-full mt-2 w-64 p-3 bg-white dark:bg-[#0c1424] border border-slate-200 dark:border-white/15 rounded-2xl shadow-xl z-50 space-y-2">
+                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-1.5">
+                      <span className="text-[10px] uppercase font-bold text-slate-400">Select Icon</span>
+                      <button
+                        type="button"
+                        onClick={() => setShowIconPicker(false)}
+                        className="text-slate-400 hover:text-slate-600 text-xs font-bold"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-6 gap-1.5 max-h-40 overflow-y-auto p-0.5">
+                      {['🍳', '🏊', '🍽️', '☕', '🍸', '📶', '✨', '🛎️', '🚗', '🐾', '❄️', '📺', '🏋️', '💆', '🏖️', '⛰️', '🌿', '⚽', '🛡️', '⚡', '🛏️', '🧸', '🔥', '📍'].map((icon) => (
+                        <button
+                          key={icon}
+                          type="button"
+                          onClick={() => {
+                            setNewHighlightIcon(icon);
+                            setShowIconPicker(false);
+                          }}
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center text-base hover:bg-slate-100 dark:hover:bg-slate-800 transition-all ${newHighlightIcon === icon ? 'bg-orange-100 dark:bg-orange-950/50 ring-1 ring-[#ff6325]' : ''}`}
+                        >
+                          {icon}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="sm:col-span-3">
+
+              {/* Title input with live smart detection */}
+              <div className="flex-1">
                 <input
                   type="text"
                   value={newHighlightTitle}
-                  onChange={(e) => setNewHighlightTitle(e.target.value)}
-                  placeholder="Highlight Title (e.g. Free Breakfast Buffet & Inclusions)"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#162033] text-slate-900 dark:text-white text-xs font-medium outline-none focus:border-[#ff6325]"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setNewHighlightTitle(val);
+                    // Smart auto-detection based on user typing
+                    const autoIcon = detectIconFromText(val);
+                    setNewHighlightIcon(autoIcon);
+                  }}
+                  placeholder="e.g. Free Breakfast Buffet, Swimming Pool, High Speed WiFi..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#162033] text-slate-900 dark:text-white text-xs font-bold outline-none focus:border-[#ff6325] transition-all"
                 />
               </div>
             </div>
+
             <div>
               <textarea
                 value={newHighlightDesc}
                 onChange={(e) => setNewHighlightDesc(e.target.value)}
                 rows={2}
-                placeholder="Highlight details (e.g. Wide spread multi-cuisine breakfast buffet freshly prepared every morning.)"
+                placeholder="Highlight details (e.g. Wide spread multi-cuisine breakfast freshly prepared every morning.)"
                 className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#162033] text-slate-900 dark:text-white text-xs font-medium outline-none focus:border-[#ff6325] resize-none"
               />
             </div>

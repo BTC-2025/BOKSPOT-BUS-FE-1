@@ -50,6 +50,11 @@ export default function ServiceListingsPage() {
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=150`;
   }
 
+  // Display name formatting (clean internal technical identifiers like __BOKSPOT_GROUP__)
+  const displayName = (!category.name || category.name === '__BOKSPOT_GROUP__') 
+    ? (category.category || 'Service Units') 
+    : category.name;
+
   return (
     <div className="space-y-12 animate-fade-in pb-12 font-sans">
 
@@ -71,12 +76,16 @@ export default function ServiceListingsPage() {
                 <span className="font-bold">{category.category}</span>
               </>
             )}
-            <span>/</span>
-            <span className="text-[#ff6325] font-black">{category.name}</span>
+            {category.name && category.name !== '__BOKSPOT_GROUP__' && category.name !== category.category && (
+              <>
+                <span>/</span>
+                <span className="text-[#ff6325] font-black">{category.name}</span>
+              </>
+            )}
           </div>
 
           <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <span>{category.name}</span>
+            <span className="capitalize">{displayName}</span>
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#ff6325]/10 text-[#ff6325] font-bold">
               {listings.length} Bookable {listings.length === 1 ? 'Unit' : 'Units'}
             </span>
@@ -96,7 +105,7 @@ export default function ServiceListingsPage() {
           <button
             onClick={() => router.push(`/workspace/my-services/${serviceId}/listing/new`)}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
-            title={`Add a new listing under ${category.name}`}
+            title={`Add a new listing under ${displayName}`}
           >
             <Plus size={15} /> Add Listing
           </button>
@@ -172,7 +181,7 @@ export default function ServiceListingsPage() {
                       className="text-[11px] font-semibold drop-shadow"
                       style={{ color: 'rgba(255, 255, 255, 0.85)' }}
                     >
-                      {category.name}
+                      {displayName}
                     </p>
                   </div>
                 </div>
@@ -228,7 +237,7 @@ export default function ServiceListingsPage() {
               </div>
               <h3 className="text-base font-black text-slate-900 dark:text-white mb-1">No Listings Yet</h3>
               <p className="text-slate-400 max-w-sm text-xs mb-4">
-                Click below to add the first bookable unit for <strong className="text-slate-700 dark:text-white">{category.name}</strong>.
+                Click below to add the first bookable unit for <strong className="text-slate-700 dark:text-white capitalize">{displayName}</strong>.
               </p>
               <button
                 onClick={() => router.push(`/workspace/my-services/${serviceId}/listing/new`)}
