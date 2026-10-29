@@ -165,25 +165,25 @@ body {
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* Top Header Navbar - Frosted Acrylic Glassmorphism (Modern Minimalist Standard) */
+/* Top Header Navbar - Exact Customer Header Match (Ultra-Luxury Royal Obsidian Glass) */
 .vendor-navbar {
-  background: rgba(10, 24, 46, 0.82) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18), 0 1px 0 rgba(255, 255, 255, 0.06) inset !important;
-  backdrop-filter: blur(28px) saturate(190%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
+  backdrop-filter: blur(32px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(180%) !important;
+  background: linear-gradient(180deg, #00224f 0%, #001633 100%) !important;
+  border-bottom: 2px solid #ff6325 !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.1) inset !important;
 }
 
 .dark .vendor-navbar {
-  background: rgba(9, 14, 24, 0.85) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.04) inset !important;
+  background: linear-gradient(180deg, #001838 0%, #000f24 100%) !important;
+  border-bottom: 2px solid #ff6325 !important;
+  box-shadow: 0 6px 32px rgba(0, 0, 0, 0.55), 0 1px 0 rgba(255, 255, 255, 0.08) inset !important;
 }
 
 .light .vendor-navbar {
-  background: rgba(10, 31, 60, 0.92) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12), 0 1px 0 rgba(255, 255, 255, 0.08) inset !important;
+  background: linear-gradient(180deg, #003580 0%, #00224f 100%) !important;
+  border-bottom: 2px solid #ff6325 !important;
+  box-shadow: 0 4px 25px rgba(0, 34, 79, 0.35), 0 1px 0 rgba(255, 255, 255, 0.15) inset !important;
 }
 
 .vendor-navbar > div > button,
@@ -434,10 +434,10 @@ body {
   }
   
   /* Vendor navbar top-level elements remain crisp white */
-  .vendor-navbar > div:not(.branch-dropdown-card) button:not(.branch-dropdown-card *),
-  .vendor-navbar > div:not(.branch-dropdown-card) a:not(.branch-dropdown-card *),
-  .vendor-navbar > div:not(.branch-dropdown-card) span:not(.branch-dropdown-card *),
-  .vendor-navbar > div:not(.branch-dropdown-card) svg:not(.branch-dropdown-card *) {
+  .vendor-navbar > div:not(.branch-dropdown-card):not(.profile-dropdown-card):not(.notification-dropdown-card) button:not(.branch-dropdown-card *):not(.profile-dropdown-card *):not(.notification-dropdown-card *),
+  .vendor-navbar > div:not(.branch-dropdown-card):not(.profile-dropdown-card):not(.notification-dropdown-card) a:not(.branch-dropdown-card *):not(.profile-dropdown-card *):not(.notification-dropdown-card *),
+  .vendor-navbar > div:not(.branch-dropdown-card):not(.profile-dropdown-card):not(.notification-dropdown-card) span:not(.branch-dropdown-card *):not(.profile-dropdown-card *):not(.notification-dropdown-card *),
+  .vendor-navbar > div:not(.branch-dropdown-card):not(.profile-dropdown-card):not(.notification-dropdown-card) svg:not(.branch-dropdown-card *):not(.profile-dropdown-card *):not(.notification-dropdown-card *) {
     color: #ffffff !important;
   }
   
@@ -677,13 +677,18 @@ body {
   color: var(--text-primary) !important;
 }
 
+.profile-dropdown-card .text-slate-500,
+.profile-dropdown-card .text-slate-400 {
+  color: var(--text-secondary) !important;
+}
+
 .light .profile-dropdown-card {
   background-color: #ffffff !important;
   color: #0f172a !important;
   border-color: rgba(15, 23, 42, 0.12) !important;
 }
 
-.light .profile-dropdown-card span:not(.text-red-500):not(.text-emerald-500),
+.light .profile-dropdown-card span:not(.text-red-500):not(.text-emerald-500):not(.text-amber-500):not(.text-blue-500),
 .light .profile-dropdown-card a,
 .light .profile-dropdown-card button:not(.bg-slate-900) {
   color: #0f172a !important;

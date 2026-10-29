@@ -149,8 +149,8 @@ export const getArchetypeFromCategory = (cat?: string): Archetype | null => {
   
   // Fuzzy checks
   if (normalized.includes('bus') || normalized.includes('train') || normalized.includes('flight') || normalized.includes('cab')) return 'TRANSPORT';
-  if (normalized.includes('villa') || normalized.includes('hotel') || normalized.includes('resort') || normalized.includes('hostel') || normalized.includes('stay') || normalized.includes('camp') || normalized.includes('accommodation')) return 'ACCOMMODATION';
-  if (normalized.includes('turf') || normalized.includes('court') || normalized.includes('pool') || normalized.includes('arena')) return 'RENTAL';
+  if (normalized.includes('villa') || normalized.includes('hotel') || normalized.includes('resort') || normalized.includes('hostel') || normalized.includes('stay') || normalized.includes('camp') || normalized.includes('accommodation') || normalized.includes('room') || normalized.includes('suite') || normalized.includes('cottage') || normalized.includes('deluxe')) return 'ACCOMMODATION';
+  if (normalized.includes('turf') || normalized.includes('court') || normalized.includes('pool') || normalized.includes('arena') || normalized.includes('ground') || normalized.includes('pitch')) return 'RENTAL';
   if (normalized.includes('doctor') || normalized.includes('clinic') || normalized.includes('salon') || normalized.includes('spa') || normalized.includes('gym')) return 'APPOINTMENT';
   if (normalized.includes('restaurant') || normalized.includes('dining') || normalized.includes('cafe')) return 'DINING';
   if (normalized.includes('clean') || normalized.includes('electric') || normalized.includes('plumb') || normalized.includes('repair')) return 'HOME_CALL';
@@ -254,7 +254,7 @@ export const ARCHETYPE_SCHEMAS: Record<Archetype, any> = {
     fields: [
       { name: "roomType", type: "text", label: "Room / Villa / Unit Type", placeholder: "e.g., Deluxe Ocean View Villa, 3BHK Private Pool Villa, Executive King Suite", required: true },
       { name: "totalUnits", type: "number", label: "Inventory / Units Available", placeholder: "e.g., 5", required: true },
-      { name: "maxGuests", type: "number", label: "Max Guests Allowed", placeholder: "e.g., 4 Guests (2 Adults + 2 Kids)", required: true },
+      { name: "maxGuests", type: "text", label: "Max Guests Allowed", placeholder: "e.g., 3 (2 Adults + 1 Child)", required: true },
       { name: "bedType", type: "text", label: "Bed & Sleeping Setup", placeholder: "e.g., 1 King Bed + 1 Sofa Bed, 2 Queen Beds", required: false },
       { name: "sizeSqFt", type: "number", label: "Room / Villa Area (Sq.Ft)", placeholder: "e.g., 450", required: false },
       { name: "viewType", type: "text", label: "Balcony / View Type", placeholder: "e.g., Sea Facing / Pool View / Mountain View / Garden View", required: false },

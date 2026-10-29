@@ -56,6 +56,20 @@ export default function DynamicForm({
     categoryName.toLowerCase().includes('badminton') ||
     merchantCategory.toLowerCase().includes('badminton');
 
+  const isHotel =
+    categoryName.toLowerCase().includes('hotel') ||
+    categoryName.toLowerCase().includes('room') ||
+    merchantCategory.toLowerCase().includes('hotel');
+
+  const isResortVilla =
+    categoryName.toLowerCase().includes('resort') ||
+    categoryName.toLowerCase().includes('villa') ||
+    categoryName.toLowerCase().includes('cottage');
+
+  const isCamping =
+    categoryName.toLowerCase().includes('camp') ||
+    categoryName.toLowerCase().includes('tent');
+
   const title = (archetype === 'RENTAL' || archetype === 'FACILITY_HOURLY')
     ? (isCricket 
         ? "Cricket Ground, Pitch & Net Details" 
@@ -65,6 +79,14 @@ export default function DynamicForm({
         ? "Badminton Court Specification"
         : isFootballTurf
         ? "Football Turf & Ground Specification"
+        : baseSchema.title)
+    : archetype === 'ACCOMMODATION'
+    ? (isHotel
+        ? "Hotel Room & Suite Details"
+        : isCamping
+        ? "Campsite & Tent Stay Setup"
+        : isResortVilla
+        ? "Resort, Villa & Cottage Details"
         : baseSchema.title)
     : baseSchema.title;
 
@@ -198,6 +220,87 @@ export default function DynamicForm({
             ...field,
             label: "Football Equipment & Gear",
             placeholder: "e.g., Match Footballs, Team Bibs (2 colors), Goalkeeper Gloves"
+          };
+        }
+      }
+    }
+    if (archetype === 'ACCOMMODATION') {
+      if (isHotel) {
+        if (field.name === 'roomType') {
+          return {
+            ...field,
+            label: "Hotel Room Type",
+            placeholder: "e.g., Standard Non-AC Room, Executive AC Room, Deluxe King Suite"
+          };
+        }
+        if (field.name === 'bedType') {
+          return {
+            ...field,
+            label: "Bed Configuration",
+            placeholder: "e.g., 1 Queen Bed, 2 Twin Single Beds, 1 King Size Bed"
+          };
+        }
+        if (field.name === 'sizeSqFt') {
+          return {
+            ...field,
+            label: "Room Floor Area (Sq.Ft)",
+            placeholder: "e.g., 250 (Standard) / 380 (Suite)"
+          };
+        }
+        if (field.name === 'viewType') {
+          return {
+            ...field,
+            label: "Window / Balcony View",
+            placeholder: "e.g., City View / Courtyard View / Quiet Interior"
+          };
+        }
+        if (field.name === 'bathroomType') {
+          return {
+            ...field,
+            label: "Washroom Setup",
+            placeholder: "e.g., Attached Private Bathroom with Hot Water Shower"
+          };
+        }
+        if (field.name === 'mealPlanOptions') {
+          return {
+            ...field,
+            placeholder: "e.g., European Plan (Room Only), Continental Plan (Free Breakfast)"
+          };
+        }
+        if (field.name === 'perks') {
+          return {
+            ...field,
+            label: "Room Perks & Highlights",
+            placeholder: "e.g., Free WiFi, 24/7 Room Service, Complimentary Morning Coffee/Tea, Daily Housekeeping"
+          };
+        }
+        if (field.name === 'amenities') {
+          return {
+            ...field,
+            label: "In-Room Fixtures & Appliances",
+            placeholder: "e.g., High-speed Ceiling Fan, Smart TV, Electric Kettle, Work Desk, Luggage Rack"
+          };
+        }
+      } else if (isCamping) {
+        if (field.name === 'roomType') {
+          return {
+            ...field,
+            label: "Tent / Camp Unit Type",
+            placeholder: "e.g., 2-Person Waterproof Dome Tent, Luxury Glamping Swiss Tent"
+          };
+        }
+        if (field.name === 'bedType') {
+          return {
+            ...field,
+            label: "Sleeping Setup",
+            placeholder: "e.g., 2 Foam Sleeping Mats + Thermal Sleeping Bags, Inflatable Air Bed"
+          };
+        }
+        if (field.name === 'viewType') {
+          return {
+            ...field,
+            label: "Campsite Location View",
+            placeholder: "e.g., Riverside / Valley View / Pine Forest View"
           };
         }
       }

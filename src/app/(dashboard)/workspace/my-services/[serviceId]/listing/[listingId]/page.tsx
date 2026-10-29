@@ -111,8 +111,29 @@ export default function ListingEditorPage() {
     (category.category || '').toLowerCase().includes('turf') ||
     (category.category || '').toLowerCase().includes('football');
 
+  const isHotel = 
+    (categoryDisplayName || '').toLowerCase().includes('hotel') ||
+    (categoryDisplayName || '').toLowerCase().includes('room') ||
+    (currentMerchant?.category || '').toLowerCase().includes('hotel');
+
+  const isResortVilla = 
+    (categoryDisplayName || '').toLowerCase().includes('resort') ||
+    (categoryDisplayName || '').toLowerCase().includes('villa') ||
+    (categoryDisplayName || '').toLowerCase().includes('cottage');
+
+  const isCamping = 
+    (categoryDisplayName || '').toLowerCase().includes('camp') ||
+    (categoryDisplayName || '').toLowerCase().includes('tent');
+
+  const isAccommodation = isHotel || isResortVilla || isCamping ||
+    (categoryDisplayName || '').toLowerCase().includes('suite') ||
+    (categoryDisplayName || '').toLowerCase().includes('stay') ||
+    (currentMerchant?.archetype?.toUpperCase() === 'ACCOMMODATION') ||
+    ((currentMerchant?.category || '').toLowerCase().includes('hotel') || (currentMerchant?.category || '').toLowerCase().includes('resort'));
+
   const archetype: Archetype = 
     isTurfCategory ? 'RENTAL' :
+    isAccommodation ? 'ACCOMMODATION' :
     getArchetypeFromCategory(category?.name) || 
     getArchetypeFromCategory(category?.category) || 
     getArchetypeFromCategory(currentMerchant?.category) || 
@@ -276,6 +297,10 @@ export default function ListingEditorPage() {
                     placeholder={
                       isTurfCategory
                         ? "e.g. 7-a-side Main Astro Turf A, 5s Cage Pitch B, Box Cricket Arena"
+                        : isHotel
+                        ? "e.g. Deluxe AC Room, Executive Suite, Standard Non-AC Room"
+                        : isCamping
+                        ? "e.g. 2-Person Alpine Tent, Luxury Glamping Pod, Riverside Dome"
                         : "e.g. 3BHK Private Pool Villa, Sunset Hill View Cottage, Deluxe Suite"
                     }
                     className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-semibold text-sm focus:border-[#ff6325] focus:bg-white dark:focus:bg-[#131d2e] outline-none transition-all shadow-xs"
@@ -403,6 +428,10 @@ export default function ListingEditorPage() {
                       placeholder={
                         isTurfCategory 
                           ? "e.g. Premier FIFA 7v7 Astro Arena, Floodlit Night Tournament Pitch" 
+                          : isHotel
+                          ? "e.g. Comfortable City Centre Stay, Peaceful Business & Leisure Getaway"
+                          : isCamping
+                          ? "e.g. Camp Under the Stars, Serene Riverfront Wilderness Camp"
                           : "e.g. Your Perfect Getaway Awaits, Serene Waterfront Escape, Luxury Weekend Treat"
                       }
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
@@ -766,6 +795,10 @@ export default function ListingEditorPage() {
                   placeholder={
                     isTurfCategory
                       ? "e.g. FIFA certified 50mm monofilament turf, high-intensity LED floodlights, professional dugout, complimentary match bibs and ball, shower facilities..."
+                      : isHotel
+                      ? "e.g. Well-ventilated modern room featuring comfortable bedding, clean attached washroom with 24/7 hot water, work desk, high-speed WiFi, and daily housekeeping..."
+                      : isCamping
+                      ? "e.g. Weatherproof pitched dome tent with foam sleeping mats, clean sleeping bags, campfire setup, shared washrooms, and starry night outdoor BBQ..."
                       : "e.g. Spacious beachfront villa featuring private plunge pool, king-size bed, sunset sea views, complimentary breakfast, and signature bath amenities..."
                   }
                   rows={3}
@@ -776,7 +809,11 @@ export default function ListingEditorPage() {
               {/* Complimentary / Included Gear or Inclusions */}
               <div>
                 <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2">
-                  {isTurfCategory ? '⚽ Complimentary / Included Playing Gear' : 'Included Amenities / Welcome Gear'}
+                  {isTurfCategory 
+                    ? '⚽ Complimentary / Included Playing Gear' 
+                    : isHotel
+                    ? '🎁 Complimentary Welcome Pack & Free Inclusions'
+                    : 'Included Amenities / Welcome Gear'}
                 </label>
                 <input
                   type="text"
@@ -785,6 +822,10 @@ export default function ListingEditorPage() {
                   placeholder={
                     isTurfCategory
                       ? "e.g. 2 Match Balls (Size 5), 14 Team Bibs (Neon Green & Orange), Goalkeeper Gloves"
+                      : isHotel
+                      ? "e.g. RO Drinking Water, High-Speed WiFi, Clean Towels & Bath Soap, Electric Kettle"
+                      : isCamping
+                      ? "e.g. Sleeping Bags, Flashlight & Lanterns, Campfire Wood, Mineral Water"
                       : "e.g. Welcome Drinks, High-Speed WiFi, Beach Towels, Snorkeling Kit"
                   }
                   className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-medium text-xs focus:border-[#ff6325] outline-none transition-all shadow-xs"
@@ -801,7 +842,13 @@ export default function ListingEditorPage() {
                       {isTurfCategory ? 'Optional Turf Add-ons' : 'Optional Unit Add-ons'}
                     </span>
                     <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                      {isTurfCategory ? 'Match Referee, Mineral Water Dispenser, Extra Match Ball, Video Recording' : 'Extra Bed, BBQ Setup, Candlelight Dinner, Airport Pickup'}
+                      {isTurfCategory 
+                        ? 'Match Referee, Mineral Water Dispenser, Extra Match Ball, Video Recording' 
+                        : isHotel
+                        ? 'Buffet Breakfast, Extra Rollaway Bed, Airport Drop Taxi, Late Checkout'
+                        : isCamping
+                        ? 'BBQ Grill Kit, Extra Sleeping Bag, Guided Night Trek, Bonfire Wood'
+                        : 'Extra Bed, BBQ Setup, Candlelight Dinner, Airport Pickup'}
                     </span>
                   </div>
                   <button

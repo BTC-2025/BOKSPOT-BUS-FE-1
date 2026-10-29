@@ -583,15 +583,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <button
                   type="button"
                   onClick={() => setBranchDropdownOpen(!branchDropdownOpen)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/25 hover:border-[#ff6325]/70 bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer shadow-md text-xs font-bold tracking-wide"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-white/25 hover:border-[#ff6325]/70 bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer shadow-md text-xs font-bold tracking-wide"
                   title={`Active Branch: ${activeBranch.name || activeBranch.city} (${activeBranch.gstStatus === 'WITH_GST' ? `GST: ${activeBranch.gstNumber || currentMerchant?.gstNumber || 'Active'}` : 'Non-GST'})`}
                 >
                   <Building2 size={13} className="text-[#ff6325] shrink-0" />
                   <span className="text-white flex items-center gap-1">
-                    <span className="text-white/60 font-medium">Branch:</span>
-                    <span className="font-bold text-white max-w-[120px] truncate">{branchLabel}</span>
+                    <span className="text-white/60 font-medium text-[11.5px]">Branch:</span>
+                    <span className="font-bold text-white text-[11.5px] block">
+                      {(() => {
+                        const raw = branchLabel || 'Main';
+                        return raw.length > 3 ? `${raw.slice(0, 3)}...` : raw;
+                      })()}
+                    </span>
                   </span>
-                  <ChevronDown size={12} className={`text-white/80 transition-transform duration-200 ${branchDropdownOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={12} className={`text-white/80 transition-transform duration-200 shrink-0 ${branchDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {/* Branch Switcher Dropdown Menu */}
@@ -937,7 +942,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 {/* Theme Selector */}
                 <div className="border-t border-border-brand px-6 py-2.5 bg-slate-50/50 dark:bg-white/[0.02]">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Appearance</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Appearance</span>
                     <span className="text-[11px] font-extrabold capitalize text-[#8b6508] dark:text-[#d4af37]">{theme || 'System'}</span>
                   </div>
                   <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-slate-200/80 dark:bg-slate-800 border border-slate-300 dark:border-slate-700">
@@ -946,36 +951,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       onClick={() => setTheme('light')}
                       className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                         theme === 'light'
-                          ? 'bg-white !text-slate-900 shadow-sm border border-slate-200'
+                          ? '!bg-white !text-slate-900 shadow-sm border border-slate-200'
                           : '!text-slate-700 dark:!text-slate-300 hover:!text-slate-950 dark:hover:!text-white'
                       }`}
                     >
                       <Sun size={13} className={theme === 'light' ? '!text-amber-500 !stroke-amber-500' : '!text-slate-600 dark:!text-slate-400 !stroke-slate-600 dark:!stroke-slate-400'} /> 
-                      <span>Light</span>
+                      <span className={theme === 'light' ? '!text-slate-900' : ''}>Light</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setTheme('dark')}
                       className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                         theme === 'dark'
-                          ? 'bg-slate-900 !text-white shadow-sm'
+                          ? '!bg-slate-900 !text-white shadow-sm'
                           : '!text-slate-700 dark:!text-slate-300 hover:!text-slate-950 dark:hover:!text-white'
                       }`}
                     >
                       <Moon size={13} className={theme === 'dark' ? '!text-blue-400 !stroke-blue-400' : '!text-slate-600 dark:!text-slate-400 !stroke-slate-600 dark:!stroke-slate-400'} /> 
-                      <span>Dark</span>
+                      <span className={theme === 'dark' ? '!text-white' : ''}>Dark</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setTheme('system')}
                       className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                         theme === 'system'
-                          ? 'bg-white dark:bg-slate-900 !text-slate-900 dark:!text-white shadow-sm border border-slate-200 dark:border-transparent'
+                          ? '!bg-white dark:!bg-slate-900 !text-slate-900 dark:!text-white shadow-sm border border-slate-200 dark:border-transparent'
                           : '!text-slate-700 dark:!text-slate-300 hover:!text-slate-950 dark:hover:!text-white'
                       }`}
                     >
                       <Laptop size={13} className={theme === 'system' ? '!text-[#ff6325] !stroke-[#ff6325]' : '!text-slate-600 dark:!text-slate-400 !stroke-slate-600 dark:!stroke-slate-400'} /> 
-                      <span>Auto</span>
+                      <span className={theme === 'system' ? '!text-slate-900 dark:!text-white' : ''}>Auto</span>
                     </button>
                   </div>
                 </div>

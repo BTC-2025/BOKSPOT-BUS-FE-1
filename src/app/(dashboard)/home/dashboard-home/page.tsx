@@ -289,7 +289,7 @@ export default function DashboardPage() {
           <div>
             <div className="flex flex-wrap items-center gap-3 mb-2">
               <h1 className="text-2xl md:text-3xl font-black tracking-tight text-[#0a3161] dark:text-white">
-                {isTurfBranch ? 'Sunstone Arena Turf' : 'Sunstone Resort'}
+                {currentMerchant.merchantName || (isTurfBranch ? 'Sunstone Arena Turf' : 'Sunstone Resort')}
               </h1>
               <span className="px-3 py-1 rounded-full bg-[#ff6325]/10 text-[#ff6325] text-xs font-black border border-[#ff6325]/30 flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-[#ff6325] animate-ping" />

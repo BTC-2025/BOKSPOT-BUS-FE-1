@@ -448,7 +448,26 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     aboutText: 'Welcome to Grand Hotel. We provide professional Hotel Booking services.',
     vendorId: '20260000',
     email: 'h101@bnxmail.com',
-    archetype: 'Accommodation'
+    archetype: 'Accommodation',
+    gstStatus: 'WITH_GST',
+    gstNumber: '33AAAAA0000A1Z5',
+    city: 'Chennai',
+    activeBranchId: 'branch-grand-chennai',
+    branches: [
+      {
+        id: 'branch-grand-chennai',
+        name: 'Grand Hotel - Chennai (ECR)',
+        city: 'Chennai',
+        category: 'Hotel Booking',
+        businessType: 'Stay & Rooms',
+        address: 'East Coast Road, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'Deluxe AC Rooms, Ocean Suites',
+        isMainBranch: true,
+        assignedStaffIds: ['staff-h101-1']
+      }
+    ]
   },
   {
     id: '7d24a2aa-b792-554b-1bf8-b3f392999a3f',

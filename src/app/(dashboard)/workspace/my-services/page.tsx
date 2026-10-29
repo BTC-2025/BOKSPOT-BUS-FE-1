@@ -6,10 +6,11 @@ import { compressImage } from '@/lib/imageUtils';
 import {
   Plus, Trash2, Edit, X, Package, List, Building2, MapPin,
   Check, ChevronDown, Sparkles, Activity, Layers, Search,
-  SlidersHorizontal, CheckCircle2, ShieldCheck, ArrowRight, ExternalLink
+  SlidersHorizontal, CheckCircle2, ShieldCheck, ArrowRight, ExternalLink,
+  Store, UserCheck, Phone, Mail
 } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 // Curated high-resolution covers for business verticals to avoid ugly generic placeholders
 const CURATED_VERTICAL_COVERS: Record<string, string> = {
@@ -28,6 +29,7 @@ const CURATED_VERTICAL_COVERS: Record<string, string> = {
 
 export default function WorkspacePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { currentMerchant, services, fetchServices, addService, updateService, deleteService, switchBranch, addBranch } = useVendorStore();
   const [mounted, setMounted] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
@@ -41,21 +43,13 @@ export default function WorkspacePage() {
   // Modals state
   const [showBookingTypeModal, setShowBookingTypeModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [showAddBranchModal, setShowAddBranchModal] = useState(false);
-
-  // New Branch Form State
-  const [newBranchName, setNewBranchName] = useState('');
-  const [newBranchCity, setNewBranchCity] = useState('Chennai');
-  const [newBranchAddress, setNewBranchAddress] = useState('');
-  const [newBranchGstStatus, setNewBranchGstStatus] = useState<'WITH_GST' | 'WITHOUT_GST'>('WITHOUT_GST');
-  const [newBranchGstNumber, setNewBranchGstNumber] = useState('');
-  const [newBranchOfferings, setNewBranchOfferings] = useState('');
 
   // Navigation State
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
 
   // Booking Type Form State
   const [bookingTypeCategory, setBookingTypeCategory] = useState('');
+  const [bookingTypeLocation, setBookingTypeLocation] = useState('');
   const [bookingTypeImage, setBookingTypeImage] = useState('');
   const [categorySearchQuery, setCategorySearchQuery] = useState('');
   const [isCustomCategory, setIsCustomCategory] = useState(false);
@@ -238,6 +232,36 @@ export default function WorkspacePage() {
     const finalCategory = (bookingTypeCategory || categorySearchQuery).trim();
     if (!finalCategory) return alert("Please enter category name");
 
+    // Location / Branch Determination
+    const targetLocation = (bookingTypeLocation || activeBranch.city || currentMerchant.city || 'Chennai').trim();
+    
+    // Check if branch already exists for this location or create a new branch under the merchant's GST
+    let targetBranch = effectiveBranches.find(
+      b => (b.city && b.city.toLowerCase() === targetLocation.toLowerCase()) ||
+           (b.name && b.name.toLowerCase().includes(targetLocation.toLowerCase()))
+    );
+
+    if (!targetBranch && targetLocation) {
+      // Auto-create branch under same GST entity
+      const newBranchId = `branch-${targetLocation.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}`;
+      targetBranch = {
+        id: newBranchId,
+        name: `${finalCategory} - ${targetLocation}`,
+        city: targetLocation,
+        category: finalCategory,
+        businessType: finalCategory,
+        address: `${targetLocation} Location`,
+        gstStatus: currentMerchant.gstStatus || activeBranch.gstStatus || 'WITH_GST',
+        gstNumber: currentMerchant.gstNumber || activeBranch.gstNumber || '33AAAAA0000A1Z5',
+        offeringsSummary: finalCategory,
+        isMainBranch: false
+      };
+      addBranch(targetBranch);
+      switchBranch(targetBranch.id);
+    }
+
+    const boundBranch = targetBranch || activeBranch;
+
     const newService: CatalogService = {
       id: crypto.randomUUID(),
       name: finalCategory,
@@ -248,15 +272,16 @@ export default function WorkspacePage() {
       active: true,
       rating: 5.0,
       bookingsCount: 0,
-      city: activeBranch.city || 'Chennai',
-      branchId: activeBranch.id,
-      branchName: activeBranch.name,
-      gstType: activeBranch.gstStatus,
+      city: boundBranch.city || targetLocation,
+      branchId: boundBranch.id,
+      branchName: boundBranch.name,
+      gstType: boundBranch.gstStatus,
       listings: [],
       metadata: {
         mainImageUrl: bookingTypeImage.trim() || undefined,
         customArchetype: isCustomCategory ? customCategoryArchetype : undefined,
-        isCustomCategory: isCustomCategory
+        isCustomCategory: isCustomCategory,
+        locationArea: targetLocation
       },
       createdAt: new Date().toISOString()
     };
@@ -264,6 +289,7 @@ export default function WorkspacePage() {
     addService(newService);
     setShowBookingTypeModal(false);
     setBookingTypeCategory('');
+    setBookingTypeLocation('');
     setCategorySearchQuery('');
     setBookingTypeImage('');
   };
@@ -418,20 +444,24 @@ export default function WorkspacePage() {
                 <div
                   key={cat}
                   onClick={() => {
-                    if (singleTargetService) {
-                      // 1 service format -> open listings/units directly
-                      router.push(`/workspace/my-services/${singleTargetService.id}`);
-                    } else if (hasMultipleTypes) {
-                      // Multiple format types -> open Level 2 formats view
-                      setSelectedGroup(cat);
+                    // Direct 2-tier: Category -> Listings / Bookable Units directly (No intermediate 'Type' step)
+                    const targetService = singleTargetService || categoryServices[0] || merchantServices.find(s => s.category === cat);
+                    if (targetService) {
+                      router.push(`/workspace/my-services/${targetService.id}`);
                     } else {
-                      // No explicit service child created yet: Find group service or auto-create service to open listings
-                      const groupService = merchantServices.find(s => s.category === cat);
-                      if (groupService) {
-                        router.push(`/workspace/my-services/${groupService.id}`);
-                      } else {
-                        setSelectedGroup(cat);
-                      }
+                      // Fallback: auto-create parent category service and route directly into unit creation
+                      const newId = `svc-${Date.now()}`;
+                      addService({
+                        id: newId,
+                        merchantId: currentMerchant.id,
+                        branchId: activeBranch.id,
+                        name: cat,
+                        category: cat,
+                        description: `Primary bookable units for ${cat}`,
+                        status: 'ACTIVE',
+                        listings: []
+                      });
+                      router.push(`/workspace/my-services/${newId}`);
                     }
                   }}
                   className="bg-white dark:bg-[#0f1624] rounded-2xl border border-slate-200/80 dark:border-white/10 hover:border-[#ff6325]/50 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 overflow-hidden flex flex-col cursor-pointer group"
@@ -696,31 +726,33 @@ export default function WorkspacePage() {
             </div>
             <div className="p-6 overflow-y-auto flex-1">
               <form id="bookingTypeForm" onSubmit={handleSaveBookingType} className="space-y-4">
-                {/* Branch & GST Binding Indicator */}
-                <div className="p-3.5 rounded-2xl border border-cyan-500/30 bg-cyan-50 dark:bg-cyan-950/20 flex items-center justify-between text-xs">
-                  <div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-cyan-700 dark:text-cyan-400 block mb-0.5">Assigned Branch & GST</span>
-                    <strong className="text-slate-900 dark:text-white text-xs font-black">{activeBranch.name || `${activeBranch.city} Branch`}</strong>
-                  </div>
-                  <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg ${
-                    activeBranch.gstStatus === 'WITH_GST' 
-                      ? 'bg-cyan-100 text-cyan-800 border border-cyan-300 dark:bg-cyan-500/15 dark:text-cyan-300 dark:border-cyan-500/30' 
-                      : 'bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30'
-                  }`}>
-                    {activeBranch.gstStatus === 'WITH_GST' ? `GST: ${activeBranch.gstNumber || currentMerchant.gstNumber || 'Active'}` : 'Nett (No GST)'}
-                  </span>
-                </div>
-
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Category Name</label>
                   <input
                     type="text"
                     value={bookingTypeCategory}
                     onChange={(e) => setBookingTypeCategory(e.target.value)}
-                    placeholder="e.g. Football Turf, Swimming Pool, Cricket Ground..."
+                    placeholder="e.g. Hotel Booking, Football Turf, Resort Booking..."
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white font-medium focus:border-[#ff6325] outline-none"
                     required
                   />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1 flex items-center justify-between">
+                    <span>Operating Location / City / Area</span>
+                    <span className="text-[10px] text-slate-400 font-medium normal-case">Defines branch for this offering</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={bookingTypeLocation}
+                    onChange={(e) => setBookingTypeLocation(e.target.value)}
+                    placeholder={`e.g. ${activeBranch.city || 'Chennai'} ECR, Bangalore Whitefield, Anna Nagar...`}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white text-xs font-semibold focus:border-[#ff6325] outline-none"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    Operating under parent GST: <strong className="text-slate-600 dark:text-slate-300">{currentMerchant.gstNumber || '33AAAAA0000A1Z5'}</strong>
+                  </p>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Cover Image (Optional)</label>
