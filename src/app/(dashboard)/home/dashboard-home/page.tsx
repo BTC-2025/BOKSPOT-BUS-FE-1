@@ -1,6 +1,6 @@
 'use client';
 
-import { useVendorStore } from '@/lib/store';
+import { useVendorStore, PRESET_MERCHANTS } from '@/lib/store';
 import { getArchetypeConfig } from '@/lib/businessDictionary';
 import { getArchetypeFromCategory } from '@/lib/archetypes';
 import {
@@ -14,7 +14,7 @@ import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { currentMerchant, staffAccounts, bookings, loginRole, currentStaff, checkInBooking, completeBooking, switchVertical } = useVendorStore();
+  const { currentMerchant, staffAccounts, bookings, services, loginRole, currentStaff, checkInBooking, completeBooking, switchVertical } = useVendorStore();
 
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState('This Week');
@@ -75,28 +75,21 @@ export default function DashboardPage() {
   }
 
   // Active Branch Resolution
+  const presetMatch = PRESET_MERCHANTS.find(m => m.id === currentMerchant?.id || m.username.toLowerCase() === currentMerchant?.username?.toLowerCase());
   const effectiveBranches = (currentMerchant.branches && currentMerchant.branches.length > 0)
     ? currentMerchant.branches
-    : [
+    : (presetMatch?.branches && presetMatch.branches.length > 0)
+      ? presetMatch.branches
+      : [
         {
-          id: 'branch-resort-stay',
-          name: 'Suites & Stays',
-          city: currentMerchant.city || 'Chennai',
-          category: 'Resort Booking',
-          businessType: 'Stay & Rooms',
-          address: 'East Coast Road, Chennai',
-          gstStatus: 'WITH_GST' as const,
-          gstNumber: currentMerchant.gstNumber || '33AAAAA0000A1Z5'
-        },
-        {
-          id: 'branch-resort-turf',
-          name: 'Sports Turf',
-          city: currentMerchant.city || 'Chennai',
-          category: 'Football Turf',
-          businessType: 'Sports Facility',
-          address: 'East Coast Road (Arena Annex), Chennai',
-          gstStatus: 'WITH_GST' as const,
-          gstNumber: currentMerchant.gstNumber || '33AAAAA0000A1Z5'
+          id: 'branch-main-1',
+          name: currentMerchant?.merchantName || 'Main Branch',
+          city: currentMerchant?.city || 'Chennai',
+          category: currentMerchant?.category || 'General Service',
+          businessType: 'Main Facility',
+          address: currentMerchant?.address || 'Chennai Location',
+          gstStatus: 'WITH_GST',
+          gstNumber: currentMerchant?.gstNumber || '33AAAAA0000A1Z5'
         }
       ];
 
@@ -115,7 +108,20 @@ export default function DashboardPage() {
     const bServiceName = (b.serviceName || '').toLowerCase();
     const bArch = getArchetypeFromCategory(bCategory);
 
-    // Branch Isolation Check
+    // Branch Isolation Check: Match booking to active branch
+    const bBranchId = String(b.branchId || b.metadata?.branchId || '').trim();
+    const bBranchName = String(b.branchName || b.metadata?.branchName || '').toLowerCase().trim();
+    const actBranchId = String(activeBranch?.id || '').trim();
+    const actBranchName = String(activeBranch?.name || '').toLowerCase().trim();
+
+    if (bBranchId && actBranchId && bBranchId !== actBranchId) return false;
+    if (bBranchName && actBranchName && !actBranchName.includes(bBranchName) && !bBranchName.includes(actBranchName)) return false;
+
+    // Default existing legacy Grand Hotel bookings belong to main ECR branch
+    if (!bBranchId && !bBranchName && activeBranch?.id && activeBranch.id !== 'branch-grand-chennai' && !actBranchName.includes('ecr') && !actBranchName.includes('main')) {
+      return false;
+    }
+
     if (isTurfBranch) {
       if (bCategory.includes('room') || bCategory.includes('hotel') || bCategory.includes('resort') || bCategory.includes('suite')) return false;
       if (/suite|deluxe|villa|cottage|room/i.test(bServiceName)) return false;
@@ -123,7 +129,6 @@ export default function DashboardPage() {
       if (bCategory.includes('turf') || bCategory.includes('football') || bCategory.includes('cricket') || bCategory.includes('pitch')) return false;
       if (/turf|pitch|ground|court/i.test(bServiceName)) return false;
     }
-
     if (curArch && bArch && curArch !== bArch) return false;
     return true;
   };

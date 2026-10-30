@@ -456,16 +456,29 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     branches: [
       {
         id: 'branch-grand-chennai',
-        name: 'Grand Hotel - Chennai (ECR)',
+        name: 'Grand Hotel - ECR',
         city: 'Chennai',
         category: 'Hotel Booking',
         businessType: 'Stay & Rooms',
-        address: 'East Coast Road, Chennai',
+        address: '142 East Coast Road, Kovalam, Chennai',
         gstStatus: 'WITH_GST',
         gstNumber: '33AAAAA0000A1Z5',
-        offeringsSummary: 'Deluxe AC Rooms, Ocean Suites',
+        offeringsSummary: 'Ocean View Suites, Deluxe Non-AC & AC Rooms',
         isMainBranch: true,
         assignedStaffIds: ['staff-h101-1']
+      },
+      {
+        id: 'branch-grand-annanagar',
+        name: 'Grand Hotel - Anna Nagar',
+        city: 'Chennai',
+        category: 'Hotel Booking',
+        businessType: 'Stay & Rooms',
+        address: '2nd Avenue, Roundtana, Anna Nagar, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'Executive City Suites, Business Deluxe Rooms',
+        isMainBranch: false,
+        assignedStaffIds: ['staff-h101-2']
       }
     ]
   },
@@ -537,7 +550,23 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     aboutText: 'Welcome to Riverfront Villa. We provide professional Homestay / Villa services.',
     vendorId: '20260002',
     email: 'h103@bnxmail.com',
-    archetype: 'Accommodation'
+    archetype: 'Accommodation',
+    activeBranchId: 'branch-riverfront-main',
+    branches: [
+      {
+        id: 'branch-riverfront-main',
+        name: 'Riverfront Villa',
+        city: 'Chennai',
+        category: 'Homestay / Villa',
+        businessType: 'Stay & Rooms',
+        address: 'Riverside Road, Muttukadu, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'Luxury Private Pool Villa, Riverside Cottages',
+        isMainBranch: true,
+        assignedStaffIds: ['staff-h103-1']
+      }
+    ]
   },
   {
     id: '51c6a3b8-2abc-9421-7644-2a2dea05dbc0',
@@ -2264,7 +2293,18 @@ export const useVendorStore = create<VendorStoreState>()(
       }
     }),
     {
-      name: 'vendor-portal-storage-v9',
+      name: 'vendor-portal-storage-v10',
+      // partialize prevents massive catalogs, heavy base64 images, and tickets from overflowing 5MB localStorage quota
+      partialize: (state) => ({
+        currentMerchant: state.currentMerchant,
+        loginRole: state.loginRole,
+        supervisorId: state.supervisorId,
+        currentStaff: state.currentStaff,
+        theme: state.theme,
+        customMerchants: state.customMerchants,
+        staffAccounts: state.staffAccounts,
+        registeredMerchants: state.registeredMerchants
+      }),
       // Ensure bookings that don't belong to currentMerchant or have mismatched archetype are filtered out upon rehydration
       onRehydrateStorage: () => (state) => {
         if (state && state.currentMerchant && Array.isArray(state.bookings)) {

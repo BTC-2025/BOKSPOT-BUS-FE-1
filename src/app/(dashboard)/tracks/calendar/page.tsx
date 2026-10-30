@@ -57,28 +57,14 @@ export default function CalendarPage() {
     ? currentMerchant.branches
     : [
         {
-          id: 'branch-resort-stay',
-          name: 'Suites & Stays',
-          city: currentMerchant.city || 'Chennai',
-          category: 'Resort Booking',
-          businessType: 'Stay & Rooms',
-          address: 'East Coast Road, Chennai',
+          id: 'branch-main-1',
+          name: currentMerchant?.merchantName || 'Main Branch',
+          city: currentMerchant?.city || 'Chennai',
+          category: currentMerchant?.category || 'General Service',
+          businessType: 'Main Facility',
+          address: currentMerchant?.address || 'Chennai Location',
           gstStatus: 'WITH_GST',
-          gstNumber: currentMerchant.gstNumber || '33AAAAA0000A1Z5',
-          offeringsSummary: 'Deluxe Suites, Pool Cottages',
-          isMainBranch: true
-        },
-        {
-          id: 'branch-resort-turf',
-          name: 'Sports Turf',
-          city: currentMerchant.city || 'Chennai',
-          category: 'Football Turf',
-          businessType: 'Sports Facility',
-          address: 'East Coast Road (Arena Annex), Chennai',
-          gstStatus: 'WITH_GST',
-          gstNumber: currentMerchant.gstNumber || '33AAAAA0000A1Z5',
-          offeringsSummary: '7v7 FIFA Astro Turf, Floodlit Ground',
-          isMainBranch: false
+          gstNumber: currentMerchant?.gstNumber || '33AAAAA0000A1Z5'
         }
       ];
   const activeBranch = effectiveBranches.find(b => b.id === (currentMerchant.activeBranchId || effectiveBranches[0].id)) || effectiveBranches[0];

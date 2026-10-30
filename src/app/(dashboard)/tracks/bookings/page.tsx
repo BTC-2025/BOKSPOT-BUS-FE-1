@@ -1,6 +1,6 @@
 'use client';
 
-import { useVendorStore, PersistedBooking } from '@/lib/store'; 
+import { useVendorStore, PersistedBooking, PRESET_MERCHANTS } from '@/lib/store'; 
 import { getArchetypeConfig } from '@/lib/businessDictionary';
 import { getArchetypeFromCategory } from '@/lib/archetypes';
 import { 
@@ -21,32 +21,21 @@ export default function BookingsPage() {
   const [liveBookings, setLiveBookings] = useState<any[]>([]);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
 
+  const presetMatch = PRESET_MERCHANTS.find(m => m.id === currentMerchant?.id || m.username.toLowerCase() === currentMerchant?.username?.toLowerCase());
   const effectiveBranches = (currentMerchant?.branches && currentMerchant.branches.length > 0)
     ? currentMerchant.branches
-    : [
+    : (presetMatch?.branches && presetMatch.branches.length > 0)
+      ? presetMatch.branches
+      : [
         {
-          id: 'branch-resort-stay',
-          name: 'Suites & Stays',
+          id: 'branch-main-1',
+          name: currentMerchant?.merchantName || 'Main Branch',
           city: currentMerchant?.city || 'Chennai',
-          category: 'Resort Booking',
-          businessType: 'Stay & Rooms',
-          address: 'East Coast Road, Chennai',
+          category: currentMerchant?.category || 'General Service',
+          businessType: 'Main Facility',
+          address: currentMerchant?.address || 'Chennai Location',
           gstStatus: 'WITH_GST',
-          gstNumber: currentMerchant?.gstNumber || '33AAAAA0000A1Z5',
-          offeringsSummary: 'Deluxe Suites, Pool Cottages',
-          isMainBranch: true
-        },
-        {
-          id: 'branch-resort-turf',
-          name: 'Sports Turf',
-          city: currentMerchant?.city || 'Chennai',
-          category: 'Football Turf',
-          businessType: 'Sports Facility',
-          address: 'East Coast Road (Arena Annex), Chennai',
-          gstStatus: 'WITH_GST',
-          gstNumber: currentMerchant?.gstNumber || '33AAAAA0000A1Z5',
-          offeringsSummary: '7v7 FIFA Astro Turf, Floodlit Ground',
-          isMainBranch: false
+          gstNumber: currentMerchant?.gstNumber || '33AAAAA0000A1Z5'
         }
       ];
 
@@ -82,9 +71,20 @@ export default function BookingsPage() {
     const isBookingTurf = bCategory.includes('turf') || bCategory.includes('football') || bCategory.includes('cricket') || bCategory.includes('pitch') || bCategory.includes('sport') ||
       bServiceName.includes('turf') || bServiceName.includes('football') || bServiceName.includes('pitch');
 
-    // Strict Branch Offering Isolation:
-    // If user switched to "Sports Turf" branch -> show Turf bookings
-    // If user switched to "Suites & Stays" branch -> show Accommodation/Resort bookings
+    // Strict Branch Isolation
+    const bBranchId = String(b.branchId || b.metadata?.branchId || '').trim();
+    const bBranchName = String(b.branchName || b.metadata?.branchName || '').toLowerCase().trim();
+    const actBranchId = String(activeBranch?.id || '').trim();
+    const actBranchName = String(activeBranch?.name || '').toLowerCase().trim();
+
+    if (bBranchId && actBranchId && bBranchId !== actBranchId) return false;
+    if (bBranchName && actBranchName && !actBranchName.includes(bBranchName) && !bBranchName.includes(actBranchName)) return false;
+
+    // Default existing legacy Grand Hotel bookings belong to main ECR branch
+    if (!bBranchId && !bBranchName && activeBranch?.id && activeBranch.id !== 'branch-grand-chennai' && !actBranchName.includes('ecr') && !actBranchName.includes('main')) {
+      return false;
+    }
+
     if (isTurfBranch) {
       return isBookingTurf;
     } else {
@@ -123,7 +123,7 @@ export default function BookingsPage() {
     fetchSync();
     const interval = setInterval(fetchSync, 2000);
     return () => clearInterval(interval);
-  }, [currentMerchant, isTurfBranch, curId, curName]);
+  }, [currentMerchant, isTurfBranch, curId, curName, activeBranch?.id, activeBranch?.name]);
 
   const handleAccept = async (b: any) => {
     setAcceptingId(b.id);

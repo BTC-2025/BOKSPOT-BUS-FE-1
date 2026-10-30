@@ -40,19 +40,13 @@ export default function StaffPage() {
     ? currentMerchant.branches
     : [
         {
-          id: 'branch-resort-stay',
-          name: `${currentMerchant?.merchantName || 'Main'} - Rooms & Stay`,
+          id: 'branch-main-1',
+          name: currentMerchant?.merchantName || 'Main Branch',
           city: currentMerchant?.city || 'Chennai',
-          category: 'Resort Booking',
-          gstStatus: 'WITH_GST' as const,
-          gstNumber: currentMerchant?.gstNumber || '33AAAAA0000A1Z5'
-        },
-        {
-          id: 'branch-resort-turf',
-          name: `${currentMerchant?.merchantName || 'Arena'} - Sports Turf`,
-          city: currentMerchant?.city || 'Chennai',
-          category: 'Football Turf',
-          gstStatus: 'WITH_GST' as const,
+          category: currentMerchant?.category || 'General Service',
+          businessType: 'Main Facility',
+          address: currentMerchant?.address || 'Chennai Location',
+          gstStatus: 'WITH_GST',
           gstNumber: currentMerchant?.gstNumber || '33AAAAA0000A1Z5'
         }
       ];

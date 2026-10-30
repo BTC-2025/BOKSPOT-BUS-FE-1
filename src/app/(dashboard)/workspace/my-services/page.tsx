@@ -454,13 +454,20 @@ export default function WorkspacePage() {
                       addService({
                         id: newId,
                         merchantId: currentMerchant.id,
+                        merchant: currentMerchant.merchantName || 'Merchant',
                         branchId: activeBranch.id,
                         name: cat,
                         category: cat,
+                        price: 0,
+                        duration: 60,
+                        active: true,
+                        city: activeBranch.city || currentMerchant.city || 'Chennai',
+                        rating: 5,
+                        reviews: 0,
                         description: `Primary bookable units for ${cat}`,
                         status: 'ACTIVE',
                         listings: []
-                      });
+                      } as CatalogService);
                       router.push(`/workspace/my-services/${newId}`);
                     }
                   }}
@@ -483,8 +490,12 @@ export default function WorkspacePage() {
                         className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider shadow-lg border border-white/30 backdrop-blur-md"
                         style={{ backgroundColor: 'rgba(0, 0, 0, 0.75)', color: '#ffffff' }}
                       >
-                        <span>{isTurf ? '⚽' : '🏨'}</span>
-                        <span style={{ color: '#ffffff' }} className="font-black !text-white text-xs">{isTurf ? 'Sports Arena' : 'Resort Stay'}</span>
+                        <span>
+                          {isTurf ? '⚽' : (cat.toLowerCase().includes('resort') ? '🌴' : (cat.toLowerCase().includes('villa') ? '🏡' : '🏨'))}
+                        </span>
+                        <span style={{ color: '#ffffff' }} className="font-black !text-white text-xs">
+                          {isTurf ? 'Sports Arena' : (cat.toLowerCase().includes('resort') ? 'Resort Stay' : (cat.toLowerCase().includes('villa') ? 'Villa Stay' : (cat.toLowerCase().includes('hotel') ? 'Hotel Stay' : (activeBranch.category || 'Hotel Stay'))))}
+                        </span>
                       </span>
                       <div className="flex items-center gap-1.5">
                         <span
@@ -617,7 +628,15 @@ export default function WorkspacePage() {
                           style={{ backgroundColor: 'rgba(0, 0, 0, 0.75)', color: '#ffffff' }}
                         >
                           <span>{isTurfUnit ? '⚽' : '🏨'}</span>
-                          <span style={{ color: '#ffffff' }} className="font-black !text-white text-xs">{isTurfUnit ? 'Sports Unit' : 'Stay Unit'}</span>
+                          <span style={{ color: '#ffffff' }} className="font-black !text-white text-xs">
+                          {isTurfUnit 
+                            ? 'Sports Unit' 
+                            : ((srv.category || srv.name || '').toLowerCase().includes('hotel') 
+                                ? 'Hotel Unit' 
+                                : ((srv.category || srv.name || '').toLowerCase().includes('resort') 
+                                    ? 'Resort Unit' 
+                                    : 'Stay Unit'))}
+                        </span>
                         </span>
 
                         <div className="flex items-center gap-1.5">

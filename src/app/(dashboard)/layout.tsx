@@ -321,32 +321,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const effectiveBranchesForNav: BranchInfo[] = (currentMerchant?.branches && currentMerchant.branches.length > 0)
     ? currentMerchant.branches
-    : [
+    : (PRESET_MERCHANTS.find(m => m.id === currentMerchant?.id || m.username.toLowerCase() === currentMerchant?.username?.toLowerCase())?.branches || [
         {
-          id: 'branch-resort-stay',
-          name: 'Suites & Stays',
+          id: `branch-${currentMerchant?.id || 'main'}-1`,
+          name: currentMerchant?.merchantName || 'Main Branch',
           city: currentMerchant?.city || 'Chennai',
-          category: 'Resort Booking',
-          businessType: 'Stay & Rooms',
-          address: 'East Coast Road, Chennai',
-          gstStatus: 'WITH_GST',
+          category: currentMerchant?.category || 'General Service',
+          businessType: 'Main Facility',
+          address: currentMerchant?.address || `${currentMerchant?.city || 'Chennai'} Location`,
+          gstStatus: (currentMerchant?.gstStatus as any) || 'WITH_GST',
           gstNumber: currentMerchant?.gstNumber || '33AAAAA0000A1Z5',
-          offeringsSummary: 'Deluxe Suites, Pool Cottages',
+          offeringsSummary: 'Primary Offerings & Services',
           isMainBranch: true
-        },
-        {
-          id: 'branch-resort-turf',
-          name: 'Sports Turf',
-          city: currentMerchant?.city || 'Chennai',
-          category: 'Football Turf',
-          businessType: 'Sports Facility',
-          address: 'East Coast Road (Arena Annex), Chennai',
-          gstStatus: 'WITH_GST',
-          gstNumber: currentMerchant?.gstNumber || '33AAAAA0000A1Z5',
-          offeringsSummary: '7v7 FIFA Astro Turf, Floodlit Ground',
-          isMainBranch: false
         }
-      ];
+      ]);
   const activeBranchForNav = effectiveBranchesForNav.find(b => b.id === (currentMerchant?.activeBranchId || effectiveBranchesForNav[0].id)) || effectiveBranchesForNav[0];
   const activeCategoryForNav = activeBranchForNav.category || currentMerchant?.category || 'Resort Booking';
 
@@ -543,28 +531,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 ? presetMatch.branches
                 : [
                     {
-                      id: 'branch-resort-stay',
-                      name: 'Suites & Stays',
+                      id: `branch-${currentMerchant?.id || 'main'}-1`,
+                      name: currentMerchant?.merchantName || 'Main Branch',
                       city: currentMerchant?.city || 'Chennai',
-                      category: 'Resort Booking',
-                      businessType: 'Stay & Rooms',
-                      address: 'East Coast Road, Chennai',
-                      gstStatus: 'WITH_GST',
+                      category: currentMerchant?.category || 'General Service',
+                      businessType: 'Main Facility',
+                      address: currentMerchant?.address || `${currentMerchant?.city || 'Chennai'} Location`,
+                      gstStatus: (currentMerchant?.gstStatus as any) || 'WITH_GST',
                       gstNumber: currentMerchant?.gstNumber || '33AAAAA0000A1Z5',
-                      offeringsSummary: 'Deluxe Suites, Pool Cottages',
+                      offeringsSummary: 'Primary Offerings & Services',
                       isMainBranch: true
-                    },
-                    {
-                      id: 'branch-resort-turf',
-                      name: 'Sports Turf',
-                      city: currentMerchant?.city || 'Chennai',
-                      category: 'Football Turf',
-                      businessType: 'Sports Facility',
-                      address: 'East Coast Road (Arena Annex), Chennai',
-                      gstStatus: 'WITH_GST',
-                      gstNumber: currentMerchant?.gstNumber || '33AAAAA0000A1Z5',
-                      offeringsSummary: '7v7 FIFA Astro Turf, Floodlit Ground',
-                      isMainBranch: false
                     }
                   ];
             const activeBranch = effectiveBranches.find(b => b.id === (currentMerchant?.activeBranchId || effectiveBranches[0].id)) || effectiveBranches[0];
