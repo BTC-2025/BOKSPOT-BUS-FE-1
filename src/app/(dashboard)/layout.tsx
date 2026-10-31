@@ -8,7 +8,7 @@ import {
   Package, Menu, X, Bell, LogOut, Stethoscope, Dumbbell, Bed, 
   Scissors, Utensils, ShieldAlert, Check, Trash2, Info,
   ChevronDown, Building, Building2, Film, Sparkles, LogOut as LogOutIcon, Laptop, User, Tent,
-  Sun, Moon, Users, Mail, Search, UserCog, MapPin, Clock, ShieldCheck, MessageSquare, Calculator, Ticket, CheckCircle, Headset, Camera
+  Sun, Moon, Users, Mail, Search, UserCog, MapPin, Clock, ShieldCheck, MessageSquare, Calculator, Ticket, CheckCircle, Headset, Camera, Sliders
 } from 'lucide-react';
 import { UtilityDrawer } from '@/components/UtilityDrawer';
 import { useState, useEffect, useRef } from 'react';
@@ -40,7 +40,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { currentMerchant, logoutMerchant, switchStore, loginRole, theme, setTheme, supervisorId, bookings, services, updateMerchantProfile, switchBranch, switchVertical, switchCategory } = useVendorStore();
   const [utilityDrawerOpen, setUtilityDrawerOpen] = useState(false);
-  const [activeUtilityTab, setActiveUtilityTab] = useState<'calendar' | 'calc' | 'tasks' | 'contacts' | null>(null);
+  const [activeUtilityTab, setActiveUtilityTab] = useState<'beta' | 'calendar' | 'calc' | 'tasks' | 'contacts' | 'weather' | 'keyboard' | null>(null);
   const [branchDropdownOpen, setBranchDropdownOpen] = useState(false);
   const branchDropdownRef = useRef<HTMLDivElement>(null);
   const [storeDropdownOpen, setStoreDropdownOpen] = useState(false);
@@ -979,45 +979,45 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
           </div>
           
-          {/* Utility Drawer Button Box (50px wide column to align with right sidebar) */}
-          <div className="w-[50px] shrink-0 h-full flex items-center justify-center border-l border-white/10">
+          {/* Utility Drawer Button Box (60px wide column to align with right sidebar) */}
+          <div className="w-[60px] shrink-0 h-full flex items-center justify-center border-l border-white/10 bg-transparent">
             <button
               onClick={() => setUtilityDrawerOpen(!utilityDrawerOpen)}
-              className={`relative w-9 h-9 flex items-center justify-center rounded-xl bg-[#5a4409] hover:bg-[#72560c] border border-[#fceea7]/30 transition-all cursor-pointer shadow-md ${
+              className={`relative w-11 h-11 flex items-center justify-center rounded-[16px] transition-all cursor-pointer shadow-sm ${
                 utilityDrawerOpen
-                  ? 'opacity-100 scale-105 shadow-[0_0_10px_rgba(252,238,167,0.3)]'
-                  : 'opacity-85 hover:opacity-100 hover:scale-105'
+                  ? 'bg-[#ff6325] text-white shadow-[0_0_14px_rgba(255,99,37,0.45)] ring-2 ring-[#ff6325]/50 scale-105'
+                  : 'bg-white/10 hover:bg-white/15 text-white/90 hover:text-white border border-white/15 hover:scale-105'
               }`}
-              title="Bokspot Utilities"
+              title="Signature Utilities"
             >
-              <img src="/utility-icon.png?v=3" alt="Utilities" className="w-[22px] h-[22px] object-contain" />
+              <Sliders size={20} className="stroke-[2.2]" />
             </button>
           </div>
         </div>
       </header>
 
-      {/* Floating Modern Subnav Bar */}
-      <div className={`bg-white/80 dark:bg-[#0c121e]/85 backdrop-blur-2xl flex items-center px-6 py-2 shrink-0 shadow-[0_2px_15px_rgba(0,0,0,0.03)] border-b border-black/[0.04] dark:border-white/[0.06] relative z-40 transition-all duration-300 ${
-        utilityDrawerOpen ? (activeUtilityTab ? 'lg:pr-[370px]' : 'lg:pr-[50px]') : ''
+      {/* Floating Modern Compact Subnav Bar (Slim Height) */}
+      <div className={`bg-white/85 dark:bg-[#0c121e]/90 backdrop-blur-2xl flex items-center px-6 py-1 h-10 shrink-0 shadow-[0_1px_8px_rgba(0,0,0,0.03)] border-b border-black/[0.04] dark:border-white/[0.06] relative z-40 transition-all duration-300 ${
+        utilityDrawerOpen ? (activeUtilityTab ? 'lg:pr-[380px]' : 'lg:pr-[60px]') : ''
       }`}>
         {/* Left side empty space to keep subnav tabs centered */}
         <div className="flex-1 hidden md:flex items-center justify-start pl-2" />
         
-        <div className="flex-auto overflow-x-auto custom-scrollbar flex justify-center py-0.5">
-          <nav className="flex items-center gap-1.5 md:gap-2 mx-auto px-1 w-max p-1 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.03] dark:border-white/[0.04]">
+        <div className="flex-auto overflow-x-auto custom-scrollbar flex justify-center">
+          <nav className="flex items-center gap-1 mx-auto px-1 w-max p-0.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.03] dark:border-white/[0.04]">
             {navItems.map((item) => {
               const active = pathname === item.href;
             return (
               <Link 
                 key={item.href} 
                 href={item.href}
-                className={`flex items-center gap-2 rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all whitespace-nowrap active:scale-[0.97] ${
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-1 text-[11px] font-bold transition-all whitespace-nowrap active:scale-[0.97] ${
                   active 
-                    ? 'bg-[#0a3161] dark:bg-[#ff6325] !text-white shadow-sm' 
+                    ? 'bg-[#0a3161] dark:bg-[#ff6325] !text-white shadow-xs' 
                     : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
                 }`}
               >
-                <item.icon className={`h-3.5 w-3.5 ${active ? '!text-white' : 'text-slate-400 group-hover:text-slate-600'}`} />
+                <item.icon className={`h-3 w-3 ${active ? '!text-white' : 'text-slate-400 group-hover:text-slate-600'}`} />
                 <span className={active ? '!text-white' : ''}>{item.label}</span>
               </Link>
             );
@@ -1026,21 +1026,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
         
         {/* Right side icons and links */}
-        <div className="flex-1 hidden md:flex items-center justify-end gap-5 pl-4 pr-2 relative">
+        <div className="flex-1 hidden md:flex items-center justify-end gap-4 pl-4 pr-2 relative">
           <Link
             href="/workspace/contact-us"
-            className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-[#ff6325] dark:hover:text-[#ff6325] transition-colors"
+            className="flex items-center justify-center gap-1 text-[11px] font-bold text-slate-700 dark:text-slate-300 hover:text-[#ff6325] dark:hover:text-[#ff6325] transition-colors"
             title="Support"
           >
-            <Headset className="h-[15px] w-[15px] text-[#ff6325]" />
+            <Headset className="h-3.5 w-3.5 text-[#ff6325]" />
             Support
           </Link>
           <Link
             href="/workspace/settings"
-            className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-[#946c07] dark:hover:text-[#d4af37] transition-colors"
+            className="flex items-center justify-center gap-1 text-[11px] font-bold text-slate-700 dark:text-slate-300 hover:text-[#946c07] dark:hover:text-[#d4af37] transition-colors"
             title="Settings"
           >
-            <Settings className="h-[15px] w-[15px]" />
+            <Settings className="h-3.5 w-3.5" />
             Settings
           </Link>
         </div>
@@ -1048,11 +1048,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Main Body Section */}
       <div className="flex flex-1 overflow-hidden relative">
-        {/* Main Content Workspace */}
-        <main className={`flex-1 overflow-y-auto bg-bg-primary p-6 lg:p-8 custom-scrollbar transition-all duration-300 flex flex-col justify-between ${
-          utilityDrawerOpen ? (activeUtilityTab ? 'lg:pr-[370px]' : 'lg:pr-[50px]') : ''
+        {/* Main Content Workspace - Edge-to-Edge Fluid Console */}
+        <main className={`flex-1 overflow-y-auto bg-bg-primary px-3 sm:px-4 lg:px-6 py-4 custom-scrollbar transition-all duration-300 flex flex-col justify-between ${
+          utilityDrawerOpen ? (activeUtilityTab ? 'lg:pr-[380px]' : 'lg:pr-[60px]') : ''
         }`}>
-          <div className="flex-1 pb-8">
+          <div className="flex-1 pb-4 w-full">
             {children}
           </div>
           {/* Footer containing About Us */}

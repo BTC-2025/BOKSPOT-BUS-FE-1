@@ -80,11 +80,6 @@ export default function BookingsPage() {
     if (bBranchId && actBranchId && bBranchId !== actBranchId) return false;
     if (bBranchName && actBranchName && !actBranchName.includes(bBranchName) && !bBranchName.includes(actBranchName)) return false;
 
-    // Default existing legacy Grand Hotel bookings belong to main ECR branch
-    if (!bBranchId && !bBranchName && activeBranch?.id && activeBranch.id !== 'branch-grand-chennai' && !actBranchName.includes('ecr') && !actBranchName.includes('main')) {
-      return false;
-    }
-
     if (isTurfBranch) {
       return isBookingTurf;
     } else {

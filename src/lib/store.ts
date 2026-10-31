@@ -317,6 +317,7 @@ export interface MerchantUser {
   // Venue Profile (Global Business Details)
   thingsToKnow?: string[];
   gallery?: string[];
+  coverImage?: string;
   about?: string;
   amenities?: string[];
   
@@ -552,6 +553,12 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     email: 'h103@bnxmail.com',
     archetype: 'Accommodation',
     activeBranchId: 'branch-riverfront-main',
+    gallery: [
+      'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=1200&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&auto=format&fit=crop&q=80'
+    ],
+    coverImage: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=1200&auto=format&fit=crop&q=80',
     branches: [
       {
         id: 'branch-riverfront-main',
@@ -1880,7 +1887,7 @@ export const useVendorStore = create<VendorStoreState>()(
                 active: s.isActive ?? true,
                 rating: s.rating || 0,
                 bookingsCount: s.reviewCount || 0,
-                imageUrl: s.images?.[0] || s.metadata?.mainImageUrl || s.metadata?.images?.[0] || '',
+                imageUrl: s.images?.[0] || s.imageUrl || s.metadata?.imageUrl || s.metadata?.mainImageUrl || s.metadata?.images?.[0] || s.metadata?.listings?.[0]?.imageUrl || '',
                 description: s.description || '',
                 city: s.merchant?.city || s.city || 'Chennai',
                 metadata: s.metadata || {},

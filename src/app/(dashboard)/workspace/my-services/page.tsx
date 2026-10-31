@@ -339,7 +339,7 @@ export default function WorkspacePage() {
   };
 
   return (
-    <div className="space-y-5 animate-fade-in pb-12 font-sans max-w-[1400px] mx-auto">
+    <div className="space-y-4 animate-fade-in pb-8 font-sans w-full">
 
       {/* 1. Interactive Branch Switcher Strip (TL Logic: Branch-Isolated Offerings with Primary GST) */}
       <div className="px-5 py-4 rounded-2xl bg-white dark:bg-[#0f1624] border border-slate-200/80 dark:border-white/10 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">

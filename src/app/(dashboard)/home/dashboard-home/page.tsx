@@ -7,7 +7,7 @@ import {
   Users, User, Activity, CheckCircle2, ChevronRight, Phone,
   Stethoscope, FileText, IndianRupee, Clock,
   ArrowUpRight, TrendingUp, Calendar, MapPin, Zap,
-  Check, AlertCircle, Sparkles, Plus, QrCode, Building2
+  Check, AlertCircle, Sparkles, Plus, QrCode, Building2, Star
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -20,16 +20,8 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('This Week');
   const [liveBookings, setLiveBookings] = useState<any[]>([]);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
+  // Slot matrix is derived dynamically from real catalog services and live bookings below
 
-  // Real-time interactive slot matrix state
-  const [resourceSlots, setResourceSlots] = useState<{ id: string; name: string; type: string; status: 'Available' | 'Occupied' | 'Hold'; currentSlot: string; customer?: string }[]>([
-    { id: '1', name: 'Turf A (5-a-side)', type: 'Pitch', status: 'Occupied', currentSlot: '10:00 - 11:00 AM', customer: 'Chennai Strikers' },
-    { id: '2', name: 'Turf B (7-a-side)', type: 'Pitch', status: 'Available', currentSlot: '11:00 - 12:00 PM' },
-    { id: '3', name: 'Turf C (Box Cricket)', type: 'Pitch', status: 'Available', currentSlot: '11:00 - 12:00 PM' },
-    { id: '4', name: 'Suite 201 (Pool View)', type: 'Suite', status: 'Occupied', currentSlot: 'Check-out: 12:00 PM', customer: 'Arun Kumar' },
-    { id: '5', name: 'Villa Deluxe 104', type: 'Villa', status: 'Available', currentSlot: 'Ready for Check-in' },
-    { id: '6', name: 'Cabana 02 (Day-pass)', type: 'Lounge', status: 'Hold', currentSlot: 'Holding for Walk-in' },
-  ]);
 
   // ── Live Bookings Poller ────────────────────────────────────────────────────
   useEffect(() => {
@@ -117,11 +109,6 @@ export default function DashboardPage() {
     if (bBranchId && actBranchId && bBranchId !== actBranchId) return false;
     if (bBranchName && actBranchName && !actBranchName.includes(bBranchName) && !bBranchName.includes(actBranchName)) return false;
 
-    // Default existing legacy Grand Hotel bookings belong to main ECR branch
-    if (!bBranchId && !bBranchName && activeBranch?.id && activeBranch.id !== 'branch-grand-chennai' && !actBranchName.includes('ecr') && !actBranchName.includes('main')) {
-      return false;
-    }
-
     if (isTurfBranch) {
       if (bCategory.includes('room') || bCategory.includes('hotel') || bCategory.includes('resort') || bCategory.includes('suite')) return false;
       if (/suite|deluxe|villa|cottage|room/i.test(bServiceName)) return false;
@@ -199,17 +186,120 @@ export default function DashboardPage() {
   const weeklyData = daysMap;
   const maxWeekly = Math.max(...weeklyData, 1);
 
-  // Business verticals for multi-business owner
-  const verticals = currentMerchant.verticals || (
-    currentMerchant.merchantName.toLowerCase().includes('sunstone')
-      ? [
-          { id: 'vert-resort', name: 'Sunstone Resort', category: 'Resort Booking', archetype: 'Accommodation', badge: 'Resort & Suites' },
-          { id: 'vert-turf', name: 'Sunstone Arena', category: 'Football Turf', archetype: 'Sports', badge: 'Sports Turf' }
-        ]
-      : []
-  );
+  // Business verticals for multi-business owner derived dynamically
+  const verticals = (currentMerchant.verticals && currentMerchant.verticals.length > 0)
+    ? currentMerchant.verticals
+    : (effectiveBranches.length > 1
+        ? effectiveBranches.map(b => ({
+            id: b.id,
+            name: b.name,
+            category: b.category,
+            archetype: getArchetypeFromCategory(b.category || '') || 'Accommodation',
+            badge: b.category || 'Facility'
+          }))
+        : []);
 
   const activeVertical = verticals.find(v => v.id === currentMerchant.activeVerticalId || v.category === currentMerchant.category) || verticals[0];
+
+  // ── DYNAMIC INVENTORY & RESOURCE SLOTS (Derived from Active Services & Bookings) ──
+  const activeMerchantServices = (services || []).filter((s: any) => {
+    const sMerchant = (s.merchant || s.metadata?.merchantName || '').toLowerCase().trim();
+    const curName = (currentMerchant.merchantName || '').toLowerCase().trim();
+    const sMerchantId = String(s.merchantId || s.metadata?.merchantId || '').trim();
+    const curId = String(currentMerchant.id || '').trim();
+    
+    const matchesMerchant = (curId && sMerchantId && curId === sMerchantId) ||
+      (sMerchant && curName && (sMerchant === curName || curName.includes(sMerchant) || sMerchant.includes(curName)));
+
+    return s.active !== false && matchesMerchant;
+  });
+
+  // ── DYNAMIC VENUE IMAGE FROM VENUE PROFILE & SERVICES ──────────────
+  const dynamicVenueImage = 
+    (currentMerchant.gallery && currentMerchant.gallery.length > 0 && currentMerchant.gallery[0]) ||
+    currentMerchant.logoUrl ||
+    (currentMerchant as any)?.imageUrl ||
+    (currentMerchant as any)?.image ||
+    (activeMerchantServices.find((s: any) => s.imageUrl || s.metadata?.imageUrl || (s.listings && s.listings[0]?.imageUrl))?.imageUrl) ||
+    (activeMerchantServices.find((s: any) => s.metadata?.imageUrl)?.metadata?.imageUrl) ||
+    (activeMerchantServices.find((s: any) => s.listings && s.listings[0]?.imageUrl)?.listings?.[0]?.imageUrl) ||
+    (activeMerchantServices.find((s: any) => s.metadata?.listings && s.metadata.listings[0]?.imageUrl)?.metadata?.listings?.[0]?.imageUrl) ||
+    (isTurfBranch
+      ? 'https://images.unsplash.com/photo-1529900245584-8e6bbcac885a?w=600&q=80'
+      : (curArch === 'ACCOMMODATION'
+          ? 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&q=80'
+          : 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80'));
+
+  // Extract real inventory units / listings
+  const derivedUnits: Array<{ id: string; name: string; type: string; price: number; category: string }> = [];
+  activeMerchantServices.forEach((srv: any) => {
+    if (srv.listings && Array.isArray(srv.listings) && srv.listings.length > 0) {
+      srv.listings.forEach((listing: any) => {
+        derivedUnits.push({
+          id: listing.id || String(Math.random()),
+          name: listing.name,
+          type: isTurfBranch ? 'Pitch' : (curArch === 'ACCOMMODATION' ? 'Room / Villa' : 'Unit'),
+          price: listing.price || srv.price || 0,
+          category: srv.category || activeBranchCategory
+        });
+      });
+    } else {
+      derivedUnits.push({
+        id: srv.id,
+        name: srv.name,
+        type: isTurfBranch ? 'Pitch' : (curArch === 'ACCOMMODATION' ? 'Room / Villa' : 'Unit'),
+        price: srv.price || 0,
+        category: srv.category || activeBranchCategory
+      });
+    }
+  });
+
+  // Cross-reference with live activeBookings to compute status dynamically
+  const dynamicResourceSlots = derivedUnits.map(unit => {
+    const matchingBooking = activeBookings.find(b => 
+      (b.serviceName && b.serviceName.toLowerCase().includes(unit.name.toLowerCase())) ||
+      (unit.name && unit.name.toLowerCase().includes((b.serviceName || '').toLowerCase()))
+    );
+
+    if (matchingBooking) {
+      const isOccupied = matchingBooking.status === 'CHECKED_IN';
+      return {
+        id: unit.id,
+        name: unit.name,
+        type: unit.type,
+        status: (isOccupied ? 'Occupied' : 'Hold') as 'Available' | 'Occupied' | 'Hold',
+        currentSlot: matchingBooking.time ? `${matchingBooking.date || 'Today'} • ${matchingBooking.time}` : (isOccupied ? 'In Session' : 'Reserved'),
+        customer: matchingBooking.customerName || matchingBooking.teamName || 'Booked'
+      };
+    }
+
+    return {
+      id: unit.id,
+      name: unit.name,
+      type: unit.type,
+      status: 'Available' as 'Available' | 'Occupied' | 'Hold',
+      currentSlot: 'Ready for Booking'
+    };
+  });
+
+  // ── DYNAMIC MULTI-VERTICAL BREAKDOWN ──────────────────────────────────────────
+  const verticalBreakdown = (verticals || []).map(v => {
+    const vBookings = allMerchantBookings.filter(b => {
+      const bCat = (b.category || '').toLowerCase();
+      const vCat = (v.category || '').toLowerCase();
+      return bCat.includes(vCat) || vCat.includes(bCat) || (b.serviceName || '').toLowerCase().includes(v.name.toLowerCase());
+    });
+    const rev = vBookings.reduce((sum, b) => 
+      (b.status === 'COMPLETED' || b.status === 'CONFIRMED' || b.status === 'CHECKED_IN') ? sum + (Number(b.amount) || 0) : sum, 0
+    );
+    const pct = totalRevenue > 0 ? Math.round((rev / totalRevenue) * 100) : (100 / Math.max(verticals.length, 1));
+    return {
+      ...v,
+      revenue: rev,
+      percentage: pct,
+      bookingCount: vBookings.length
+    };
+  });
 
   const getBookingType = (serviceName: string, fallback?: string) => {
     const name = (serviceName || '').toLowerCase();
@@ -284,57 +374,72 @@ export default function DashboardPage() {
 
   // ── OWNER EXECUTIVE COMMAND CENTER ──────────────────────────────────────────
   return (
-    <div className="space-y-6 pb-12 font-sans animate-fade-in max-w-[1400px] mx-auto">
+    <div className="space-y-5 pb-8 font-sans animate-fade-in w-full">
 
-      {/* 1. Executive Top Banner with Quick Business Entity Switcher */}
-      <div className="p-6 md:p-7 rounded-3xl bg-white dark:bg-[#0f1624] border border-slate-200/80 dark:border-white/10 shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-full bg-gradient-to-l from-[#ff6325]/15 via-[#0a3161]/10 to-transparent pointer-events-none" />
-        
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
-          <div>
-            <div className="flex flex-wrap items-center gap-3 mb-2">
-              <h1 className="text-2xl md:text-3xl font-black tracking-tight text-[#0a3161] dark:text-white">
-                {currentMerchant.merchantName || (isTurfBranch ? 'Sunstone Arena Turf' : 'Sunstone Resort')}
-              </h1>
-              <span className="px-3 py-1 rounded-full bg-[#ff6325]/10 text-[#ff6325] text-xs font-black border border-[#ff6325]/30 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#ff6325] animate-ping" />
-                {activeBranch.name || activeBranchCategory}
-              </span>
-              <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
-                activeBranch.gstStatus === 'WITH_GST' 
-                  ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30' 
-                  : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-              }`}>
-                {activeBranch.gstStatus === 'WITH_GST' ? `GST: ${activeBranch.gstNumber || currentMerchant.gstNumber || '33AAAAA0000A1Z5'}` : 'Nett'}
-              </span>
+      {/* 1. Executive Top Banner with Venue Photo Thumbnail & Modern Clean Badges */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0f1624] border border-slate-200/80 dark:border-white/10 shadow-xs relative overflow-hidden">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
+          
+          {/* Left: Venue Image + Title + Status Badges */}
+          <div className="flex items-center gap-4 min-w-0">
+            {/* Venue Photo Thumbnail (Rounded 2xl) */}
+            <div className="h-16 w-24 sm:h-18 sm:w-28 rounded-2xl overflow-hidden bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 shrink-0 shadow-xs relative">
+              <img
+                src={dynamicVenueImage}
+                alt={currentMerchant.merchantName || 'Venue'}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = isTurfBranch
+                    ? 'https://images.unsplash.com/photo-1529900245584-8e6bbcac885a?w=400&q=80'
+                    : 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&q=80';
+                }}
+              />
             </div>
-            
-            <p className="text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 flex flex-wrap items-center gap-2">
-              <span className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                <CheckCircle2 size={15} /> All Systems Operational
-              </span>
-              <span>•</span>
-              <span>Executive Multi-Vertical Console</span>
-              <span>•</span>
-              <span className="text-slate-400 dark:text-slate-500">Auto-sync live at 3s intervals</span>
-            </p>
+
+            {/* Venue Info & Subtitle */}
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2.5 mb-1.5">
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#0a3161] dark:text-white truncate">
+                  {currentMerchant.merchantName || activeBranch.name || 'Merchant Dashboard'}
+                </h1>
+
+                {/* GST Badge */}
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-cyan-50 dark:bg-cyan-950/40 text-cyan-600 dark:text-cyan-400 border border-cyan-200/60 shrink-0">
+                  GST: {activeBranch.gstNumber || currentMerchant.gstNumber || '33AAAAA0000A1Z5'}
+                </span>
+              </div>
+              
+              <p className="text-[11px] sm:text-xs font-medium text-slate-500 dark:text-slate-400 flex flex-wrap items-center gap-2">
+                <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> All Systems Operational
+                </span>
+                <span className="text-slate-300 dark:text-slate-600">|</span>
+                <span>Executive Multi-Vertical Console</span>
+                <span className="text-slate-300 dark:text-slate-600">|</span>
+                <span className="text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                  <span>↻</span> Auto-sync live at 3s intervals
+                </span>
+              </p>
+            </div>
           </div>
 
-          {/* Merchant ID Badge */}
-          <div className="flex items-center gap-3 bg-slate-50 dark:bg-white/5 px-4 py-2.5 rounded-2xl border border-slate-200/80 dark:border-white/10 shrink-0 shadow-xs">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[#0a3161] to-[#142642] dark:from-[#ff6325] dark:to-[#e04e13] text-white flex items-center justify-center font-black text-xs shadow-sm">
-              {currentMerchant.username?.charAt(0) || 'M'}
+          {/* Right: Distinct Merchant ID Island Card matching screenshot */}
+          <div className="flex items-center gap-3 bg-white dark:bg-[#121926] px-4 py-2.5 rounded-2xl border border-slate-200/90 dark:border-white/10 shrink-0 shadow-md shadow-slate-100 dark:shadow-none self-start lg:self-center hover:border-slate-300 transition-all cursor-default">
+            <div className="h-10 w-10 rounded-xl bg-[#0a3161] dark:bg-[#ff6325] text-white flex items-center justify-center shadow-sm shrink-0">
+              <Building2 size={18} />
             </div>
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
-                Merchant ID
-              </span>
-              <span className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
-                <span>{currentMerchant.username}</span>
-                <span className="text-[10px] font-bold text-slate-400">({currentMerchant.vendorId || currentMerchant.id?.slice(0, 8)})</span>
+            <div className="text-left">
+              <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                <span>MERCHANT ID</span>
+                <ChevronRight size={11} className="text-slate-400" />
+              </div>
+              <span className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5 mt-0.5">
+                <span>{currentMerchant.username || 'H103'}</span>
+                <span className="text-[11px] font-bold text-slate-400">({currentMerchant.vendorId || currentMerchant.id?.slice(0, 8) || '20260002'})</span>
               </span>
             </div>
           </div>
+
         </div>
       </div>
 
@@ -344,63 +449,173 @@ export default function DashboardPage() {
         {/* LEFT COLUMN: Main KPIs, Analytics & Booking Queue (~65-70%) */}
         <div className="lg:col-span-8 space-y-6">
 
-          {/* 4 KPI Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="bg-white dark:bg-[#0f1624] rounded-3xl p-5 border border-slate-200/80 dark:border-white/10 shadow-sm hover:border-[#ff6325]/40 transition-all">
-              <div className="flex items-center justify-between mb-3">
-                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
-                  <IndianRupee size={18} />
+          {/* 4 KPI Cards Matching Exact Clicks Business Design with Dual Mountain Wave */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            
+            {/* Card 1: Today's Revenue (Green) */}
+            <div className="relative bg-white dark:bg-[#0f1624] rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 dark:border-white/10 shadow-xs hover:shadow-sm transition-all overflow-hidden flex flex-col justify-between min-h-[96px]">
+              {/* Dual Wave Graphic matching screenshot */}
+              <div className="absolute inset-x-0 bottom-0 h-10 pointer-events-none overflow-hidden">
+                <svg viewBox="0 0 400 100" preserveAspectRatio="none" className="w-full h-full">
+                  <defs>
+                    <linearGradient id="greenWaveBack" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.18" />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity="0.02" />
+                    </linearGradient>
+                    <linearGradient id="greenWaveFront" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.35" />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity="0.05" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M0,90 Q90,95 180,75 T320,40 Q360,25 400,20 L400,100 L0,100 Z" fill="url(#greenWaveBack)" />
+                  <path d="M0,95 Q100,90 200,80 T300,50 Q360,30 400,25 L400,100 L0,100 Z" fill="url(#greenWaveFront)" />
+                </svg>
+              </div>
+
+              <div className="relative z-10 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-[#00b074] text-white flex items-center justify-center shadow-sm shadow-emerald-500/25 shrink-0">
+                    <IndianRupee size={15} strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block leading-none">
+                      TODAY'S REVENUE
+                    </span>
+                    <h3 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-1 leading-none">
+                      ₹{totalRevenue.toLocaleString()}
+                    </h3>
+                  </div>
                 </div>
-                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200/50">
+
+                <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-200/60 shrink-0 self-start">
                   +14%
                 </span>
               </div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Today's Revenue</p>
-              <h3 className="text-xl font-black text-slate-900 dark:text-white">₹{totalRevenue.toLocaleString()}</h3>
             </div>
 
-            <div className="bg-white dark:bg-[#0f1624] rounded-3xl p-5 border border-slate-200/80 dark:border-white/10 shadow-sm hover:border-[#ff6325]/40 transition-all">
-              <div className="flex items-center justify-between mb-3">
-                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-blue-500 to-sky-500 flex items-center justify-center text-white shadow-md shadow-blue-500/25">
-                  <Calendar size={18} />
+            {/* Card 2: Total Reservations (Blue) */}
+            <div className="relative bg-white dark:bg-[#0f1624] rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 dark:border-white/10 shadow-xs hover:shadow-sm transition-all overflow-hidden flex flex-col justify-between min-h-[96px]">
+              {/* Dual Wave Graphic matching screenshot */}
+              <div className="absolute inset-x-0 bottom-0 h-10 pointer-events-none overflow-hidden">
+                <svg viewBox="0 0 400 100" preserveAspectRatio="none" className="w-full h-full">
+                  <defs>
+                    <linearGradient id="blueWaveBack" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#0080ff" stopOpacity="0.18" />
+                      <stop offset="100%" stopColor="#0080ff" stopOpacity="0.02" />
+                    </linearGradient>
+                    <linearGradient id="blueWaveFront" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#0080ff" stopOpacity="0.35" />
+                      <stop offset="100%" stopColor="#0080ff" stopOpacity="0.05" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M0,90 Q90,95 180,75 T320,40 Q360,25 400,20 L400,100 L0,100 Z" fill="url(#blueWaveBack)" />
+                  <path d="M0,95 Q100,90 200,80 T300,50 Q360,30 400,25 L400,100 L0,100 Z" fill="url(#blueWaveFront)" />
+                </svg>
+              </div>
+
+              <div className="relative z-10 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-[#0080ff] text-white flex items-center justify-center shadow-sm shadow-blue-500/25 shrink-0">
+                    <Calendar size={15} strokeWidth={2.3} />
+                  </div>
+                  <div>
+                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block leading-none">
+                      {isTurfBranch ? 'MATCHES' : 'RESERVATIONS'}
+                    </span>
+                    <h3 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-1 leading-none">
+                      {allMerchantBookings.length}
+                    </h3>
+                  </div>
                 </div>
-                <span className="text-[10px] font-bold text-blue-600 bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded-full border border-blue-200/50">
+
+                <span className="text-[9px] font-black text-blue-600 bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-full border border-blue-200/60 shrink-0 self-start">
                   Active
                 </span>
               </div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                {isTurfBranch ? 'Total Matches' : (archetypeConfig.kpiTotalBookings || 'Total Reservations')}
-              </p>
-              <h3 className="text-xl font-black text-slate-900 dark:text-white">{allMerchantBookings.length}</h3>
             </div>
 
-            <div className="bg-white dark:bg-[#0f1624] rounded-3xl p-5 border border-slate-200/80 dark:border-white/10 shadow-sm hover:border-[#ff6325]/40 transition-all">
-              <div className="flex items-center justify-between mb-3">
-                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-[#ff6325] to-[#e04e13] flex items-center justify-center text-white shadow-md shadow-[#ff6325]/30">
-                  <Users size={18} />
+            {/* Card 3: Guests & Visitors (Orange) */}
+            <div className="relative bg-white dark:bg-[#0f1624] rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 dark:border-white/10 shadow-xs hover:shadow-sm transition-all overflow-hidden flex flex-col justify-between min-h-[96px]">
+              {/* Dual Wave Graphic matching screenshot */}
+              <div className="absolute inset-x-0 bottom-0 h-10 pointer-events-none overflow-hidden">
+                <svg viewBox="0 0 400 100" preserveAspectRatio="none" className="w-full h-full">
+                  <defs>
+                    <linearGradient id="orangeWaveBack" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#ff5500" stopOpacity="0.18" />
+                      <stop offset="100%" stopColor="#ff5500" stopOpacity="0.02" />
+                    </linearGradient>
+                    <linearGradient id="orangeWaveFront" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#ff5500" stopOpacity="0.35" />
+                      <stop offset="100%" stopColor="#ff5500" stopOpacity="0.05" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M0,90 Q90,95 180,75 T320,40 Q360,25 400,20 L400,100 L0,100 Z" fill="url(#orangeWaveBack)" />
+                  <path d="M0,95 Q100,90 200,80 T300,50 Q360,30 400,25 L400,100 L0,100 Z" fill="url(#orangeWaveFront)" />
+                </svg>
+              </div>
+
+              <div className="relative z-10 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-[#ff5500] text-white flex items-center justify-center shadow-sm shadow-[#ff5500]/25 shrink-0">
+                    <Users size={15} strokeWidth={2.3} />
+                  </div>
+                  <div>
+                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block leading-none">
+                      {isTurfBranch ? 'PLAYERS' : 'GUESTS'}
+                    </span>
+                    <h3 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-1 leading-none">
+                      {occupancy}
+                    </h3>
+                  </div>
                 </div>
-                <span className="text-[10px] font-bold text-[#ff6325] bg-orange-50 dark:bg-orange-950/40 px-2 py-0.5 rounded-full border border-orange-200/50">
+
+                <span className="text-[9px] font-black text-[#ff5500] bg-orange-50 dark:bg-orange-950/50 px-2 py-0.5 rounded-full border border-orange-200/60 shrink-0 self-start">
                   Verified
                 </span>
               </div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                {isTurfBranch ? 'Teams & Players' : 'Guests & Visitors'}
-              </p>
-              <h3 className="text-xl font-black text-slate-900 dark:text-white">{occupancy}</h3>
             </div>
 
-            <div className="bg-white dark:bg-[#0f1624] rounded-3xl p-5 border border-slate-200/80 dark:border-white/10 shadow-sm hover:border-[#ff6325]/40 transition-all">
-              <div className="flex items-center justify-between mb-3">
-                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
-                  <Activity size={18} />
+            {/* Card 4: Staff on Duty (Purple) */}
+            <div className="relative bg-white dark:bg-[#0f1624] rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 dark:border-white/10 shadow-xs hover:shadow-sm transition-all overflow-hidden flex flex-col justify-between min-h-[96px]">
+              {/* Dual Wave Graphic matching screenshot */}
+              <div className="absolute inset-x-0 bottom-0 h-10 pointer-events-none overflow-hidden">
+                <svg viewBox="0 0 400 100" preserveAspectRatio="none" className="w-full h-full">
+                  <defs>
+                    <linearGradient id="purpleWaveBack" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#8040f5" stopOpacity="0.18" />
+                      <stop offset="100%" stopColor="#8040f5" stopOpacity="0.02" />
+                    </linearGradient>
+                    <linearGradient id="purpleWaveFront" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#8040f5" stopOpacity="0.35" />
+                      <stop offset="100%" stopColor="#8040f5" stopOpacity="0.05" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M0,90 Q90,95 180,75 T320,40 Q360,25 400,20 L400,100 L0,100 Z" fill="url(#purpleWaveBack)" />
+                  <path d="M0,95 Q100,90 200,80 T300,50 Q360,30 400,25 L400,100 L0,100 Z" fill="url(#purpleWaveFront)" />
+                </svg>
+              </div>
+
+              <div className="relative z-10 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-[#8040f5] text-white flex items-center justify-center shadow-sm shadow-purple-500/25 shrink-0">
+                    <Star size={15} strokeWidth={2.3} />
+                  </div>
+                  <div>
+                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block leading-none">
+                      STAFF ON DUTY
+                    </span>
+                    <h3 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-1 leading-none">
+                      {metric3}
+                    </h3>
+                  </div>
                 </div>
-                <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded-full border border-indigo-200/50">
+
+                <span className="text-[9px] font-black text-[#8040f5] bg-purple-50 dark:bg-purple-950/50 px-2 py-0.5 rounded-full border border-purple-200/60 shrink-0 self-start">
                   Peak
                 </span>
               </div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Staff on Duty</p>
-              <h3 className="text-xl font-black text-slate-900 dark:text-white">{metric3}</h3>
             </div>
+
           </div>
 
           {/* Interactive Trends Graph */}
@@ -572,9 +787,7 @@ export default function DashboardPage() {
 
             {/* Matrix Slots List Filtered by Active Branch */}
             <div className="space-y-3">
-              {resourceSlots
-                .filter(res => isTurfBranch ? res.type === 'Pitch' : (res.type === 'Suite' || res.type === 'Villa' || res.type === 'Lounge'))
-                .map((res) => (
+              {dynamicResourceSlots.length > 0 ? dynamicResourceSlots.map((res) => (
                 <div
                   key={res.id}
                   className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 flex items-center justify-between transition-all hover:border-slate-300 dark:hover:border-white/10"
@@ -609,7 +822,15 @@ export default function DashboardPage() {
                     )}
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="p-6 text-center rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-dashed border-slate-200 dark:border-white/10">
+                  <p className="text-xs font-bold text-slate-600 dark:text-slate-300">No active inventory units yet</p>
+                  <p className="text-[11px] text-slate-400 mt-1">Add your catalog services or room units in My Services</p>
+                  <button onClick={() => router.push('/workspace/my-services')} className="mt-3 px-3 py-1.5 rounded-xl bg-[#ff6325] hover:bg-[#e04e13] text-white text-[11px] font-bold shadow-sm transition-all cursor-pointer">
+                    + Add First Service / Unit
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Quick Legend */}
@@ -669,38 +890,34 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Multi-Vertical Revenue Breakdown */}
+          {/* Dynamic Multi-Vertical Revenue Breakdown */}
           {verticals.length > 1 && (
             <div className="bg-white dark:bg-[#0f1624] rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm p-6">
               <h3 className="text-sm font-black text-[#0a3161] dark:text-white mb-1">
                 Multi-Entity Revenue Split
               </h3>
-              <p className="text-[11px] text-slate-400 mb-4">Consolidated earnings across verticals</p>
+              <p className="text-[11px] text-slate-400 mb-4">Consolidated real revenue across business units</p>
 
               <div className="space-y-3">
-                <div>
-                  <div className="flex justify-between text-xs font-bold mb-1">
-                    <span className="text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                      🏨 Sunstone Resort
-                    </span>
-                    <span className="text-slate-900 dark:text-white font-black">62% (₹{(totalRevenue * 0.62).toFixed(0)})</span>
+                {verticalBreakdown.map((vb, idx) => (
+                  <div key={vb.id || idx}>
+                    <div className="flex justify-between text-xs font-bold mb-1">
+                      <span className="text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                        <Building2 size={13} className={idx % 2 === 0 ? "text-[#0a3161]" : "text-[#ff6325]"} />
+                        {vb.name}
+                      </span>
+                      <span className="text-slate-900 dark:text-white font-black">
+                        {vb.percentage}% (₹{vb.revenue.toLocaleString()})
+                      </span>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${idx % 2 === 0 ? "bg-[#0a3161]" : "bg-[#ff6325]"}`}
+                        style={{ width: `${Math.max(vb.percentage, 5)}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden">
-                    <div className="h-full bg-[#0a3161] rounded-full" style={{ width: '62%' }} />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-xs font-bold mb-1">
-                    <span className="text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                      ⚽ Sunstone Arena Turf
-                    </span>
-                    <span className="text-[#ff6325] font-black">38% (₹{(totalRevenue * 0.38).toFixed(0)})</span>
-                  </div>
-                  <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden">
-                    <div className="h-full bg-[#ff6325] rounded-full" style={{ width: '38%' }} />
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           )}

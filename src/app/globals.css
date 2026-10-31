@@ -758,3 +758,27 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   transform: scale(1.15);
   opacity: 1;
 }
+
+/* ─── iOS / App Launcher Edit Mode Jiggle/Shake Animation ─── */
+@keyframes jiggle {
+  0% {
+    transform: rotate(-1.5deg) scale(1);
+  }
+  50% {
+    transform: rotate(1.5deg) scale(1.02);
+  }
+  100% {
+    transform: rotate(-1.5deg) scale(1);
+  }
+}
+
+.animate-jiggle {
+  animation: jiggle 0.24s infinite ease-in-out;
+  transform-origin: center center;
+}
+
+.animate-jiggle-reverse {
+  animation: jiggle 0.24s infinite ease-in-out reverse;
+  animation-delay: -0.12s;
+  transform-origin: center center;
+}
