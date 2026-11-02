@@ -5,11 +5,13 @@ import { getArchetypeConfig } from '@/lib/businessDictionary';
 import { 
   Building2, Mail, Phone, Globe, MapPin, Save, Info, User,
   CheckCircle2, Clock, Camera, Settings, ShieldAlert,
-  ChevronRight
+  ChevronRight, Sparkles, Crown, Award, Star
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function SettingsPage() {
+  const router = useRouter();
   const { currentMerchant, loginRole, supervisorId, updateMerchantModules, updateMerchantProfile } = useVendorStore();
   const archetypeConfig = getArchetypeConfig(currentMerchant?.archetype || 'Service');
   const isService = currentMerchant?.archetype === 'Service';
@@ -40,6 +42,49 @@ export default function SettingsPage() {
   const [about, setAbout] = useState(currentMerchant?.aboutText || currentMerchant?.about || '');
   const [isSaved, setIsSaved] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(currentMerchant?.logoUrl || null);
+
+  // BokSpot Luxe Certification state
+  const [isLuxeVerified, setIsLuxeVerified] = useState<boolean>(
+    currentMerchant?.isLuxeVerified ?? (currentMerchant?.metadata?.isLuxeVerified || false)
+  );
+  const [starRating, setStarRating] = useState<number>(
+    currentMerchant?.starRating ?? (currentMerchant?.metadata?.starRating || 5)
+  );
+  const [tier, setTier] = useState<'STANDARD' | 'PREMIUM' | 'LUXURY'>(
+    currentMerchant?.tier ?? (currentMerchant?.metadata?.tier || 'LUXURY')
+  );
+  const [isPetFriendly, setIsPetFriendly] = useState<boolean>(
+    currentMerchant?.isPetFriendly ?? (currentMerchant?.metadata?.isPetFriendly || false)
+  );
+
+  // Bag Locker / Mini Space Luggage Storage Settings
+  const [isLuggageStorageEnabled, setIsLuggageStorageEnabled] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(`hotel_luggage_enabled_${currentMerchant?.id || 'default'}`);
+        if (stored !== null) return stored === 'true';
+      } catch {}
+    }
+    return currentMerchant?.metadata?.isLuggageStorageEnabled ?? true;
+  });
+  const [luggageRate, setLuggageRate] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(`hotel_luggage_rate_${currentMerchant?.id || 'default'}`);
+        if (stored) return Number(stored);
+      } catch {}
+    }
+    return currentMerchant?.luggageHourlyRate ?? 150;
+  });
+  const [luggageDayPassRate, setLuggageDayPassRate] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(`hotel_luggage_daypass_${currentMerchant?.id || 'default'}`);
+        if (stored) return Number(stored);
+      } catch {}
+    }
+    return currentMerchant?.metadata?.luggageDayPassRate ?? 500;
+  });
 
   // Property Showcase Details displayed on customer venue page
   const [galleryImages, setGalleryImages] = useState<string[]>(
@@ -153,8 +198,30 @@ export default function SettingsPage() {
         gallery: galleryImages,
         amenities: amenitiesList,
         policies: policiesList,
-        aroundProperty: landmarks
+        aroundProperty: landmarks,
+        isLuxeVerified,
+        starRating,
+        tier,
+        isPetFriendly,
+        luggageHourlyRate: luggageRate,
+        metadata: {
+          ...(currentMerchant.metadata || {}),
+          isLuggageStorageEnabled,
+          luggageHourlyRate: luggageRate,
+          luggageDayPassRate
+        }
       });
+
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(`hotel_luggage_enabled_${currentMerchant.id}`, String(isLuggageStorageEnabled));
+          localStorage.setItem('hotel_luggage_enabled_default', String(isLuggageStorageEnabled));
+          localStorage.setItem(`hotel_luggage_rate_${currentMerchant.id}`, String(luggageRate));
+          localStorage.setItem('hotel_luggage_rate_default', String(luggageRate));
+          localStorage.setItem(`hotel_luggage_daypass_${currentMerchant.id}`, String(luggageDayPassRate));
+          localStorage.setItem('hotel_luggage_daypass_default', String(luggageDayPassRate));
+        } catch {}
+      }
     }
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 3000);
@@ -380,212 +447,54 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[10px] uppercase font-bold tracking-wider text-text-secondary">About Description</label>
-                <div className="flex items-start gap-3 rounded-xl border border-border-brand/60 bg-bg-tertiary px-4 py-3 focus-within:border-[#ff6325] focus-within:ring-1 focus-within:ring-[#ff6325]/30 transition-all">
-                  <Info className="h-4 w-4 text-text-muted shrink-0 mt-1" />
-                  <textarea 
-                    rows={4}
-                    value={about} 
-                    onChange={(e) => setAbout(e.target.value)}
-                    placeholder="Tell guests about your property, ambience, hospitality, and signature offerings..."
-                    className="flex-1 bg-transparent outline-none text-sm text-text-primary font-bold resize-none leading-relaxed" 
-                    required
-                  />
-                </div>
-              </div>
 
-              {/* Customer Page Hero Gallery Management */}
-              <div className="pt-6 border-t border-border-brand/40 space-y-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="text-sm font-black text-text-primary flex items-center gap-2">
-                      <Camera size={16} className="text-[#ff6325]" /> Property Gallery Photos (Customer Hero Grid)
-                    </h3>
-                    <p className="text-xs text-text-secondary mt-0.5">
-                      The top 3 photos appear directly on your customer booking hero showcase.
+              {/* Venue & Property Configuration Redirection Card */}
+              <div className="p-6 rounded-3xl bg-gradient-to-br from-[#ff6325]/10 via-bg-tertiary to-[#ff6325]/5 border border-[#ff6325]/30 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="p-2 rounded-xl bg-[#ff6325] text-white">
+                        <Building2 size={18} />
+                      </span>
+                      <h3 className="text-base font-black text-text-primary">
+                        Venue, Amenities & Smart Bag Locker
+                      </h3>
+                    </div>
+                    <p className="text-xs text-text-secondary max-w-xl">
+                      Property showcase details (Amenities, Gallery Photos, Pet Policy, Check-in/out hours, House Rules, and Bag Locker cloakroom tariffs) are now managed under your dedicated <strong>Venue Profile</strong>.
                     </p>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {galleryImages.map((img, idx) => (
-                    <div key={idx} className="relative rounded-2xl overflow-hidden border border-border-brand bg-bg-tertiary group h-36">
-                      <img src={img} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setGalleryImages(galleryImages.filter((_, i) => i !== idx))}
-                          className="px-3 py-1 bg-red-600 text-white rounded-lg text-xs font-bold shadow-md cursor-pointer"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                      <span className="absolute bottom-1.5 left-2 bg-black/80 px-2 py-0.5 rounded text-[10px] font-bold text-white">
-                        {idx === 0 ? 'Primary Cover' : `Photo #${idx + 1}`}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex gap-2">
-                  <input
-                    type="url"
-                    placeholder="Paste high-res image URL (e.g. https://images.unsplash.com/...)"
-                    value={newGalleryUrl}
-                    onChange={(e) => setNewGalleryUrl(e.target.value)}
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-border-brand/60 bg-bg-tertiary text-sm text-text-primary font-medium focus:border-[#ff6325] outline-none"
-                  />
                   <button
                     type="button"
-                    onClick={() => {
-                      if (newGalleryUrl.trim()) {
-                        setGalleryImages([...galleryImages, newGalleryUrl.trim()]);
-                        setNewGalleryUrl('');
-                      }
-                    }}
-                    className="px-5 py-2.5 bg-[#0a3161] hover:bg-[#124b8f] text-white font-bold text-xs rounded-xl uppercase tracking-wider shrink-0 cursor-pointer"
+                    onClick={() => router.push('/workspace/about')}
+                    className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-[#ff6325] hover:bg-[#e04e13] text-white font-bold text-xs uppercase tracking-wider shadow-md shadow-[#ff6325]/20 cursor-pointer transition-all shrink-0"
                   >
-                    Add Photo
+                    <span>Edit Venue Profile</span>
+                    <span>&rarr;</span>
                   </button>
                 </div>
-              </div>
 
-              {/* Amenities Management */}
-              <div className="pt-6 border-t border-border-brand/40 space-y-4">
-                <h3 className="text-sm font-black text-text-primary flex items-center gap-2">
-                  <CheckCircle2 size={16} className="text-emerald-400" /> Property Amenities & Facilities
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {amenitiesList.map((amenity, idx) => (
-                    <span key={idx} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-bg-tertiary border border-border-brand text-xs font-bold text-text-primary">
-                      <span>✓</span>
-                      <span>{amenity}</span>
-                      <button 
-                        type="button" 
-                        onClick={() => setAmenitiesList(amenitiesList.filter((_, i) => i !== idx))}
-                        className="ml-1 text-slate-400 hover:text-red-500 font-extrabold cursor-pointer"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Add an amenity (e.g., Free Wi-Fi, Swimming Pool, In-house Restaurant, Valet Parking)"
-                    value={newAmenity}
-                    onChange={(e) => setNewAmenity(e.target.value)}
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-border-brand/60 bg-bg-tertiary text-sm text-text-primary font-medium focus:border-[#ff6325] outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (newAmenity.trim()) {
-                        setAmenitiesList([...amenitiesList, newAmenity.trim()]);
-                        setNewAmenity('');
-                      }
-                    }}
-                    className="px-5 py-2.5 bg-[#ff6325] hover:brightness-110 text-white font-bold text-xs rounded-xl uppercase tracking-wider shrink-0 cursor-pointer"
-                  >
-                    Add Amenity
-                  </button>
-                </div>
-              </div>
-
-              {/* House Rules & Policies */}
-              <div className="pt-6 border-t border-border-brand/40 space-y-4">
-                <h3 className="text-sm font-black text-text-primary flex items-center gap-2">
-                  <Info size={16} className="text-blue-400" /> House Rules & Booking Policies
-                </h3>
-                <div className="space-y-2">
-                  {policiesList.map((policy, idx) => (
-                    <div key={idx} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-bg-tertiary border border-border-brand text-xs font-semibold text-text-primary">
-                      <span>• {policy}</span>
-                      <button 
-                        type="button" 
-                        onClick={() => setPoliciesList(policiesList.filter((_, i) => i !== idx))}
-                        className="text-slate-400 hover:text-red-500 font-extrabold cursor-pointer px-2"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Add policy (e.g., Check-in from 12 PM, Government ID required, No smoking inside)"
-                    value={newPolicy}
-                    onChange={(e) => setNewPolicy(e.target.value)}
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-border-brand/60 bg-bg-tertiary text-sm text-text-primary font-medium focus:border-[#ff6325] outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (newPolicy.trim()) {
-                        setPoliciesList([...policiesList, newPolicy.trim()]);
-                        setNewPolicy('');
-                      }
-                    }}
-                    className="px-5 py-2.5 bg-[#0a3161] hover:bg-[#124b8f] text-white font-bold text-xs rounded-xl uppercase tracking-wider shrink-0 cursor-pointer"
-                  >
-                    Add Policy
-                  </button>
-                </div>
-              </div>
-
-              {/* Nearby Landmarks */}
-              <div className="pt-6 border-t border-border-brand/40 space-y-4">
-                <h3 className="text-sm font-black text-text-primary flex items-center gap-2">
-                  <MapPin size={16} className="text-amber-400" /> Nearby Landmarks & Attractions
-                </h3>
-                <div className="space-y-2">
-                  {landmarks.map((lm, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-bg-tertiary border border-border-brand text-xs font-bold text-text-primary">
-                      <span>📍 {lm.name}</span>
-                      <div className="flex items-center gap-3">
-                        <span className="text-blue-400 font-extrabold">{lm.distance}</span>
-                        <button 
-                          type="button" 
-                          onClick={() => setLandmarks(landmarks.filter((_, i) => i !== idx))}
-                          className="text-slate-400 hover:text-red-500 font-extrabold cursor-pointer px-2"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
-                  <input
-                    type="text"
-                    placeholder="Landmark name (e.g. Marina Beach, Airport Terminal 1, Metro Station)"
-                    value={newLandmarkName}
-                    onChange={(e) => setNewLandmarkName(e.target.value)}
-                    className="sm:col-span-8 px-4 py-2.5 rounded-xl border border-border-brand/60 bg-bg-tertiary text-sm text-text-primary font-medium focus:border-[#ff6325] outline-none"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Distance (e.g. 1.2 km)"
-                    value={newLandmarkDist}
-                    onChange={(e) => setNewLandmarkDist(e.target.value)}
-                    className="sm:col-span-2 px-4 py-2.5 rounded-xl border border-border-brand/60 bg-bg-tertiary text-sm text-text-primary font-medium focus:border-[#ff6325] outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (newLandmarkName.trim() && newLandmarkDist.trim()) {
-                        setLandmarks([...landmarks, { name: newLandmarkName.trim(), distance: newLandmarkDist.trim() }]);
-                        setNewLandmarkName('');
-                        setNewLandmarkDist('');
-                      }
-                    }}
-                    className="sm:col-span-2 px-4 py-2.5 bg-[#ff6325] hover:brightness-110 text-white font-bold text-xs rounded-xl uppercase tracking-wider cursor-pointer"
-                  >
-                    Add
-                  </button>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
+                  <div className="p-2.5 rounded-xl bg-bg-secondary border border-border-brand text-center">
+                    <span className="text-sm block">🧳</span>
+                    <span className="text-[11px] font-bold text-text-primary block mt-1">Bag Locker</span>
+                    <span className="text-[10px] text-amber-500 font-bold">{isLuggageStorageEnabled ? `₹${luggageRate}/hr` : 'Disabled'}</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-bg-secondary border border-border-brand text-center">
+                    <span className="text-sm block">🐾</span>
+                    <span className="text-[11px] font-bold text-text-primary block mt-1">Pet Policy</span>
+                    <span className="text-[10px] text-emerald-500 font-bold">{isPetFriendly ? 'Allowed' : 'No Pets'}</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-bg-secondary border border-border-brand text-center">
+                    <span className="text-sm block">✨</span>
+                    <span className="text-[11px] font-bold text-text-primary block mt-1">Amenities</span>
+                    <span className="text-[10px] text-text-secondary font-bold">{amenitiesList.length} Active</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-bg-secondary border border-border-brand text-center">
+                    <span className="text-sm block">📸</span>
+                    <span className="text-[11px] font-bold text-text-primary block mt-1">Gallery</span>
+                    <span className="text-[10px] text-text-secondary font-bold">{galleryImages.length} Photos</span>
+                  </div>
                 </div>
               </div>
 

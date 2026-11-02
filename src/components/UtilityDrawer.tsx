@@ -82,7 +82,7 @@ export function UtilityDrawer({
   const [isEditingBeta, setIsEditingBeta] = useState(false);
   const [favoriteAppIds, setFavoriteAppIds] = useState<string[]>(['cliks', 'bnxmail', 'bit-tool', 'b2auth']);
   const [recentApps, setRecentApps] = useState<Array<{ id: string; name: string; url: string; icon: string; bg: string; color: string }>>([
-    { id: 'bit-tool', name: 'Bit-Tool', url: 'https://bit-tool.com', icon: 'sliders', bg: 'bg-blue-500/10', color: 'text-[#2563eb]' }
+    { id: 'bit-tool', name: 'Bit-Tool', url: 'https://bit-tool.com/', icon: 'sliders', bg: 'bg-blue-500/10', color: 'text-[#2563eb]' }
   ]);
 
   const toggleFavorite = (appId: string) => {
@@ -96,6 +96,8 @@ export function UtilityDrawer({
       const filtered = prev.filter(a => a.id !== app.id);
       return [app, ...filtered];
     });
+    // Close the panel so only the right rail sidebar remains
+    setActiveTab(null);
   };
 
   // Rail Pin Customization State (matching screenshot "EDIT PINS")
@@ -351,7 +353,7 @@ export function UtilityDrawer({
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
           transition={{ type: 'spring', damping: 26, stiffness: 220 }}
-          className="fixed right-0 top-16 bottom-0 z-[40] flex flex-row overflow-hidden border-l border-slate-200 dark:border-slate-850 shadow-2xl pointer-events-auto bg-slate-50 dark:bg-[#0b0e14]/90 backdrop-blur-md"
+          className="fixed right-0 top-[104px] bottom-0 z-30 flex flex-row overflow-hidden border-l border-slate-200 dark:border-slate-850 shadow-2xl pointer-events-auto bg-slate-50 dark:bg-[#0b0e14]/90 backdrop-blur-md"
         >
           {/* Slide-out Left Content Panel (320px) */}
           <AnimatePresence mode="wait">
@@ -369,7 +371,7 @@ export function UtilityDrawer({
                   <div className="h-full flex flex-col overflow-y-auto custom-scrollbar text-slate-800 dark:text-slate-200 font-sans bg-[#fbfcfd] dark:bg-[#0b0e14]">
                     {/* Header */}
                     <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0 bg-white dark:bg-[#0e121a]">
-                      <h3 className="text-xs font-black tracking-widest text-[#0a192f] dark:text-white uppercase">
+                      <h3 className="text-xs font-semibold tracking-widest text-[#0a192f] dark:text-white uppercase">
                         CALENDAR
                       </h3>
                       <button
@@ -392,7 +394,7 @@ export function UtilityDrawer({
                           <ChevronLeft size={16} />
                         </button>
 
-                        <h4 className="text-sm font-black text-slate-900 dark:text-white tracking-tight">
+                        <h4 className="text-sm font-semibold text-slate-900 dark:text-white tracking-tight">
                           {months[currentMonthDate.getMonth()]} {currentMonthDate.getFullYear()}
                         </h4>
 
@@ -408,7 +410,7 @@ export function UtilityDrawer({
                       {/* Clean Month Grid Card */}
                       <div className="bg-white dark:bg-[#121722] rounded-3xl border border-slate-200/70 dark:border-slate-800 p-4 shadow-2xs space-y-3">
                         {/* Day of Week Headers */}
-                        <div className="grid grid-cols-7 text-center text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                        <div className="grid grid-cols-7 text-center text-[11px] font-medium text-slate-500 dark:text-slate-400">
                           {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((d) => (
                             <div key={d} className="py-1">{d}</div>
                           ))}
@@ -435,11 +437,11 @@ export function UtilityDrawer({
                                     const newD = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth(), day);
                                     setSelectedDate(newD);
                                   }}
-                                  className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-all cursor-pointer ${
+                                  className={`w-8 h-8 rounded-full flex items-center justify-center font-medium text-xs transition-all cursor-pointer ${
                                     isSelected
                                       ? 'bg-[#ff6325] text-white shadow-md shadow-orange-500/30'
                                       : isToday
-                                      ? 'border border-[#ff6325] text-[#ff6325] font-extrabold'
+                                      ? 'border border-[#ff6325] text-[#ff6325] font-semibold'
                                       : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                                   }`}
                                 >
@@ -454,7 +456,7 @@ export function UtilityDrawer({
                       {/* Schedule for Selected Date Section */}
                       <div className="space-y-2.5 pt-1">
                         <div className="flex items-center justify-between">
-                          <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                          <h4 className="text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
                             SCHEDULE FOR {selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}
                           </h4>
                           <button
@@ -473,7 +475,7 @@ export function UtilityDrawer({
                                 ]);
                               }
                             }}
-                            className="px-2.5 py-1 rounded-lg bg-orange-50 dark:bg-orange-950/40 text-[#ff6325] hover:bg-orange-100 dark:hover:bg-orange-900/50 text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                            className="px-2.5 py-1 rounded-lg bg-orange-50 dark:bg-orange-950/40 text-[#ff6325] hover:bg-orange-100 dark:hover:bg-orange-900/50 text-[11px] font-medium flex items-center gap-1 transition-colors cursor-pointer"
                           >
                             <Plus size={12} />
                             <span>Add</span>
@@ -489,21 +491,21 @@ export function UtilityDrawer({
                                 className="p-3 rounded-2xl bg-white dark:bg-[#121722] border border-orange-200/70 dark:border-orange-900/30 shadow-2xs flex items-center justify-between gap-3"
                               >
                                 <div className="min-w-0">
-                                  <h5 className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                                  <h5 className="text-xs font-medium text-slate-900 dark:text-white truncate">
                                     {b.customerName || b.merchantName}
                                   </h5>
                                   <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
                                     {b.serviceName}
                                   </p>
                                 </div>
-                                <span className="px-2 py-0.5 rounded-md bg-orange-100 dark:bg-orange-950 text-[#ff6325] text-[10px] font-bold font-mono shrink-0">
+                                <span className="px-2 py-0.5 rounded-md bg-orange-100 dark:bg-orange-950 text-[#ff6325] text-[10px] font-medium font-mono shrink-0">
                                   {b.time}
                                 </span>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <div className="p-6 rounded-2xl border-2 border-dashed border-slate-200/80 dark:border-slate-800 text-center flex items-center justify-center">
+                          <div className="p-6 rounded-2xl border border-dashed border-slate-200/80 dark:border-slate-800 text-center flex items-center justify-center">
                             <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">
                               No customer appointments on this day.
                             </p>
@@ -520,8 +522,8 @@ export function UtilityDrawer({
                     {/* Header: # BETA CALC with circular action pills */}
                     <div className="px-4 py-3 bg-white dark:bg-[#0c121e] flex items-center justify-between shrink-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-[#00875a] dark:text-[#00a86b] font-black text-lg leading-none">#</span>
-                        <span className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider font-sans">
+                        <span className="text-[#00875a] dark:text-[#00a86b] font-semibold text-lg leading-none">#</span>
+                        <span className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wider font-sans">
                           BETA CALC
                         </span>
                       </div>
@@ -532,14 +534,14 @@ export function UtilityDrawer({
                           className="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
                           title="History"
                         >
-                          <History size={14} className="stroke-[2.2]" />
+                          <History size={14} className="stroke-[1.75]" />
                         </button>
                         <button 
                           type="button"
                           className="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
                           title="Share"
                         >
-                          <Share2 size={14} className="stroke-[2.2]" />
+                          <Share2 size={14} className="stroke-[1.75]" />
                         </button>
                         <button 
                           type="button"
@@ -551,7 +553,7 @@ export function UtilityDrawer({
                           className="w-8 h-8 rounded-full bg-red-50 hover:bg-red-100 dark:bg-red-950/30 flex items-center justify-center text-red-500 transition-colors cursor-pointer"
                           title="Clear Output"
                         >
-                          <Trash2 size={14} className="stroke-[2.2]" />
+                          <Trash2 size={14} className="stroke-[1.75]" />
                         </button>
                         <button
                           type="button"
@@ -559,7 +561,7 @@ export function UtilityDrawer({
                           className="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors cursor-pointer"
                           title="Close"
                         >
-                          <X size={16} className="stroke-[2.2]" />
+                          <X size={16} className="stroke-[1.75]" />
                         </button>
                       </div>
                     </div>
@@ -576,7 +578,7 @@ export function UtilityDrawer({
                         </div>
                       ) : (
                         <div className="flex flex-col items-center justify-center text-center py-6 select-none">
-                          <RotateCcw size={22} className="text-slate-300 dark:text-slate-600 mb-2 stroke-[2]" />
+                          <RotateCcw size={22} className="text-slate-300 dark:text-slate-600 mb-2 stroke-[1.75]" />
                           <p className="text-xs font-semibold text-slate-400 dark:text-slate-500">
                             Start typing to record Tape
                           </p>
@@ -586,10 +588,10 @@ export function UtilityDrawer({
 
                     {/* SET BASE & Main Screen Display */}
                     <div className="px-5 py-3 bg-[#f1f5f9]/50 dark:bg-slate-900/30 flex items-center justify-between border-b border-slate-100 dark:border-white/5">
-                      <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         SET BASE
                       </span>
-                      <span className="text-2xl font-black text-slate-900 dark:text-white font-mono tracking-tight">
+                      <span className="text-2xl font-semibold text-slate-900 dark:text-white font-mono tracking-tight">
                         {calcInput || (calcResult !== null ? calcResult : '0')}
                       </span>
                     </div>
@@ -599,34 +601,34 @@ export function UtilityDrawer({
                       <button
                         type="button"
                         onClick={handleAddGst}
-                        className="py-1.5 px-2 rounded-xl border border-[#00875a]/30 hover:border-[#00875a] bg-white dark:bg-slate-900 text-[#00875a] dark:text-[#00a86b] text-[10.5px] font-bold transition-all flex items-center justify-center gap-1 shadow-2xs hover:scale-[1.02] cursor-pointer"
+                        className="py-1.5 px-2 rounded-xl border border-[#00875a]/30 hover:border-[#00875a] bg-white dark:bg-slate-900 text-[#00875a] dark:text-[#00a86b] text-[10.5px] font-medium transition-all flex items-center justify-center gap-1 shadow-2xs hover:scale-[1.02] cursor-pointer"
                       >
-                        <span className="text-[10px] font-black">%</span> GST
+                        <span className="text-[10px] font-semibold">%</span> GST
                       </button>
                       <button
                         type="button"
                         onClick={handleAddDiscount}
-                        className="py-1.5 px-2 rounded-xl border border-amber-400/40 hover:border-amber-500 bg-white dark:bg-slate-900 text-amber-500 dark:text-amber-400 text-[10.5px] font-bold transition-all flex items-center justify-center gap-1 shadow-2xs hover:scale-[1.02] cursor-pointer"
+                        className="py-1.5 px-2 rounded-xl border border-amber-400/40 hover:border-amber-500 bg-white dark:bg-slate-900 text-amber-500 dark:text-amber-400 text-[10.5px] font-medium transition-all flex items-center justify-center gap-1 shadow-2xs hover:scale-[1.02] cursor-pointer"
                       >
-                        <Tag size={11} className="stroke-[2.5]" /> Discount
+                        <Tag size={11} className="stroke-[1.75]" /> Discount
                       </button>
                       <button
                         type="button"
                         onClick={() => setCurrencySymbol((prev) => (prev === '₹' ? '$' : '₹'))}
-                        className="py-1.5 px-2 rounded-xl border border-slate-200 dark:border-white/10 hover:border-slate-300 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 text-[10.5px] font-bold transition-all flex items-center justify-center gap-1 shadow-2xs hover:scale-[1.02] cursor-pointer"
+                        className="py-1.5 px-2 rounded-xl border border-slate-200 dark:border-white/10 hover:border-slate-300 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 text-[10.5px] font-medium transition-all flex items-center justify-center gap-1 shadow-2xs hover:scale-[1.02] cursor-pointer"
                       >
-                        <Globe size={11} className="stroke-[2.5]" /> INR
+                        <Globe size={11} className="stroke-[1.75]" /> INR
                       </button>
                       <button
                         type="button"
                         onClick={() => setCompareMode(!compareMode)}
-                        className={`py-1.5 px-2 rounded-xl border text-[10.5px] font-bold transition-all flex items-center justify-center gap-1 shadow-2xs hover:scale-[1.02] cursor-pointer ${
+                        className={`py-1.5 px-2 rounded-xl border text-[10.5px] font-medium transition-all flex items-center justify-center gap-1 shadow-2xs hover:scale-[1.02] cursor-pointer ${
                           compareMode
                             ? 'bg-[#00875a] text-white border-[#00875a]'
                             : 'border-slate-200 dark:border-white/10 hover:border-slate-300 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200'
                         }`}
                       >
-                        <ArrowUpDown size={11} className="stroke-[2.5]" /> Compare
+                        <ArrowUpDown size={11} className="stroke-[1.75]" /> Compare
                       </button>
                     </div>
 
@@ -634,11 +636,11 @@ export function UtilityDrawer({
                     {compareMode && (
                       <div className="px-4 py-2 border-t border-slate-100 dark:border-white/5 max-h-40 overflow-y-auto">
                         <div className="flex justify-between items-center pb-1">
-                          <span className="font-extrabold uppercase text-[9px] tracking-wider text-slate-500">Price Compare Ledger</span>
+                          <span className="font-semibold uppercase text-[9px] tracking-wider text-slate-500">Price Compare Ledger</span>
                           <button
                             type="button"
                             onClick={handleClearCompare}
-                            className="text-red-500 hover:text-red-400 font-bold text-[10px] cursor-pointer"
+                            className="text-red-500 hover:text-red-400 font-medium text-[10px] cursor-pointer"
                           >
                             Clear
                           </button>
@@ -680,7 +682,7 @@ export function UtilityDrawer({
                           />
                           <button
                             type="submit"
-                            className="bg-[#00875a] text-white rounded flex items-center justify-center font-bold"
+                            className="bg-[#00875a] text-white rounded flex items-center justify-center font-medium"
                           >
                             <Plus size={12} />
                           </button>
@@ -697,7 +699,7 @@ export function UtilityDrawer({
                         className="h-12 rounded-[16px] bg-[#fff1f2] dark:bg-rose-950/20 text-[#f43f5e] hover:bg-[#ffe4e6] flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                         title="Clear / Reset"
                       >
-                        <RotateCcw size={16} className="stroke-[2]" />
+                        <RotateCcw size={16} className="stroke-[1.75]" />
                       </button>
                       <button
                         type="button"
@@ -710,14 +712,14 @@ export function UtilityDrawer({
                       <button
                         type="button"
                         onClick={() => handleCalcBtn('/')}
-                        className="h-12 rounded-[16px] bg-[#e6fbf2] dark:bg-emerald-950/30 text-[#00875a] dark:text-[#00a86b] hover:bg-[#cbf7e3] text-lg font-bold transition-all active:scale-95 shadow-2xs cursor-pointer"
+                        className="h-12 rounded-[16px] bg-[#e6fbf2] dark:bg-emerald-950/30 text-[#00875a] dark:text-[#00a86b] hover:bg-[#cbf7e3] text-lg font-medium transition-all active:scale-95 shadow-2xs cursor-pointer"
                       >
                         /
                       </button>
                       <button
                         type="button"
                         onClick={() => handleCalcBtn('*')}
-                        className="h-12 rounded-[16px] bg-[#e6fbf2] dark:bg-emerald-950/30 text-[#00875a] dark:text-[#00a86b] hover:bg-[#cbf7e3] text-base font-bold transition-all active:scale-95 shadow-2xs cursor-pointer"
+                        className="h-12 rounded-[16px] bg-[#e6fbf2] dark:bg-emerald-950/30 text-[#00875a] dark:text-[#00a86b] hover:bg-[#cbf7e3] text-base font-medium transition-all active:scale-95 shadow-2xs cursor-pointer"
                       >
                         x
                       </button>
@@ -728,7 +730,7 @@ export function UtilityDrawer({
                           key={k}
                           type="button"
                           onClick={() => handleCalcBtn(k)}
-                          className="h-12 rounded-[16px] bg-[#f8fafc] dark:bg-slate-900 hover:bg-[#f1f5f9] text-[#1e293b] dark:text-slate-100 text-lg font-bold font-sans transition-all active:scale-95 shadow-2xs cursor-pointer"
+                          className="h-12 rounded-[16px] bg-[#f8fafc] dark:bg-slate-900 hover:bg-[#f1f5f9] text-[#1e293b] dark:text-slate-100 text-lg font-medium font-sans transition-all active:scale-95 shadow-2xs cursor-pointer"
                         >
                           {k}
                         </button>
@@ -736,7 +738,7 @@ export function UtilityDrawer({
                       <button
                         type="button"
                         onClick={() => handleCalcBtn('-')}
-                        className="h-12 rounded-[16px] bg-[#e6fbf2] dark:bg-emerald-950/30 text-[#00875a] dark:text-[#00a86b] hover:bg-[#cbf7e3] text-xl font-bold transition-all active:scale-95 shadow-2xs cursor-pointer"
+                        className="h-12 rounded-[16px] bg-[#e6fbf2] dark:bg-emerald-950/30 text-[#00875a] dark:text-[#00a86b] hover:bg-[#cbf7e3] text-xl font-medium transition-all active:scale-95 shadow-2xs cursor-pointer"
                       >
                         -
                       </button>
@@ -747,7 +749,7 @@ export function UtilityDrawer({
                           key={k}
                           type="button"
                           onClick={() => handleCalcBtn(k)}
-                          className="h-12 rounded-[16px] bg-[#f8fafc] dark:bg-slate-900 hover:bg-[#f1f5f9] text-[#1e293b] dark:text-slate-100 text-lg font-bold font-sans transition-all active:scale-95 shadow-2xs cursor-pointer"
+                          className="h-12 rounded-[16px] bg-[#f8fafc] dark:bg-slate-900 hover:bg-[#f1f5f9] text-[#1e293b] dark:text-slate-100 text-lg font-medium font-sans transition-all active:scale-95 shadow-2xs cursor-pointer"
                         >
                           {k}
                         </button>
@@ -755,7 +757,7 @@ export function UtilityDrawer({
                       <button
                         type="button"
                         onClick={() => handleCalcBtn('+')}
-                        className="h-12 rounded-[16px] bg-[#e6fbf2] dark:bg-emerald-950/30 text-[#00875a] dark:text-[#00a86b] hover:bg-[#cbf7e3] text-xl font-bold transition-all active:scale-95 shadow-2xs cursor-pointer"
+                        className="h-12 rounded-[16px] bg-[#e6fbf2] dark:bg-emerald-950/30 text-[#00875a] dark:text-[#00a86b] hover:bg-[#cbf7e3] text-xl font-medium transition-all active:scale-95 shadow-2xs cursor-pointer"
                       >
                         +
                       </button>
@@ -767,7 +769,7 @@ export function UtilityDrawer({
                             key={k}
                             type="button"
                             onClick={() => handleCalcBtn(k)}
-                            className="h-12 rounded-[16px] bg-[#f8fafc] dark:bg-slate-900 hover:bg-[#f1f5f9] text-[#1e293b] dark:text-slate-100 text-lg font-bold font-sans transition-all active:scale-95 shadow-2xs cursor-pointer"
+                            className="h-12 rounded-[16px] bg-[#f8fafc] dark:bg-slate-900 hover:bg-[#f1f5f9] text-[#1e293b] dark:text-slate-100 text-lg font-medium font-sans transition-all active:scale-95 shadow-2xs cursor-pointer"
                           >
                             {k}
                           </button>
@@ -775,21 +777,21 @@ export function UtilityDrawer({
 
                         <button
                           type="button"
-                          className="h-12 rounded-[16px] bg-[#f0f4f8] dark:bg-slate-800/60 text-[#334155] dark:text-slate-300 hover:bg-[#e2e8f0] text-xs font-bold uppercase tracking-wider transition-all active:scale-95 shadow-2xs cursor-pointer flex items-center justify-center"
+                          className="h-12 rounded-[16px] bg-[#f0f4f8] dark:bg-slate-800/60 text-[#334155] dark:text-slate-300 hover:bg-[#e2e8f0] text-xs font-medium uppercase tracking-wider transition-all active:scale-95 shadow-2xs cursor-pointer flex items-center justify-center"
                         >
                           SCI
                         </button>
                         <button
                           type="button"
                           onClick={() => handleCalcBtn('0')}
-                          className="h-12 rounded-[16px] bg-[#f8fafc] dark:bg-slate-900 hover:bg-[#f1f5f9] text-[#1e293b] dark:text-slate-100 text-lg font-bold font-sans transition-all active:scale-95 shadow-2xs cursor-pointer"
+                          className="h-12 rounded-[16px] bg-[#f8fafc] dark:bg-slate-900 hover:bg-[#f1f5f9] text-[#1e293b] dark:text-slate-100 text-lg font-medium font-sans transition-all active:scale-95 shadow-2xs cursor-pointer"
                         >
                           0
                         </button>
                         <button
                           type="button"
                           onClick={() => handleCalcBtn('.')}
-                          className="h-12 rounded-[16px] bg-[#f8fafc] dark:bg-slate-900 hover:bg-[#f1f5f9] text-[#1e293b] dark:text-slate-100 text-lg font-bold font-sans transition-all active:scale-95 shadow-2xs cursor-pointer"
+                          className="h-12 rounded-[16px] bg-[#f8fafc] dark:bg-slate-900 hover:bg-[#f1f5f9] text-[#1e293b] dark:text-slate-100 text-lg font-medium font-sans transition-all active:scale-95 shadow-2xs cursor-pointer"
                         >
                           .
                         </button>
@@ -799,7 +801,7 @@ export function UtilityDrawer({
                       <button
                         type="button"
                         onClick={() => handleCalcBtn('=')}
-                        className="col-span-1 h-[106px] rounded-[18px] bg-[#00875a] hover:bg-[#00704a] text-white text-2xl font-bold transition-all active:scale-95 flex items-center justify-center shadow-[0_4px_14px_rgba(0,135,90,0.35)] cursor-pointer"
+                        className="col-span-1 h-[106px] rounded-[18px] bg-[#00875a] hover:bg-[#00704a] text-white text-2xl font-medium transition-all active:scale-95 flex items-center justify-center shadow-[0_4px_14px_rgba(0,135,90,0.35)] cursor-pointer"
                       >
                         =
                       </button>
@@ -807,10 +809,10 @@ export function UtilityDrawer({
 
                     {/* Dark Solid Navy Tape Running Total Footer matching screenshot */}
                     <div className="mt-auto bg-[#0a1120] text-white px-5 py-3.5 flex flex-col justify-center border-t border-slate-800">
-                      <span className="text-[9px] font-black tracking-widest uppercase text-slate-400">
+                      <span className="text-[9px] font-semibold tracking-widest uppercase text-slate-400">
                         TAPE RUNNING TOTAL
                       </span>
-                      <span className="text-xl font-black font-mono text-[#00c781] tracking-tight leading-tight mt-0.5">
+                      <span className="text-xl font-semibold font-mono text-[#00c781] tracking-tight leading-tight mt-0.5">
                         {currencySymbol}{(calcResult !== null ? calcResult : parseFloat(calcInput || '0')).toFixed(2)}
                       </span>
                     </div>
@@ -822,7 +824,7 @@ export function UtilityDrawer({
                   <div className="h-full flex flex-col overflow-hidden bg-white dark:bg-[#0c121e] text-slate-800 dark:text-slate-100 font-sans select-none relative">
                     {/* Top App Header: NOTES & Close X */}
                     <div className="px-5 py-3.5 bg-white dark:bg-[#0c121e] border-b border-emerald-500/20 flex items-center justify-between shrink-0">
-                      <span className="text-xs font-black tracking-wider text-[#0a1120] dark:text-white uppercase font-sans">
+                      <span className="text-xs font-semibold tracking-wider text-[#0a1120] dark:text-white uppercase font-sans">
                         NOTES
                       </span>
                       <button
@@ -831,28 +833,28 @@ export function UtilityDrawer({
                         className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
                         title="Close"
                       >
-                        <X size={15} className="stroke-[2.5]" />
+                        <X size={15} className="stroke-[1.75]" />
                       </button>
                     </div>
 
                     {/* Subheader: My Notes title + blue '+ New Note' button */}
                     <div className="px-5 pt-5 pb-3 flex items-center justify-between shrink-0">
-                      <h3 className="text-lg font-black text-[#0a3161] dark:text-white font-sans tracking-tight">
+                      <h3 className="text-lg font-semibold text-[#0a3161] dark:text-white font-sans tracking-tight">
                         My Notes
                       </h3>
                       <button
                         type="button"
                         onClick={() => setShowAddNoteModal(true)}
-                        className="px-3.5 py-1.5 rounded-xl bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-bold transition-all shadow-[0_2px_8px_rgba(37,99,235,0.3)] flex items-center gap-1.5 cursor-pointer hover:scale-[1.02] active:scale-95"
+                        className="px-3.5 py-1.5 rounded-xl bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-medium transition-all shadow-[0_2px_8px_rgba(37,99,235,0.3)] flex items-center gap-1.5 cursor-pointer hover:scale-[1.02] active:scale-95"
                       >
-                        <Plus size={15} className="stroke-[2.8]" /> New Note
+                        <Plus size={15} className="stroke-[1.75]" /> New Note
                       </button>
                     </div>
 
                     {/* Content Section: Dashed empty state box or notes list */}
                     <div className="flex-1 overflow-y-auto px-5 pb-5 custom-scrollbar">
                       {notesList.length === 0 ? (
-                        <div className="mt-3 p-8 rounded-[22px] border-2 border-dashed border-[#cbd5e1] dark:border-slate-800 flex items-center justify-center text-center">
+                        <div className="mt-3 p-8 rounded-[22px] border border-dashed border-[#cbd5e1] dark:border-slate-800 flex items-center justify-center text-center">
                           <p className="text-sm font-medium text-slate-500 dark:text-slate-400 max-w-[200px] leading-relaxed">
                             No notes yet. Click the button above to create one.
                           </p>
@@ -865,7 +867,7 @@ export function UtilityDrawer({
                               className="p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-slate-50/60 dark:bg-white/5 space-y-1 shadow-2xs group hover:border-[#ff6325] transition-all"
                             >
                               <div className="flex justify-between items-start">
-                                <h4 className="font-bold text-xs text-[#0a3161] dark:text-white">
+                                <h4 className="font-medium text-xs text-[#0a3161] dark:text-white">
                                   {n.title}
                                 </h4>
                                 <span className="text-[10px] text-slate-400 font-mono">
@@ -886,7 +888,7 @@ export function UtilityDrawer({
                       <div className="absolute inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
                         <div className="w-full bg-white dark:bg-[#0f172a] rounded-2xl border border-slate-200 dark:border-white/10 p-4 shadow-2xl space-y-3">
                           <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-white/5">
-                            <h4 className="font-bold text-xs text-[#0a3161] dark:text-white uppercase tracking-wider">
+                            <h4 className="font-medium text-xs text-[#0a3161] dark:text-white uppercase tracking-wider">
                               Create New Note
                             </h4>
                             <button
@@ -899,7 +901,7 @@ export function UtilityDrawer({
                           </div>
                           <form onSubmit={handleAddNoteSubmit} className="space-y-2.5">
                             <div>
-                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                              <label className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block mb-1">
                                 Note Title *
                               </label>
                               <input
@@ -912,7 +914,7 @@ export function UtilityDrawer({
                               />
                             </div>
                             <div>
-                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                              <label className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block mb-1">
                                 Note Content
                               </label>
                               <textarea
@@ -927,13 +929,13 @@ export function UtilityDrawer({
                               <button
                                 type="button"
                                 onClick={() => setShowAddNoteModal(false)}
-                                className="flex-1 py-1.5 rounded-xl border border-slate-200 dark:border-white/10 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5"
+                                className="flex-1 py-1.5 rounded-xl border border-slate-200 dark:border-white/10 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5"
                               >
                                 Cancel
                               </button>
                               <button
                                 type="submit"
-                                className="flex-1 py-1.5 rounded-xl bg-[#ff6325] hover:bg-[#e0531c] text-white text-xs font-bold shadow-xs"
+                                className="flex-1 py-1.5 rounded-xl bg-[#ff6325] hover:bg-[#e0531c] text-white text-xs font-medium shadow-xs"
                               >
                                 Save Note
                               </button>
@@ -950,7 +952,7 @@ export function UtilityDrawer({
                   <div className="h-full flex flex-col overflow-hidden bg-white dark:bg-[#0c121e] text-slate-800 dark:text-slate-100 font-sans select-none relative">
                     {/* Top App Header: GLOBAL CONTACTS & Close X */}
                     <div className="px-5 py-3.5 bg-white dark:bg-[#0c121e] border-b border-emerald-500/20 flex items-center justify-between shrink-0">
-                      <span className="text-xs font-black tracking-wider text-[#0a1120] dark:text-white uppercase font-sans">
+                      <span className="text-xs font-semibold tracking-wider text-[#0a1120] dark:text-white uppercase font-sans">
                         GLOBAL CONTACTS
                       </span>
                       <button
@@ -959,28 +961,28 @@ export function UtilityDrawer({
                         className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
                         title="Close"
                       >
-                        <X size={15} className="stroke-[2.5]" />
+                        <X size={15} className="stroke-[1.75]" />
                       </button>
                     </div>
 
                     {/* Subheader: Global Contacts title + blue '+ Add Contact' button */}
                     <div className="px-5 pt-5 pb-3 flex items-center justify-between shrink-0">
-                      <h3 className="text-lg font-black text-slate-900 dark:text-white font-sans tracking-tight">
+                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white font-sans tracking-tight">
                         Global Contacts
                       </h3>
                       <button
                         type="button"
                         onClick={() => setShowAddContactModal(true)}
-                        className="px-3.5 py-1.5 rounded-xl bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-bold transition-all shadow-[0_2px_8px_rgba(37,99,235,0.3)] flex items-center gap-1.5 cursor-pointer hover:scale-[1.02] active:scale-95"
+                        className="px-3.5 py-1.5 rounded-xl bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-medium transition-all shadow-[0_2px_8px_rgba(37,99,235,0.3)] flex items-center gap-1.5 cursor-pointer hover:scale-[1.02] active:scale-95"
                       >
-                        <Plus size={15} className="stroke-[2.8]" /> Add Contact
+                        <Plus size={15} className="stroke-[1.75]" /> Add Contact
                       </button>
                     </div>
 
                     {/* Search Bar matching screenshot */}
                     <div className="px-5 pb-4 shrink-0">
                       <div className="relative">
-                        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 stroke-[2]" />
+                        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 stroke-[1.75]" />
                         <input
                           type="text"
                           value={searchQuery}
@@ -1007,10 +1009,10 @@ export function UtilityDrawer({
                               className="p-3 rounded-2xl border border-slate-200/80 dark:border-white/10 hover:border-blue-400 dark:hover:border-blue-500 bg-slate-50/50 dark:bg-white/5 transition-all shadow-2xs group"
                             >
                               <div className="flex justify-between items-start">
-                                <h4 className="font-bold text-xs text-slate-900 dark:text-white truncate">
+                                <h4 className="font-medium text-xs text-slate-900 dark:text-white truncate">
                                   {c.name}
                                 </h4>
-                                <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/40 text-[#2563eb] dark:text-blue-400">
+                                <span className="text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/40 text-[#2563eb] dark:text-blue-400">
                                   {c.role || 'Contact'}
                                 </span>
                               </div>
@@ -1035,7 +1037,7 @@ export function UtilityDrawer({
                       <div className="absolute inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
                         <div className="w-full bg-white dark:bg-[#0f172a] rounded-2xl border border-slate-200 dark:border-white/10 p-4 shadow-2xl space-y-3">
                           <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-white/5">
-                            <h4 className="font-bold text-xs text-slate-900 dark:text-white uppercase tracking-wider">
+                            <h4 className="font-medium text-xs text-slate-900 dark:text-white uppercase tracking-wider">
                               New Global Contact
                             </h4>
                             <button
@@ -1048,7 +1050,7 @@ export function UtilityDrawer({
                           </div>
                           <form onSubmit={handleAddContactSubmit} className="space-y-2.5">
                             <div>
-                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                              <label className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block mb-1">
                                 Full Name *
                               </label>
                               <input
@@ -1061,7 +1063,7 @@ export function UtilityDrawer({
                               />
                             </div>
                             <div>
-                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                              <label className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block mb-1">
                                 Phone Number
                               </label>
                               <input
@@ -1073,7 +1075,7 @@ export function UtilityDrawer({
                               />
                             </div>
                             <div>
-                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                              <label className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block mb-1">
                                 Email Address
                               </label>
                               <input
@@ -1088,13 +1090,13 @@ export function UtilityDrawer({
                               <button
                                 type="button"
                                 onClick={() => setShowAddContactModal(false)}
-                                className="flex-1 py-1.5 rounded-xl border border-slate-200 dark:border-white/10 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5"
+                                className="flex-1 py-1.5 rounded-xl border border-slate-200 dark:border-white/10 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5"
                               >
                                 Cancel
                               </button>
                               <button
                                 type="submit"
-                                className="flex-1 py-1.5 rounded-xl bg-[#2563eb] text-white text-xs font-bold hover:bg-[#1d4ed8] shadow-xs"
+                                className="flex-1 py-1.5 rounded-xl bg-[#2563eb] text-white text-xs font-medium hover:bg-[#1d4ed8] shadow-xs"
                               >
                                 Save Contact
                               </button>
@@ -1114,7 +1116,7 @@ export function UtilityDrawer({
                         <div className="h-6 w-6 rounded-lg bg-teal-50 dark:bg-teal-950/40 text-teal-600 flex items-center justify-center">
                           <CloudSun size={14} />
                         </div>
-                        <span className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-white">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-800 dark:text-white">
                           LOCAL WEATHER FORECAST
                         </span>
                       </div>
@@ -1129,11 +1131,11 @@ export function UtilityDrawer({
                     <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar text-left">
                       {/* Main Weather Card */}
                       <div className="p-4 rounded-2xl bg-gradient-to-br from-teal-500/10 via-sky-500/5 to-transparent border border-teal-550/20 text-center relative overflow-hidden">
-                        <div className="flex items-center justify-center gap-2 text-xs font-bold text-teal-600 dark:text-teal-400 mb-1">
+                        <div className="flex items-center justify-center gap-2 text-xs font-medium text-teal-600 dark:text-teal-400 mb-1">
                           <MapPin size={12} />
                           <span>{currentMerchant?.city || 'Chennai'}, India</span>
                         </div>
-                        <div className="text-4xl font-black text-slate-800 dark:text-white tracking-tight my-2">
+                        <div className="text-4xl font-semibold text-slate-800 dark:text-white tracking-tight my-2">
                           31°C
                         </div>
                         <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
@@ -1141,32 +1143,32 @@ export function UtilityDrawer({
                         </p>
                         <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-slate-200/60 dark:border-slate-800/60 text-center">
                           <div>
-                            <span className="text-[10px] text-slate-400 block font-bold uppercase">Humidity</span>
-                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">68%</span>
+                            <span className="text-[10px] text-slate-400 block font-medium uppercase">Humidity</span>
+                            <span className="text-xs font-medium text-slate-700 dark:text-slate-200">68%</span>
                           </div>
                           <div>
-                            <span className="text-[10px] text-slate-400 block font-bold uppercase">Wind</span>
-                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">14 km/h</span>
+                            <span className="text-[10px] text-slate-400 block font-medium uppercase">Wind</span>
+                            <span className="text-xs font-medium text-slate-700 dark:text-slate-200">14 km/h</span>
                           </div>
                           <div>
-                            <span className="text-[10px] text-slate-400 block font-bold uppercase">UV Index</span>
-                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Moderate</span>
+                            <span className="text-[10px] text-slate-400 block font-medium uppercase">UV Index</span>
+                            <span className="text-xs font-medium text-slate-700 dark:text-slate-200">Moderate</span>
                           </div>
                         </div>
                       </div>
 
                       {/* 3-Day Forecast */}
                       <div className="space-y-2">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Upcoming Forecast</span>
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block">Upcoming Forecast</span>
                         {[
                           { day: 'Tomorrow', temp: '32°C / 26°C', cond: 'Sunny & Clear' },
                           { day: 'Sunday', temp: '30°C / 25°C', cond: 'Passing Showers' },
                           { day: 'Monday', temp: '31°C / 25°C', cond: 'Clear Skies' }
                         ].map((f, i) => (
                           <div key={i} className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-white/[0.02]">
-                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{f.day}</span>
+                            <span className="text-xs font-medium text-slate-700 dark:text-slate-200">{f.day}</span>
                             <span className="text-[11px] text-slate-500">{f.cond}</span>
-                            <span className="text-xs font-mono font-bold text-teal-600 dark:text-teal-400">{f.temp}</span>
+                            <span className="text-xs font-mono font-medium text-teal-600 dark:text-teal-400">{f.temp}</span>
                           </div>
                         ))}
                       </div>
@@ -1179,7 +1181,7 @@ export function UtilityDrawer({
                   <div className="flex-1 flex flex-col h-full bg-white dark:bg-[#0c121e] text-slate-800 dark:text-slate-100 font-sans select-none">
                     {/* Header: KEYBOARD with top subtle border and close X */}
                     <div className="px-5 py-3.5 bg-white dark:bg-[#0c121e] border-b border-emerald-500/20 flex items-center justify-between shrink-0">
-                      <span className="text-xs font-black tracking-wider text-[#0a1120] dark:text-white uppercase font-sans">
+                      <span className="text-xs font-semibold tracking-wider text-[#0a1120] dark:text-white uppercase font-sans">
                         KEYBOARD
                       </span>
                       <button
@@ -1188,7 +1190,7 @@ export function UtilityDrawer({
                         className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
                         title="Close"
                       >
-                        <X size={15} className="stroke-[2.5]" />
+                        <X size={15} className="stroke-[1.75]" />
                       </button>
                     </div>
 
@@ -1202,17 +1204,17 @@ export function UtilityDrawer({
                       </div>
 
                       {/* Title: Keyboard with BokSpot theme navy */}
-                      <h2 className="text-2xl font-black text-[#0a3161] dark:text-white font-sans tracking-tight mb-3">
+                      <h2 className="text-2xl font-semibold text-[#0a3161] dark:text-white font-sans tracking-tight mb-3">
                         Keyboard
                       </h2>
 
                       {/* Description */}
                       <p className="text-sm text-slate-600 dark:text-slate-400 max-w-xs leading-relaxed mb-6 font-normal">
-                        This is the dedicated business view for <span className="font-bold text-[#ff6325] dark:text-[#ff6325]">Keyboard</span>. Full feature integration is coming soon.
+                        This is the dedicated business view for <span className="font-medium text-[#ff6325] dark:text-[#ff6325]">Keyboard</span>. Full feature integration is coming soon.
                       </p>
 
                       {/* Pill Badge: Path: /dashboard */}
-                      <div className="px-5 py-2.5 rounded-2xl bg-[#0a3161]/5 dark:bg-white/5 border border-[#0a3161]/15 dark:border-white/5 text-xs font-bold text-[#0a3161] dark:text-slate-300 font-sans shadow-2xs">
+                      <div className="px-5 py-2.5 rounded-2xl bg-[#0a3161]/5 dark:bg-white/5 border border-[#0a3161]/15 dark:border-white/5 text-xs font-medium text-[#0a3161] dark:text-slate-300 font-sans shadow-2xs">
                         Path: /dashboard
                       </div>
                     </div>
@@ -1225,7 +1227,7 @@ export function UtilityDrawer({
                     {/* Header: BETA Logo + Edit Button + Close */}
                     <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-100 dark:border-slate-800 shrink-0">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-xl font-black text-[#0052cc] dark:text-[#38bdf8] tracking-wider font-sans">
+                        <span className="text-xl font-semibold text-[#0052cc] dark:text-[#38bdf8] tracking-wider font-sans">
                           BETA
                         </span>
                       </div>
@@ -1233,7 +1235,7 @@ export function UtilityDrawer({
                         <button
                           type="button"
                           onClick={() => setIsEditingBeta(!isEditingBeta)}
-                          className={`flex items-center gap-1 px-3 py-1 rounded-lg border text-[11px] font-bold shadow-2xs transition-all cursor-pointer ${
+                          className={`flex items-center gap-1 px-3 py-1 rounded-lg border text-[11px] font-medium shadow-2xs transition-all cursor-pointer ${
                             isEditingBeta
                               ? 'border-emerald-500 bg-emerald-50/80 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-600'
                               : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50'
@@ -1241,8 +1243,8 @@ export function UtilityDrawer({
                         >
                           {isEditingBeta ? (
                             <>
-                              <Check size={12} className="stroke-[3] text-emerald-600 dark:text-emerald-400" />
-                              <span className="font-black text-[#00875a] dark:text-[#00c781]">Done</span>
+                              <Check size={12} className="stroke-[1.8] text-emerald-600 dark:text-emerald-400" />
+                              <span className="font-semibold text-[#00875a] dark:text-[#00c781]">Done</span>
                             </>
                           ) : (
                             <>
@@ -1269,13 +1271,13 @@ export function UtilityDrawer({
                         <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 p-3 bg-white dark:bg-slate-900/40 shadow-xs space-y-2.5">
                           {/* Tabs: FAVORITES | RECENT with underline indicator */}
                           <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-slate-800/60 pb-1.5">
-                            <div className="flex items-center gap-3 text-[11px] font-extrabold uppercase tracking-wider">
+                            <div className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wider">
                               <button
                                 type="button"
                                 onClick={() => setBetaSubTab('favorites')}
                                 className={`transition-all cursor-pointer pb-1 ${
                                   betaSubTab === 'favorites'
-                                    ? 'text-[#00875a] border-b-2 border-[#00875a] font-black'
+                                    ? 'text-[#00875a] border-b-2 border-[#00875a] font-semibold'
                                     : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 border-b-2 border-transparent'
                                 }`}
                               >
@@ -1287,7 +1289,7 @@ export function UtilityDrawer({
                                 onClick={() => setBetaSubTab('recent')}
                                 className={`transition-all cursor-pointer pb-1 ${
                                   betaSubTab === 'recent'
-                                    ? 'text-[#00875a] border-b-2 border-[#00875a] font-black'
+                                    ? 'text-[#00875a] border-b-2 border-[#00875a] font-semibold'
                                     : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 border-b-2 border-transparent'
                                 }`}
                               >
@@ -1309,14 +1311,14 @@ export function UtilityDrawer({
                                       className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#ef4444] text-white flex items-center justify-center shadow-md z-20 hover:scale-110 cursor-pointer animate-in zoom-in-75 duration-150"
                                       title="Remove from favorites"
                                     >
-                                      <X size={12} className="stroke-[3]" />
+                                      <X size={12} className="stroke-[1.8]" />
                                     </button>
                                   )}
                                   <a
-                                    href={isEditingBeta ? undefined : "https://cliks.co.in"}
+                                    href={isEditingBeta ? undefined : "https://cliks.beta-softnet.com/"}
                                     target={isEditingBeta ? undefined : "_blank"}
                                     rel="noopener noreferrer"
-                                    onClick={() => !isEditingBeta && handleAppLaunch({ id: 'cliks', name: 'Cliks', url: 'https://cliks.co.in', icon: 'cliks', bg: 'bg-[#00875a]/10', color: 'text-[#00875a]' })}
+                                    onClick={() => !isEditingBeta && handleAppLaunch({ id: 'cliks', name: 'Cliks', url: 'https://cliks.beta-softnet.com/', icon: 'cliks', bg: 'bg-[#00875a]/10', color: 'text-[#00875a]' })}
                                     className="flex flex-col items-center gap-1 cursor-pointer w-full"
                                   >
                                     <div className="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700 flex items-center justify-center transition-all group-hover:scale-105 shadow-2xs">
@@ -1325,7 +1327,7 @@ export function UtilityDrawer({
                                         <polyline points="22 4 12 14.01 9 11.01" />
                                       </svg>
                                     </div>
-                                    <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200">Cliks</span>
+                                    <span className="text-[11px] font-medium text-slate-800 dark:text-slate-200">Cliks</span>
                                   </a>
                                 </div>
                               )}
@@ -1340,14 +1342,14 @@ export function UtilityDrawer({
                                       className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#ef4444] text-white flex items-center justify-center shadow-md z-20 hover:scale-110 cursor-pointer animate-in zoom-in-75 duration-150"
                                       title="Remove from favorites"
                                     >
-                                      <X size={12} className="stroke-[3]" />
+                                      <X size={12} className="stroke-[1.8]" />
                                     </button>
                                   )}
                                   <a
-                                    href={isEditingBeta ? undefined : "https://bnxmail.com"}
+                                    href={isEditingBeta ? undefined : "https://www.bnxmail.com/login"}
                                     target={isEditingBeta ? undefined : "_blank"}
                                     rel="noopener noreferrer"
-                                    onClick={() => !isEditingBeta && handleAppLaunch({ id: 'bnxmail', name: 'BNXmail', url: 'https://bnxmail.com', icon: 'bnxmail', bg: 'bg-sky-500/10', color: 'text-[#0052cc]' })}
+                                    onClick={() => !isEditingBeta && handleAppLaunch({ id: 'bnxmail', name: 'BNXmail', url: 'https://www.bnxmail.com/login', icon: 'bnxmail', bg: 'bg-sky-500/10', color: 'text-[#0052cc]' })}
                                     className="flex flex-col items-center gap-1 cursor-pointer w-full"
                                   >
                                     <div className="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700 flex items-center justify-center transition-all group-hover:scale-105 shadow-2xs">
@@ -1360,12 +1362,12 @@ export function UtilityDrawer({
                                           strokeLinejoin="round" 
                                         />
                                         <path 
-                                          d="M7.5 12C9 12 11.5 10 13 8C14.5 6 17 5 19 6C18 7.5 17 9.5 17 11C18.5 10.5 21 10 23.5 11C21 12 18.5 13.5 17 14.5C15.5 15.5 13 16 11 15C9.5 14.2 8.5 13 7.5 12Z" 
+                                          d="M7.5 12C9 12 11.5 10 13 8C14.5 6 17 5 19 6C18 7.5 17 9.5 17 11C21 12 18.5 13.5 17 14.5C15.5 15.5 13 16 11 15C9.5 14.2 8.5 13 7.5 12Z" 
                                           fill="#0052cc" 
                                         />
                                       </svg>
                                     </div>
-                                    <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200">BNXmail</span>
+                                    <span className="text-[11px] font-medium text-slate-800 dark:text-slate-200">BNXmail</span>
                                   </a>
                                 </div>
                               )}
@@ -1380,14 +1382,14 @@ export function UtilityDrawer({
                                       className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#ef4444] text-white flex items-center justify-center shadow-md z-20 hover:scale-110 cursor-pointer animate-in zoom-in-75 duration-150"
                                       title="Remove from favorites"
                                     >
-                                      <X size={12} className="stroke-[3]" />
+                                      <X size={12} className="stroke-[1.8]" />
                                     </button>
                                   )}
                                   <a
-                                    href={isEditingBeta ? undefined : "https://bit-tool.com"}
+                                    href={isEditingBeta ? undefined : "https://bit-tool.com/"}
                                     target={isEditingBeta ? undefined : "_blank"}
                                     rel="noopener noreferrer"
-                                    onClick={() => !isEditingBeta && handleAppLaunch({ id: 'bit-tool', name: 'Bit-Tool', url: 'https://bit-tool.com', icon: 'sliders', bg: 'bg-blue-500/10', color: 'text-[#0052cc]' })}
+                                    onClick={() => !isEditingBeta && handleAppLaunch({ id: 'bit-tool', name: 'Bit-Tool', url: 'https://bit-tool.com/', icon: 'sliders', bg: 'bg-blue-500/10', color: 'text-[#0052cc]' })}
                                     className="flex flex-col items-center gap-1 cursor-pointer w-full"
                                   >
                                     <div className="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700 flex items-center justify-center transition-all group-hover:scale-105 shadow-2xs">
@@ -1399,7 +1401,7 @@ export function UtilityDrawer({
                                         <circle cx="19" cy="23.5" r="1.8" />
                                       </svg>
                                     </div>
-                                    <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200">Bit-Tool</span>
+                                    <span className="text-[11px] font-medium text-slate-800 dark:text-slate-200">Bit-Tool</span>
                                   </a>
                                 </div>
                               )}
@@ -1414,20 +1416,20 @@ export function UtilityDrawer({
                                       className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#ef4444] text-white flex items-center justify-center shadow-md z-20 hover:scale-110 cursor-pointer animate-in zoom-in-75 duration-150"
                                       title="Remove from favorites"
                                     >
-                                      <X size={12} className="stroke-[3]" />
+                                      <X size={12} className="stroke-[1.8]" />
                                     </button>
                                   )}
                                   <a
-                                    href={isEditingBeta ? undefined : "https://b2auth.com"}
+                                    href={isEditingBeta ? undefined : "https://www.b2auth.com/"}
                                     target={isEditingBeta ? undefined : "_blank"}
                                     rel="noopener noreferrer"
-                                    onClick={() => !isEditingBeta && handleAppLaunch({ id: 'b2auth', name: 'B2Auth', url: 'https://b2auth.com', icon: 'b2auth', bg: 'bg-slate-100', color: 'text-slate-700' })}
+                                    onClick={() => !isEditingBeta && handleAppLaunch({ id: 'b2auth', name: 'B2Auth', url: 'https://www.b2auth.com/', icon: 'b2auth', bg: 'bg-slate-100', color: 'text-slate-700' })}
                                     className="flex flex-col items-center gap-1 cursor-pointer w-full"
                                   >
                                     <div className="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700 flex items-center justify-center transition-all group-hover:scale-105 shadow-2xs">
                                       <ShieldCheck size={22} className="text-slate-700 dark:text-slate-300" />
                                     </div>
-                                    <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200">B2Auth</span>
+                                    <span className="text-[11px] font-medium text-slate-800 dark:text-slate-200">B2Auth</span>
                                   </a>
                                 </div>
                               )}
@@ -1447,6 +1449,7 @@ export function UtilityDrawer({
                                       href={app.url}
                                       target="_blank"
                                       rel="noopener noreferrer"
+                                      onClick={() => setActiveTab(null)}
                                       className="flex flex-col items-center gap-1 group cursor-pointer"
                                     >
                                       <div className="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700 flex items-center justify-center transition-all group-hover:scale-105 shadow-2xs">
@@ -1478,7 +1481,7 @@ export function UtilityDrawer({
                                           <ShieldCheck size={20} className="text-slate-700 dark:text-slate-300" />
                                         )}
                                       </div>
-                                      <span className="text-[11px] font-black text-slate-800 dark:text-slate-200">
+                                      <span className="text-[11px] font-semibold text-slate-800 dark:text-slate-200">
                                         {app.name}
                                       </span>
                                     </a>
@@ -1492,10 +1495,10 @@ export function UtilityDrawer({
                         {/* BASE Section (Exact match to PUBLIC screenshot) */}
                         {/* BASE Section (Exact match to all 3 screenshots: BASE, PUBLIC, and BUSINESS) */}
                         <div className="space-y-3 pt-1">
-                          <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider">
+                          <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider">
                             <span 
                               onClick={() => setBaseFilter('all')}
-                              className="text-[#0a1120] dark:text-slate-100 font-black tracking-wide text-xs cursor-pointer select-none"
+                              className="text-[#0a1120] dark:text-slate-100 font-semibold tracking-wide text-xs cursor-pointer select-none"
                               title="Show all BASE apps"
                             >
                               BASE
@@ -1506,8 +1509,8 @@ export function UtilityDrawer({
                                 onClick={() => setBaseFilter(prev => prev === 'public' ? 'all' : 'public')}
                                 className={`cursor-pointer transition-all pb-1 text-[11px] ${
                                   baseFilter === 'public'
-                                    ? 'text-[#00875a] dark:text-[#00c781] border-b-2 border-[#00875a] font-black'
-                                    : 'text-[#94a3b8] hover:text-slate-600 font-extrabold border-b-2 border-transparent'
+                                    ? 'text-[#00875a] dark:text-[#00c781] border-b-2 border-[#00875a] font-semibold'
+                                    : 'text-[#94a3b8] hover:text-slate-600 font-semibold border-b-2 border-transparent'
                                 }`}
                               >
                                 PUBLIC
@@ -1518,8 +1521,8 @@ export function UtilityDrawer({
                                 onClick={() => setBaseFilter(prev => prev === 'business' ? 'all' : 'business')}
                                 className={`cursor-pointer transition-all pb-1 text-[11px] ${
                                   baseFilter === 'business'
-                                    ? 'text-[#00875a] dark:text-[#00c781] border-b-2 border-[#00875a] font-black'
-                                    : 'text-[#94a3b8] hover:text-slate-600 font-extrabold border-b-2 border-transparent'
+                                    ? 'text-[#00875a] dark:text-[#00c781] border-b-2 border-[#00875a] font-semibold'
+                                    : 'text-[#94a3b8] hover:text-slate-600 font-semibold border-b-2 border-transparent'
                                 }`}
                               >
                                 BUSINESS
@@ -1527,21 +1530,21 @@ export function UtilityDrawer({
                             </div>
                           </div>
 
-                          {/* Base Apps Grid: When baseFilter is 'all', show Row 1 (4 apps) + Row 2 (CliksBus...) exactly matching screenshot */}
+                          {/* Base Apps Grid: When baseFilter is 'all', show Row 1 (4 apps) + Row 2 (CliksBusiness) exactly matching screenshot */}
                           {baseFilter === 'business' ? (
                             <div className="grid grid-cols-4 gap-2.5 text-center">
                               {/* Cliks Business */}
                               <a
-                                href="https://business.cliks.co.in"
+                                href="https://www.cliksbusiness.com/"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                onClick={() => handleAppLaunch({ id: 'cliks-bus', name: 'CliksBusiness', url: 'https://business.cliks.co.in', icon: 'cliks', bg: 'bg-[#00875a]/10', color: 'text-[#00875a]' })}
+                                onClick={() => handleAppLaunch({ id: 'cliks-bus', name: 'CliksBusiness', url: 'https://www.cliksbusiness.com/', icon: 'cliks', bg: 'bg-[#00875a]/10', color: 'text-[#00875a]' })}
                                 className="p-2.5 rounded-[18px] border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900/40 flex flex-col items-center justify-center gap-1.5 hover:shadow-xs transition-all group hover:scale-[1.03] cursor-pointer"
                               >
                                 <div className="w-9 h-9 rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center group-hover:scale-105 transition-transform">
                                   <CheckCircle2 size={22} className="text-[#00875a]" />
                                 </div>
-                                <span className="text-[11px] font-black text-slate-900 dark:text-slate-100 truncate w-full tracking-tight">CliksBus...</span>
+                                <span className="text-[10px] font-semibold text-slate-900 dark:text-slate-100 whitespace-nowrap tracking-tighter">CliksBus...</span>
                               </a>
                             </div>
                           ) : (
@@ -1561,16 +1564,16 @@ export function UtilityDrawer({
                                     </button>
                                   )}
                                   <a
-                                    href={isEditingBeta ? undefined : "https://cliks.co.in"}
+                                    href={isEditingBeta ? undefined : "https://cliks.beta-softnet.com/"}
                                     target={isEditingBeta ? undefined : "_blank"}
                                     rel="noopener noreferrer"
-                                    onClick={() => !isEditingBeta && handleAppLaunch({ id: 'cliks', name: 'Cliks', url: 'https://cliks.co.in', icon: 'cliks', bg: 'bg-[#00875a]/10', color: 'text-[#00875a]' })}
+                                    onClick={() => !isEditingBeta && handleAppLaunch({ id: 'cliks', name: 'Cliks', url: 'https://cliks.beta-softnet.com/', icon: 'cliks', bg: 'bg-[#00875a]/10', color: 'text-[#00875a]' })}
                                     className="p-2.5 rounded-[18px] border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900/40 flex flex-col items-center justify-center gap-1.5 hover:shadow-xs transition-all group hover:scale-[1.03] cursor-pointer w-full"
                                   >
                                     <div className="w-9 h-9 rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center group-hover:scale-105 transition-transform">
                                       <CheckCircle2 size={22} className="text-[#00875a]" />
                                     </div>
-                                    <span className="text-[11px] font-black text-slate-900 dark:text-slate-100 truncate w-full">Cliks</span>
+                                    <span className="text-[11px] font-semibold text-slate-900 dark:text-slate-100 truncate w-full">Cliks</span>
                                   </a>
                                 </div>
 
@@ -1587,10 +1590,10 @@ export function UtilityDrawer({
                                     </button>
                                   )}
                                   <a
-                                    href={isEditingBeta ? undefined : "https://bnxmail.com"}
+                                    href={isEditingBeta ? undefined : "https://www.bnxmail.com/login"}
                                     target={isEditingBeta ? undefined : "_blank"}
                                     rel="noopener noreferrer"
-                                    onClick={() => !isEditingBeta && handleAppLaunch({ id: 'bnxmail', name: 'BNXmail', url: 'https://bnxmail.com', icon: 'bnxmail', bg: 'bg-sky-500/10', color: 'text-[#0052cc]' })}
+                                    onClick={() => !isEditingBeta && handleAppLaunch({ id: 'bnxmail', name: 'BNXmail', url: 'https://www.bnxmail.com/login', icon: 'bnxmail', bg: 'bg-sky-500/10', color: 'text-[#0052cc]' })}
                                     className="p-2.5 rounded-[18px] border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900/40 flex flex-col items-center justify-center gap-1.5 hover:shadow-xs transition-all group hover:scale-[1.03] cursor-pointer w-full"
                                   >
                                     <div className="w-9 h-9 rounded-full bg-sky-50 dark:bg-sky-950/40 flex items-center justify-center group-hover:scale-105 transition-transform">
@@ -1608,7 +1611,7 @@ export function UtilityDrawer({
                                         />
                                       </svg>
                                     </div>
-                                    <span className="text-[11px] font-black text-slate-900 dark:text-slate-100 truncate w-full">BNXmail</span>
+                                    <span className="text-[11px] font-semibold text-slate-900 dark:text-slate-100 truncate w-full">BNXmail</span>
                                   </a>
                                 </div>
 
@@ -1625,10 +1628,10 @@ export function UtilityDrawer({
                                     </button>
                                   )}
                                   <a
-                                    href={isEditingBeta ? undefined : "https://bit-tool.com"}
+                                    href={isEditingBeta ? undefined : "https://bit-tool.com/"}
                                     target={isEditingBeta ? undefined : "_blank"}
                                     rel="noopener noreferrer"
-                                    onClick={() => !isEditingBeta && handleAppLaunch({ id: 'bit-tool', name: 'Bit-Tool', url: 'https://bit-tool.com', icon: 'sliders', bg: 'bg-blue-500/10', color: 'text-[#0052cc]' })}
+                                    onClick={() => !isEditingBeta && handleAppLaunch({ id: 'bit-tool', name: 'Bit-Tool', url: 'https://bit-tool.com/', icon: 'sliders', bg: 'bg-blue-500/10', color: 'text-[#0052cc]' })}
                                     className="p-2.5 rounded-[18px] border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900/40 flex flex-col items-center justify-center gap-1.5 hover:shadow-xs transition-all group hover:scale-[1.03] cursor-pointer w-full"
                                   >
                                     <div className="w-9 h-9 rounded-full bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center group-hover:scale-105 transition-transform">
@@ -1640,7 +1643,7 @@ export function UtilityDrawer({
                                         <circle cx="19" cy="23.5" r="1.8" />
                                       </svg>
                                     </div>
-                                    <span className="text-[11px] font-black text-slate-900 dark:text-slate-100 truncate w-full">Bit-Tool</span>
+                                    <span className="text-[11px] font-semibold text-slate-900 dark:text-slate-100 truncate w-full">Bit-Tool</span>
                                   </a>
                                 </div>
 
@@ -1657,16 +1660,16 @@ export function UtilityDrawer({
                                     </button>
                                   )}
                                   <a
-                                    href={isEditingBeta ? undefined : "https://b2auth.com"}
+                                    href={isEditingBeta ? undefined : "https://www.b2auth.com/"}
                                     target={isEditingBeta ? undefined : "_blank"}
                                     rel="noopener noreferrer"
-                                    onClick={() => !isEditingBeta && handleAppLaunch({ id: 'b2auth', name: 'B2Auth', url: 'https://b2auth.com', icon: 'b2auth', bg: 'bg-slate-100', color: 'text-slate-700' })}
+                                    onClick={() => !isEditingBeta && handleAppLaunch({ id: 'b2auth', name: 'B2Auth', url: 'https://www.b2auth.com/', icon: 'b2auth', bg: 'bg-slate-100', color: 'text-slate-700' })}
                                     className="p-2.5 rounded-[18px] border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900/40 flex flex-col items-center justify-center gap-1.5 hover:shadow-xs transition-all group hover:scale-[1.03] cursor-pointer w-full"
                                   >
                                     <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:scale-105 transition-transform">
                                       <ShieldCheck size={20} className="text-slate-800 dark:text-slate-200" />
                                     </div>
-                                    <span className="text-[11px] font-black text-slate-900 dark:text-slate-100 truncate w-full">B2Auth</span>
+                                    <span className="text-[11px] font-semibold text-slate-900 dark:text-slate-100 truncate w-full">B2Auth</span>
                                   </a>
                                 </div>
                               </div>
@@ -1686,16 +1689,16 @@ export function UtilityDrawer({
                                       </button>
                                     )}
                                     <a
-                                      href={isEditingBeta ? undefined : "https://business.cliks.co.in"}
+                                      href={isEditingBeta ? undefined : "https://www.cliksbusiness.com/"}
                                       target={isEditingBeta ? undefined : "_blank"}
                                       rel="noopener noreferrer"
-                                      onClick={() => !isEditingBeta && handleAppLaunch({ id: 'cliks-bus', name: 'CliksBusiness', url: 'https://business.cliks.co.in', icon: 'cliks', bg: 'bg-[#00875a]/10', color: 'text-[#00875a]' })}
+                                      onClick={() => !isEditingBeta && handleAppLaunch({ id: 'cliks-bus', name: 'CliksBusiness', url: 'https://www.cliksbusiness.com/', icon: 'cliks', bg: 'bg-[#00875a]/10', color: 'text-[#00875a]' })}
                                       className="p-2.5 rounded-[18px] border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900/40 flex flex-col items-center justify-center gap-1.5 hover:shadow-xs transition-all group hover:scale-[1.03] cursor-pointer w-full"
                                     >
                                       <div className="w-9 h-9 rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center group-hover:scale-105 transition-transform">
                                         <CheckCircle2 size={22} className="text-[#00875a]" />
                                       </div>
-                                      <span className="text-[11px] font-black text-slate-900 dark:text-slate-100 truncate w-full tracking-tight">
+                                      <span className="text-[10px] font-semibold text-slate-900 dark:text-slate-100 whitespace-nowrap tracking-tighter">
                                         CliksBus...
                                       </span>
                                     </a>
@@ -1730,11 +1733,11 @@ export function UtilityDrawer({
                         {/* Coming Soon Card Body */}
                         <div className="rounded-[22px] border border-purple-100 dark:border-purple-900/40 p-4 pt-5 text-center bg-gradient-to-b from-purple-50/50 via-white to-purple-50/30 dark:from-purple-950/20 dark:via-slate-900/40 dark:to-transparent space-y-2 shadow-xs">
                           <div>
-                            <span className="px-3 py-1 rounded-full bg-[#f3e8ff] dark:bg-purple-900/60 text-[#7c3aed] dark:text-purple-300 text-[9.5px] font-black uppercase tracking-wider inline-block">
+                            <span className="px-3 py-1 rounded-full bg-[#f3e8ff] dark:bg-purple-900/60 text-[#7c3aed] dark:text-purple-300 text-[9.5px] font-semibold uppercase tracking-wider inline-block">
                               BETA LABS RELEASE
                             </span>
                           </div>
-                          <h4 className="text-base font-black text-[#8b5cf6] dark:text-purple-400 tracking-wide uppercase font-sans">
+                          <h4 className="text-base font-semibold text-[#8b5cf6] dark:text-purple-400 tracking-wide uppercase font-sans">
                             COMING SOON
                           </h4>
                           <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed font-normal">
@@ -1746,7 +1749,7 @@ export function UtilityDrawer({
 
                     {/* Permanently Settled Bottom Footer - Exact match to screenshot */}
                     <div className="py-3 px-4 bg-slate-50/60 dark:bg-slate-950/40 border-t border-slate-100 dark:border-white/5 shrink-0 text-center select-none">
-                      <span className="text-[10px] font-black tracking-widest text-[#94a3b8] dark:text-slate-500 uppercase">
+                      <span className="text-[10px] font-semibold tracking-widest text-[#94a3b8] dark:text-slate-500 uppercase">
                         BETA ECOSYSTEM • FUTURE READY
                       </span>
                     </div>
@@ -1778,7 +1781,7 @@ export function UtilityDrawer({
                 />
               </div>
               {!activeTab && (
-                <div className="absolute right-14 top-1/2 -translate-y-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                <div className="absolute right-14 top-1/2 -translate-y-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-medium px-2.5 py-1 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
                   Beta Apps Hub
                 </div>
               )}
@@ -1789,7 +1792,7 @@ export function UtilityDrawer({
 
             {/* EDIT PINS Header Label - Only visible when editing pins */}
             {isEditingPins && (
-              <div className="text-[8.5px] font-extrabold tracking-tight text-[#8392a5] dark:text-slate-400 uppercase text-center mb-1.5 whitespace-nowrap select-none font-sans leading-none animate-in fade-in duration-200">
+              <div className="text-[8.5px] font-semibold tracking-tight text-[#8392a5] dark:text-slate-400 uppercase text-center mb-1.5 whitespace-nowrap select-none font-sans leading-none animate-in fade-in duration-200">
                 EDIT PINS
               </div>
             )}
@@ -1801,7 +1804,7 @@ export function UtilityDrawer({
                 {
                   id: 'calendar',
                   label: 'Calendar',
-                  icon: <CalendarDays size={20} className="stroke-[2.2]" />,
+                  icon: <CalendarDays size={20} className="stroke-[1.75]" />,
                   color: 'text-amber-500',
                   bg: 'bg-amber-50 dark:bg-amber-950/30',
                   border: 'border-amber-400 dark:border-amber-500',
@@ -1810,7 +1813,7 @@ export function UtilityDrawer({
                 {
                   id: 'calc',
                   label: 'Calculator',
-                  icon: <Calculator size={20} className="stroke-[2.2]" />,
+                  icon: <Calculator size={20} className="stroke-[1.75]" />,
                   color: 'text-emerald-500',
                   bg: 'bg-emerald-50 dark:bg-emerald-950/30',
                   border: 'border-emerald-500',
@@ -1819,7 +1822,7 @@ export function UtilityDrawer({
                 {
                   id: 'contacts',
                   label: 'Contacts',
-                  icon: <User size={20} className="stroke-[2.2]" />,
+                  icon: <User size={20} className="stroke-[1.75]" />,
                   color: 'text-blue-500',
                   bg: 'bg-blue-50 dark:bg-blue-950/30',
                   border: 'border-blue-400 dark:border-blue-500',
@@ -1828,7 +1831,7 @@ export function UtilityDrawer({
                 {
                   id: 'keyboard',
                   label: 'Keyboard & Hotkeys',
-                  icon: <Keyboard size={18} className="stroke-[2.2]" />,
+                  icon: <Keyboard size={18} className="stroke-[1.75]" />,
                   color: 'text-indigo-500',
                   bg: 'bg-indigo-50 dark:bg-indigo-950/30',
                   border: 'border-indigo-400 dark:border-indigo-500',
@@ -1837,7 +1840,7 @@ export function UtilityDrawer({
                 {
                   id: 'tasks',
                   label: 'Notes & Tasks',
-                  icon: <FileText size={18} className="stroke-[2.2]" />,
+                  icon: <FileText size={18} className="stroke-[1.75]" />,
                   color: 'text-[#ff6325]',
                   bg: 'bg-orange-50 dark:bg-orange-950/30',
                   border: 'border-[#ff6325]',
@@ -1846,7 +1849,7 @@ export function UtilityDrawer({
                 {
                   id: 'weather',
                   label: 'Weather',
-                  icon: <CloudSun size={19} className="stroke-[2.2]" />,
+                  icon: <CloudSun size={19} className="stroke-[1.75]" />,
                   color: 'text-teal-500',
                   bg: 'bg-teal-50 dark:bg-teal-950/30',
                   border: 'border-teal-400 dark:border-teal-500',
@@ -1874,11 +1877,11 @@ export function UtilityDrawer({
                       className={`w-10 h-10 rounded-[18px] flex items-center justify-center transition-all ${
                         isEditingPins
                           ? isPinned
-                            ? `${tool.bg} border-2 ${tool.border} ${tool.color} shadow-xs scale-100 ring-2 ring-[#0a3161]/20`
-                            : 'bg-transparent border-2 border-dashed border-[#b8c2cc] dark:border-slate-700 text-[#64748b] dark:text-slate-400 hover:border-[#ff6325] hover:text-[#ff6325]'
+                            ? `${tool.bg} border ${tool.border} ${tool.color} shadow-xs scale-100 ring-2 ring-[#0a3161]/20`
+                            : 'bg-transparent border border-dashed border-[#b8c2cc] dark:border-slate-700 text-[#64748b] dark:text-slate-400 hover:border-[#ff6325] hover:text-[#ff6325]'
                           : activeTab === tool.id
-                            ? `${tool.activeBg} shadow-[0_4px_14px_rgba(0,0,0,0.15)] scale-105 border-2 border-transparent`
-                            : `${tool.bg} border-2 ${tool.border} ${tool.color} hover:scale-105 shadow-2xs`
+                            ? `${tool.activeBg} shadow-[0_4px_14px_rgba(0,0,0,0.15)] scale-105 border border-transparent`
+                            : `${tool.bg} border ${tool.border} ${tool.color} hover:scale-105 shadow-2xs`
                       }`}
                     >
                       {tool.icon}
@@ -1886,7 +1889,7 @@ export function UtilityDrawer({
 
                     {/* Tooltip */}
                     {!activeTab && (
-                      <div className="absolute right-14 top-1/2 -translate-y-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                      <div className="absolute right-14 top-1/2 -translate-y-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-medium px-2.5 py-1 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
                         {isEditingPins ? (isPinned ? `Remove ${tool.label}` : `Add ${tool.label}`) : tool.label}
                       </div>
                     )}
@@ -1901,17 +1904,17 @@ export function UtilityDrawer({
                 className={`w-10 h-10 rounded-[18px] flex items-center justify-center transition-all cursor-pointer hover:scale-105 relative group mt-0.5 ${
                   isEditingPins
                     ? 'bg-[#ff6325] hover:bg-[#e0531c] text-white shadow-[0_4px_14px_rgba(255,99,37,0.4)]'
-                    : 'border-2 border-dashed border-slate-300 dark:border-white/20 hover:border-[#ff6325] dark:hover:border-[#ff6325] bg-transparent text-slate-400 hover:text-[#ff6325] dark:hover:text-[#ff6325] shadow-2xs'
+                    : 'border border-dashed border-slate-300 dark:border-white/20 hover:border-[#ff6325] dark:hover:border-[#ff6325] bg-transparent text-slate-400 hover:text-[#ff6325] dark:hover:text-[#ff6325] shadow-2xs'
                 }`}
                 title={isEditingPins ? "Save Pinned Tools" : "Customize Pinned Tools"}
               >
                 {isEditingPins ? (
-                  <Check size={22} className="stroke-[3.5]" />
+                  <Check size={22} className="stroke-[1.75]" />
                 ) : (
-                  <Plus size={18} className="stroke-[2.2]" />
+                  <Plus size={18} className="stroke-[1.75]" />
                 )}
                 {!activeTab && (
-                  <div className="absolute right-14 top-1/2 -translate-y-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                  <div className="absolute right-14 top-1/2 -translate-y-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-medium px-2.5 py-1 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
                     {isEditingPins ? "Done / Save Pins" : "Customize Pins"}
                   </div>
                 )}
@@ -1934,12 +1937,12 @@ export function UtilityDrawer({
                 }`}
                 title={isEditingPins ? "Save Pins" : "Edit Pinned Icons"}
               >
-                <svg className="w-5 h-5 stroke-[2] text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                <svg className="w-5 h-5 stroke-[1.75] text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
                   <path d="m15 5 4 4"/>
                 </svg>
                 {!activeTab && (
-                  <div className="absolute right-14 top-1/2 -translate-y-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                  <div className="absolute right-14 top-1/2 -translate-y-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-medium px-2.5 py-1 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
                     {isEditingPins ? "Done Editing" : "Edit Pins"}
                   </div>
                 )}
@@ -1952,9 +1955,9 @@ export function UtilityDrawer({
                 className="w-10 h-10 rounded-[16px] bg-[#f4f7fa] dark:bg-white/5 hover:bg-[#eef2f6] dark:hover:bg-white/10 border border-[#e2e8f0] dark:border-white/10 flex items-center justify-center text-[#475569] dark:text-slate-300 hover:text-[#ff6325] transition-all cursor-pointer shadow-2xs hover:scale-105 relative group"
                 title="Toggle Utility Panel"
               >
-                <Sliders size={17} className="stroke-[2]" />
+                <Sliders size={17} className="stroke-[1.75]" />
                 {!activeTab && (
-                  <div className="absolute right-14 top-1/2 -translate-y-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                  <div className="absolute right-14 top-1/2 -translate-y-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-medium px-2.5 py-1 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
                     Close Rails
                   </div>
                 )}

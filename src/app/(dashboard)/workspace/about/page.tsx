@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useVendorStore } from '@/lib/store';
 import { 
   Building2, Info, CheckSquare, Image as ImageIcon, Plus, X, Save, 
-  MapPin, Phone, Globe, Mail, Clock, ShieldCheck, CheckCircle2, ChevronRight, Sparkles
+  MapPin, Phone, Globe, Mail, Clock, ShieldCheck, CheckCircle2, ChevronRight, Sparkles,
+  Luggage, Dog, Crown, Star, Award
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -24,6 +25,50 @@ export default function VenueProfilePage() {
   const [checkInTime, setCheckInTime] = useState('12:00 PM');
   const [checkOutTime, setCheckOutTime] = useState('11:00 AM');
   const [operatingHours, setOperatingHours] = useState('24/7 Front Desk');
+
+  // Pet Policy & Luxe Status
+  const [isPetFriendly, setIsPetFriendly] = useState<boolean>(false);
+  const [isLuxeVerified, setIsLuxeVerified] = useState<boolean>(false);
+  const [isMysteryModeOptIn, setIsMysteryModeOptIn] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(`hotel_mystery_optin_${currentMerchant?.id || 'default'}`);
+        if (stored !== null) return stored === 'true';
+      } catch {}
+    }
+    return currentMerchant?.isMysteryModeOptIn ?? currentMerchant?.metadata?.isMysteryModeOptIn ?? true;
+  });
+
+  // Smart Bag Locker & Luggage Storage
+  const [isLuggageStorageEnabled, setIsLuggageStorageEnabled] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(`hotel_luggage_enabled_${currentMerchant?.id || 'default'}`);
+        if (stored !== null) return stored === 'true';
+      } catch {}
+    }
+    return currentMerchant?.metadata?.isLuggageStorageEnabled ?? true;
+  });
+
+  const [luggageHourlyRate, setLuggageHourlyRate] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(`hotel_luggage_rate_${currentMerchant?.id || 'default'}`);
+        if (stored) return Number(stored);
+      } catch {}
+    }
+    return currentMerchant?.luggageHourlyRate ?? currentMerchant?.metadata?.luggageHourlyRate ?? 150;
+  });
+
+  const [luggageDayPassRate, setLuggageDayPassRate] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(`hotel_luggage_daypass_${currentMerchant?.id || 'default'}`);
+        if (stored) return Number(stored);
+      } catch {}
+    }
+    return currentMerchant?.metadata?.luggageDayPassRate ?? 500;
+  });
 
   // Amenities
   const [thingsToKnow, setThingsToKnow] = useState<string[]>([]);
@@ -126,6 +171,24 @@ export default function VenueProfilePage() {
       if ((currentMerchant as any).checkOutTime) setCheckOutTime((currentMerchant as any).checkOutTime);
       if ((currentMerchant as any).operatingHours) setOperatingHours((currentMerchant as any).operatingHours);
 
+      if (currentMerchant.isPetFriendly !== undefined) setIsPetFriendly(Boolean(currentMerchant.isPetFriendly));
+      if (currentMerchant.isLuxeVerified !== undefined) setIsLuxeVerified(Boolean(currentMerchant.isLuxeVerified));
+      if (currentMerchant.isMysteryModeOptIn !== undefined) {
+        setIsMysteryModeOptIn(Boolean(currentMerchant.isMysteryModeOptIn));
+      } else if (currentMerchant.metadata?.isMysteryModeOptIn !== undefined) {
+        setIsMysteryModeOptIn(Boolean(currentMerchant.metadata.isMysteryModeOptIn));
+      }
+      if (currentMerchant.luggageHourlyRate) setLuggageHourlyRate(Number(currentMerchant.luggageHourlyRate));
+      if (currentMerchant.metadata?.isLuggageStorageEnabled !== undefined) {
+        setIsLuggageStorageEnabled(Boolean(currentMerchant.metadata.isLuggageStorageEnabled));
+      }
+      if (currentMerchant.metadata?.luggageHourlyRate) {
+        setLuggageHourlyRate(Number(currentMerchant.metadata.luggageHourlyRate));
+      }
+      if (currentMerchant.metadata?.luggageDayPassRate) {
+        setLuggageDayPassRate(Number(currentMerchant.metadata.luggageDayPassRate));
+      }
+
       // Fetch fresh DB data
       const fetchProfile = async () => {
         try {
@@ -155,6 +218,18 @@ export default function VenueProfilePage() {
             if (data.metadata?.checkInTime) setCheckInTime(data.metadata.checkInTime);
             if (data.metadata?.checkOutTime) setCheckOutTime(data.metadata.checkOutTime);
             if (data.metadata?.operatingHours) setOperatingHours(data.metadata.operatingHours);
+            if (data.metadata?.isLuggageStorageEnabled !== undefined) {
+              setIsLuggageStorageEnabled(Boolean(data.metadata.isLuggageStorageEnabled));
+            }
+            if (data.metadata?.luggageHourlyRate) {
+              setLuggageHourlyRate(Number(data.metadata.luggageHourlyRate));
+            }
+            if (data.metadata?.luggageDayPassRate) {
+              setLuggageDayPassRate(Number(data.metadata.luggageDayPassRate));
+            }
+            if (data.metadata?.isPetFriendly !== undefined) {
+              setIsPetFriendly(Boolean(data.metadata.isPetFriendly));
+            }
           }
         } catch (err) {
           console.error('Failed to fetch merchant profile', err);
@@ -254,7 +329,35 @@ export default function VenueProfilePage() {
       checkInTime,
       checkOutTime,
       operatingHours,
+      isPetFriendly,
+      isLuxeVerified,
+      isMysteryModeOptIn,
+      luggageHourlyRate,
+      metadata: {
+        ...(currentMerchant.metadata || {}),
+        isLuggageStorageEnabled,
+        luggageHourlyRate,
+        luggageDayPassRate,
+        isPetFriendly,
+        isMysteryModeOptIn,
+        checkInTime,
+        checkOutTime,
+        operatingHours,
+      }
     } as any);
+
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(`hotel_mystery_optin_${currentMerchant.id}`, String(isMysteryModeOptIn));
+        localStorage.setItem('hotel_mystery_optin_default', String(isMysteryModeOptIn));
+        localStorage.setItem(`hotel_luggage_enabled_${currentMerchant.id}`, String(isLuggageStorageEnabled));
+        localStorage.setItem('hotel_luggage_enabled_default', String(isLuggageStorageEnabled));
+        localStorage.setItem(`hotel_luggage_rate_${currentMerchant.id}`, String(luggageHourlyRate));
+        localStorage.setItem('hotel_luggage_rate_default', String(luggageHourlyRate));
+        localStorage.setItem(`hotel_luggage_daypass_${currentMerchant.id}`, String(luggageDayPassRate));
+        localStorage.setItem('hotel_luggage_daypass_default', String(luggageDayPassRate));
+      } catch {}
+    }
 
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 3000);
@@ -530,14 +633,275 @@ export default function VenueProfilePage() {
           </div>
         </div>
 
-        {/* 5. Location & Map Coordinates */}
+        {/* 5. Smart Bag Locker & Luggage Cloakroom Service */}
+        <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-md shadow-amber-500/25 ring-4 ring-amber-500/15 shrink-0">
+                <Luggage size={18} className="text-white stroke-[2.2]" />
+              </div>
+              <div>
+                <h2 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+                  5. Smart Bag Locker & Luggage Cloakroom
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Enable this if your hotel provides secure frontdesk luggage drop & locker storage for travelers arriving early or departing late.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsLuggageStorageEnabled(!isLuggageStorageEnabled)}
+              className={`relative inline-flex h-6 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                isLuggageStorageEnabled ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-700'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  isLuggageStorageEnabled ? 'translate-x-6' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          {isLuggageStorageEnabled ? (
+            <div className="space-y-4 pt-4">
+              <div className="grid sm:grid-cols-2 gap-4">
+                {/* Hourly Rate per Bag */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] uppercase font-bold tracking-wider text-slate-600 dark:text-slate-300 flex items-center justify-between">
+                    <span>Hourly Tariff (Per Bag)</span>
+                    <span className="text-amber-500 font-black">Active Hourly Rate</span>
+                  </label>
+                  <div className="flex items-center gap-2 bg-slate-50 dark:bg-[#162033] border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 focus-within:border-amber-500">
+                    <span className="font-bold text-amber-500 text-sm">₹</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={luggageHourlyRate === 0 ? '' : luggageHourlyRate}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '');
+                        setLuggageHourlyRate(val === '' ? 0 : Number(val));
+                      }}
+                      placeholder="e.g. 150"
+                      className="w-full bg-transparent font-black text-slate-900 dark:text-white outline-none text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <span className="text-xs text-slate-400 whitespace-nowrap">/ bag / hr</span>
+                  </div>
+                </div>
+
+                {/* Full Day Cap Pass */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] uppercase font-bold tracking-wider text-slate-600 dark:text-slate-300 flex items-center justify-between">
+                    <span>Full Day Cap Pass (24 hrs)</span>
+                    <span className="text-indigo-400 font-black">Layover Tariff</span>
+                  </label>
+                  <div className="flex items-center gap-2 bg-slate-50 dark:bg-[#162033] border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 focus-within:border-indigo-500">
+                    <span className="font-bold text-indigo-400 text-sm">₹</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={luggageDayPassRate === 0 ? '' : luggageDayPassRate}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '');
+                        setLuggageDayPassRate(val === '' ? 0 : Number(val));
+                      }}
+                      placeholder="e.g. 500"
+                      className="w-full bg-transparent font-black text-slate-900 dark:text-white outline-none text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <span className="text-xs text-slate-400 whitespace-nowrap">/ 24 hrs layover</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-300 font-semibold">
+                <span>✓ <strong>Live Guest Booking:</strong> The <strong>&quot;Bag Locker&quot;</strong> tab and drop banner are active for customers on your hotel booking page at ₹{luggageHourlyRate}/bag/hr.</span>
+              </div>
+            </div>
+          ) : (
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#162033] border border-slate-200 dark:border-white/10 text-xs text-slate-400 mt-4">
+              ✕ <strong>Service Disabled:</strong> Your hotel does not offer bag locker storage. The Bag Locker tab will be hidden from travelers on your booking page.
+            </div>
+          )}
+        </div>
+
+        {/* 6. Pet Policy */}
+        <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all space-y-4">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-bold shadow-md shadow-emerald-500/25 ring-4 ring-emerald-500/15 shrink-0">
+                <Dog size={18} className="text-white stroke-[2.2]" />
+              </div>
+              <div>
+                <h2 className="text-base font-black text-slate-900 dark:text-white">6. Pet-Friendly Property Setting</h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Enable this if your hotel/resort allows guests to bring pets (dogs, cats). Powers customer &quot;Pet Friendly&quot; search filters.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsPetFriendly(!isPetFriendly)}
+              className={`relative inline-flex h-6 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                isPetFriendly ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  isPetFriendly ? 'translate-x-6' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          <div className={`text-xs font-semibold px-3.5 py-2.5 rounded-xl border ${
+            isPetFriendly 
+              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' 
+              : 'bg-slate-50 dark:bg-[#162033] text-slate-400 border-slate-200 dark:border-white/10'
+          }`}>
+            {isPetFriendly 
+              ? '✓ Pets Allowed: Hotel appears when travelers select "Pet Friendly" filter or add pets in guest counter.' 
+              : '✕ Pets Not Allowed: Guests searching for pet-friendly stays will not see this property.'}
+          </div>
+        </div>
+
+        {/* 7. BokSpot Luxe™ Certification */}
+        <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all space-y-4">
+          {(() => {
+            const guestRating = Number((currentMerchant as any)?.rating || (currentMerchant as any)?.metadata?.rating || 4.8);
+            const isEligibleForLuxe = guestRating >= 4.5;
+
+            return (
+              <>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-white/5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-500 to-yellow-500 text-slate-950 flex items-center justify-center font-black shadow-md shadow-amber-500/25 ring-4 ring-amber-500/15 shrink-0">
+                      <Crown size={18} className="text-slate-950 stroke-[2.2]" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-base font-black text-slate-900 dark:text-white">
+                          7. BokSpot Luxe™ Partner Verification
+                        </h2>
+                        <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${
+                          isEligibleForLuxe 
+                            ? 'bg-amber-500/15 text-amber-500 border-amber-500/30' 
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-300 dark:border-slate-700'
+                        }`}>
+                          {isEligibleForLuxe ? '⭐ Verified Luxe Partner' : 'Standard Partner'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Properties must maintain a 4.5+ guest review rating and pass BokSpot quality standards to unlock the golden Luxe badge.
+                      </p>
+                    </div>
+                  </div>
+
+                  {isEligibleForLuxe ? (
+                    <div className="px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20 shrink-0 flex items-center gap-1.5 select-none">
+                      <Sparkles size={13} />
+                      <span>Luxe Certified ✓</span>
+                    </div>
+                  ) : (
+                    <div className="px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-300 dark:border-slate-700 shrink-0 flex items-center gap-1.5 select-none" title="Requires a 4.5★ guest rating">
+                      <span>🔒 Requires 4.5★+ Rating</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-amber-500/5 border border-amber-500/20 flex items-start gap-3">
+                  <span className="text-amber-500 text-sm mt-0.5">ℹ️</span>
+                  <div className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                    <strong>How Luxe Verification Works:</strong> Certified properties carry the <strong>BokSpot Luxe Badge</strong> across guest listings and qualify under the <em>&quot;Just Luxury&quot;</em> filter. Properties maintain verified status through authentic guest reviews (current score: <strong>{guestRating}★</strong>).
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+
+          {/* Mystery Secret Deals Opt-In Toggle Card */}
+          {(() => {
+            const guestRating = Number((currentMerchant as any)?.rating || (currentMerchant as any)?.metadata?.rating || 4.8);
+            const isEligibleByRating = guestRating >= 4.5;
+
+            return (
+              <div className="pt-3 border-t border-slate-100 dark:border-white/5">
+                <div className={`p-4 rounded-2xl border transition-all ${
+                  isEligibleByRating 
+                    ? 'bg-slate-50 dark:bg-[#162033] border-slate-200 dark:border-white/10' 
+                    : 'bg-slate-50/50 dark:bg-[#162033]/50 border-slate-200/60 dark:border-white/5 opacity-80'
+                } flex flex-col sm:flex-row sm:items-center justify-between gap-4`}>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-base">🤫</span>
+                      <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                        Participate in BokSpot Mystery Deals (Secret Mode)
+                      </h3>
+                      {isEligibleByRating ? (
+                        <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                          ⭐ {guestRating} Rating Qualified
+                        </span>
+                      ) : (
+                        <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
+                          🔒 Requires 4.5★+ Guest Rating ({guestRating}★ current)
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-xl leading-relaxed">
+                      Sell luxury rooms at exclusive special rates without diluting your public brand. In <strong>Just Luxury (Secret Mode)</strong>, your property name and exact street address remain confidential until the guest completes booking confirmation.
+                    </p>
+                    {!isEligibleByRating && (
+                      <p className="text-[10px] text-rose-500 font-semibold pt-1">
+                        ⚠️ To protect customer trust in Secret Mode, only verified properties maintaining 4.5★ or higher guest reviews can participate.
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                      {!isEligibleByRating 
+                        ? 'Locked (Rating < 4.5★)' 
+                        : (isMysteryModeOptIn ? 'Opted In' : 'Direct Name Visible')}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={!isEligibleByRating}
+                      onClick={() => {
+                        if (!isEligibleByRating) return;
+                        setIsMysteryModeOptIn(!isMysteryModeOptIn);
+                      }}
+                      className={`relative inline-flex h-6 w-12 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        !isEligibleByRating 
+                          ? 'opacity-40 cursor-not-allowed bg-slate-300 dark:bg-slate-700' 
+                          : (isMysteryModeOptIn ? 'bg-amber-500 cursor-pointer' : 'bg-slate-300 dark:bg-slate-700 cursor-pointer')
+                      }`}
+                      title={!isEligibleByRating ? 'Requires a 4.5★ guest rating to activate' : ''}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                          isMysteryModeOptIn && isEligibleByRating ? 'translate-x-6' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
+
+
+        {/* 8. Location & Map Coordinates */}
         <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all">
           <div className="flex items-center gap-3 mb-5 pb-3 border-b border-slate-100 dark:border-white/5">
             <div className="w-10 h-10 rounded-2xl bg-[#ff6325] text-white flex items-center justify-center font-bold shadow-md shadow-[#ff6325]/25 ring-4 ring-[#ff6325]/15 shrink-0">
               <MapPin size={18} className="text-white stroke-[2.2]" />
             </div>
             <div>
-              <h2 className="text-base font-black text-slate-900 dark:text-white">5. Location & Map Coordinates</h2>
+              <h2 className="text-base font-black text-slate-900 dark:text-white">8. Location & Map Coordinates</h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 Full address, pin code, and GPS coordinates for guest navigation and Google Maps routing.
               </p>
@@ -702,14 +1066,14 @@ export default function VenueProfilePage() {
           </div>
         </div>
 
-        {/* 6. Property Highlights */}
+        {/* 9. Property Highlights */}
         <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all">
           <div className="flex items-center gap-3 mb-5 pb-3 border-b border-slate-100 dark:border-white/5">
             <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-md shadow-amber-500/25 ring-4 ring-amber-500/15 shrink-0">
               <Sparkles size={18} className="text-white stroke-[2.2]" />
             </div>
             <div>
-              <h2 className="text-base font-black text-slate-900 dark:text-white">6. Property Highlights & Key Selling Points</h2>
+              <h2 className="text-base font-black text-slate-900 dark:text-white">9. Property Highlights & Key Selling Points</h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 These highlights display directly on the customer Overview page (e.g., breakfast buffet, dining options, 24/7 front desk, sanitization).
               </p>
@@ -849,7 +1213,7 @@ export default function VenueProfilePage() {
           </div>
         </div>
 
-        {/* 7. Photo Gallery */}
+        {/* 10. Photo Gallery */}
         <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all">
           <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100 dark:border-white/5">
             <div className="flex items-center gap-3">
@@ -857,7 +1221,7 @@ export default function VenueProfilePage() {
                 <ImageIcon size={18} className="text-white stroke-[2.2]" />
               </div>
               <div>
-                <h2 className="text-base font-black text-slate-900 dark:text-white">7. Venue Photo Showcase Gallery</h2>
+                <h2 className="text-base font-black text-slate-900 dark:text-white">10. Venue Photo Showcase Gallery</h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400">High-resolution photos of reception, pool, dining, architecture, and garden grounds.</p>
               </div>
             </div>

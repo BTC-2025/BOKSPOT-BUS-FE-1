@@ -336,6 +336,17 @@ export interface MerchantUser {
   policies?: Record<string, any> | string[];
   highlights?: Array<{ title: string; description: string; icon?: string }>;
   
+  // BokSpot Luxe Certification & Star Tier
+  isLuxeVerified?: boolean;
+  isMysteryModeOptIn?: boolean;
+  starRating?: number; // 3, 4, 5
+  tier?: 'STANDARD' | 'PREMIUM' | 'LUXURY';
+  isPetFriendly?: boolean;
+
+  // Smart Bag Locker / Luggage Storage & Custom Metadata
+  luggageHourlyRate?: number;
+  metadata?: Record<string, any>;
+
   // Custom auth info for sign up
   passwordHash?: string;
 }
@@ -454,6 +465,10 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     gstNumber: '33AAAAA0000A1Z5',
     city: 'Chennai',
     activeBranchId: 'branch-grand-chennai',
+    isLuxeVerified: true,
+    starRating: 5,
+    tier: 'LUXURY',
+    isPetFriendly: true,
     branches: [
       {
         id: 'branch-grand-chennai',
@@ -1463,6 +1478,26 @@ export const useVendorStore = create<VendorStoreState>()(
       if (profileData.checkInTime) meta.checkInTime = profileData.checkInTime;
       if (profileData.checkOutTime) meta.checkOutTime = profileData.checkOutTime;
       if (profileData.operatingHours) meta.operatingHours = profileData.operatingHours;
+      if (profileData.isLuxeVerified !== undefined) meta.isLuxeVerified = profileData.isLuxeVerified;
+      if (profileData.starRating !== undefined) meta.starRating = profileData.starRating;
+      if (profileData.tier !== undefined) meta.tier = profileData.tier;
+      if (profileData.isPetFriendly !== undefined) meta.isPetFriendly = profileData.isPetFriendly;
+      if (profileData.isMysteryModeOptIn !== undefined) meta.isMysteryModeOptIn = profileData.isMysteryModeOptIn;
+      
+      const incomingMeta = profileData.metadata || {};
+      if (incomingMeta.isLuggageStorageEnabled !== undefined) {
+        meta.isLuggageStorageEnabled = incomingMeta.isLuggageStorageEnabled;
+      }
+      if (incomingMeta.luggageHourlyRate !== undefined || profileData.luggageHourlyRate !== undefined) {
+        meta.luggageHourlyRate = incomingMeta.luggageHourlyRate ?? profileData.luggageHourlyRate;
+      }
+      if (incomingMeta.luggageDayPassRate !== undefined) {
+        meta.luggageDayPassRate = incomingMeta.luggageDayPassRate;
+      }
+      if (incomingMeta.isMysteryModeOptIn !== undefined) {
+        meta.isMysteryModeOptIn = incomingMeta.isMysteryModeOptIn;
+      }
+
       if (Object.keys(meta).length > 0) payload.metadata = meta;
       
       const res = await fetch(`${baseUrl}/merchants/${merchantId}`, {
