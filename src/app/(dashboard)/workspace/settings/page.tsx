@@ -61,12 +61,53 @@ export default function SettingsPage() {
   const [isLuggageStorageEnabled, setIsLuggageStorageEnabled] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       try {
-        const stored = localStorage.getItem(`hotel_luggage_enabled_${currentMerchant?.id || 'default'}`);
-        if (stored !== null) return stored === 'true';
+        const id = currentMerchant?.id;
+        const uname = currentMerchant?.username;
+        const keys = [
+          id ? `hotel_luggage_enabled_${id}` : null,
+          uname ? `hotel_luggage_enabled_${uname}` : null,
+          'hotel_luggage_enabled_H101',
+          'hotel_luggage_enabled_default'
+        ].filter(Boolean) as string[];
+
+        for (const k of keys) {
+          const val = localStorage.getItem(k);
+          if (val !== null) return val === 'true';
+        }
       } catch {}
     }
     return currentMerchant?.metadata?.isLuggageStorageEnabled ?? true;
   });
+
+  const handleToggleLuggageStorage = async (newState: boolean) => {
+    setIsLuggageStorageEnabled(newState);
+    if (!currentMerchant) return;
+
+    // Save directly to localStorage across all keys
+    if (typeof window !== 'undefined') {
+      try {
+        const id = currentMerchant.id;
+        const uname = currentMerchant.username;
+        const valStr = String(newState);
+
+        localStorage.setItem(`hotel_luggage_enabled_${id}`, valStr);
+        if (uname) localStorage.setItem(`hotel_luggage_enabled_${uname}`, valStr);
+        localStorage.setItem('hotel_luggage_enabled_H101', valStr);
+        localStorage.setItem('hotel_luggage_enabled_default', valStr);
+
+        window.dispatchEvent(new CustomEvent('hotel_luggage_toggle', { detail: { enabled: newState, merchantId: id } }));
+        window.dispatchEvent(new Event('storage'));
+      } catch {}
+    }
+
+    // Save to Zustand store
+    await updateMerchantProfile(currentMerchant.id, {
+      metadata: {
+        ...(currentMerchant.metadata || {}),
+        isLuggageStorageEnabled: newState,
+      }
+    } as any);
+  };
   const [luggageRate, setLuggageRate] = useState<number>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -475,10 +516,29 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
-                  <div className="p-2.5 rounded-xl bg-bg-secondary border border-border-brand text-center">
-                    <span className="text-sm block">🧳</span>
-                    <span className="text-[11px] font-bold text-text-primary block mt-1">Bag Locker</span>
-                    <span className="text-[10px] text-amber-500 font-bold">{isLuggageStorageEnabled ? `₹${luggageRate}/hr` : 'Disabled'}</span>
+                  <div className="p-2.5 rounded-xl bg-bg-secondary border border-border-brand text-center relative flex flex-col items-center justify-between">
+                    <div>
+                      <span className="text-sm block">🧳</span>
+                      <span className="text-[11px] font-bold text-text-primary block mt-1">Bag Locker</span>
+                      <span className="text-[10px] text-amber-500 font-bold block mb-1">
+                        {isLuggageStorageEnabled ? `₹${luggageRate}/hr` : 'Disabled'}
+                      </span>
+                    </div>
+                    {/* Quick Interactive Toggle Switch */}
+                    <button
+                      type="button"
+                      onClick={() => handleToggleLuggageStorage(!isLuggageStorageEnabled)}
+                      className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        isLuggageStorageEnabled ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-700'
+                      }`}
+                      title={isLuggageStorageEnabled ? 'Click to Disable Mini Space' : 'Click to Enable Mini Space'}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                          isLuggageStorageEnabled ? 'translate-x-5' : 'translate-x-0.5'
+                        }`}
+                      />
+                    </button>
                   </div>
                   <div className="p-2.5 rounded-xl bg-bg-secondary border border-border-brand text-center">
                     <span className="text-sm block">🐾</span>

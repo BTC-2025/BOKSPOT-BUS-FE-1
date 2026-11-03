@@ -84,6 +84,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           const bId = String(b.merchantId || '').trim();
           const bName = (b.merchantName || '').toLowerCase().trim();
           let matches = (curId && bId && curId === bId) || (curName && bName && (curName === bName || bName.includes(curName) || curName.includes(bName)));
+          if (!matches && (curName.includes('hostel') || (merchant.category || '').toLowerCase().includes('hostel'))) {
+            if (bName.includes('hostel') || (b.category || '').toLowerCase().includes('hostel') || (b.serviceName || '').toLowerCase().includes('hostel') || bId === '51c6a3b8-2abc-9421-7644-2a2dea05dbc0') {
+              matches = true;
+            }
+          }
           if (!matches && (curName.includes('sunstone') || curName.includes('resort') || curName.includes('arena'))) {
             if (bName.includes('sunstone') || bName.includes('arena 5') || bName.includes('arena')) {
               matches = true;
@@ -235,19 +240,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             const bMerchantName = (syncB.merchantName || '').toLowerCase().trim();
             const curId = String(currentMerchant.id || '').trim();
             const bMerchantId = String(syncB.merchantId || '').trim();
+            const bCategory = (syncB.category || '').toLowerCase().trim();
+            const bServiceName = (syncB.serviceName || '').toLowerCase();
 
             const isSameId = Boolean(curId && bMerchantId && curId === bMerchantId);
-            const isSameName = Boolean(curName && bMerchantName && curName === bMerchantName);
+            const isSameName = Boolean(curName && bMerchantName && (curName === bMerchantName || bMerchantName.includes(curName) || curName.includes(bMerchantName)));
+            // Cross-store dynamic adoption: if merchant is currently logged in as a Hostel or Backpackers, accept hostel bookings
+            const curLower = curName.toLowerCase();
+            const bCurLower = bMerchantName.toLowerCase();
+            const isHostelMatch = (curLower.includes('backpackers') || curLower.includes('hostel') || (currentMerchant.category || '').toLowerCase().includes('hostel')) &&
+              (bCurLower.includes('backpackers') || bCurLower.includes('hostel') || bCategory.includes('hostel') || bServiceName.includes('hostel') || bMerchantId === '51c6a3b8-2abc-9421-7644-2a2dea05dbc0');
 
             // If this booking explicitly belongs to another merchant, do NOT merge it into this merchant's state
-            if (!isSameId && !isSameName) {
+            if (!isSameId && !isSameName && !isHostelMatch) {
               return;
             }
 
             // Archetype / Service mismatch check
             const curArch = getArchetypeFromCategory(currentMerchant.archetype) || getArchetypeFromCategory(currentMerchant.category);
-            const bCategory = (syncB.category || '').toLowerCase().trim();
-            const bServiceName = (syncB.serviceName || '').toLowerCase();
             const bArch = getArchetypeFromCategory(bCategory);
 
             if (curArch === 'ACCOMMODATION' || ['homestay / villa', 'homestay-villa', 'villas', 'hotels', 'resorts'].includes((currentMerchant.category || '').toLowerCase().trim())) {
@@ -262,12 +272,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 ...syncB,
                 merchantName: syncB.merchantName || currentMerchant.merchantName,
                 merchantId: syncB.merchantId || currentMerchant.id,
-                status: syncB.status || 'PENDING',
+                status: syncB.status || 'CONFIRMED',
               });
               changed = true;
             } else {
               // Update if status changed or data differs
-              if (merged[index].status !== syncB.status) {
+              if (merged[index].status !== syncB.status || merged[index].merchantName !== syncB.merchantName) {
                 merged[index] = { ...merged[index], ...syncB };
                 changed = true;
               }
@@ -970,7 +980,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {/* Utility Drawer Button Box (60px wide column to align with right sidebar) */}
           <div className="w-[60px] shrink-0 h-full flex items-center justify-center border-l border-white/10 bg-transparent">
             <button
-              onClick={() => setUtilityDrawerOpen(!utilityDrawerOpen)}
+              onClick={() => {
+                if (utilityDrawerOpen) {
+                  // Closing: reset active tool/tab so next time it opens fresh (clean rail only)
+                  setUtilityDrawerOpen(false);
+                  setActiveUtilityTab(null);
+                } else {
+                  setUtilityDrawerOpen(true);
+                  setActiveUtilityTab(null);
+                }
+              }}
               className={`relative flex items-center justify-center transition-all cursor-pointer shadow-md rounded-full w-9 h-9 ${
                 utilityDrawerOpen
                   ? 'bg-[#ff6325] text-white shadow-[0_0_14px_rgba(255,99,37,0.45)] ring-2 ring-[#ff6325]/50 scale-105'
@@ -1035,7 +1054,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main Body Section */}
       <div className="flex flex-1 overflow-hidden relative">
         {/* Main Content Workspace - Edge-to-Edge Fluid Console */}
-        <main className="flex-1 overflow-y-auto bg-bg-primary px-3 sm:px-4 lg:px-6 py-4 custom-scrollbar transition-all duration-300 flex flex-col justify-between">
+        <main 
+          style={{
+            marginRight: !utilityDrawerOpen 
+              ? '0px' 
+              : activeUtilityTab 
+                ? (activeUtilityTab === 'beta' ? '400px' : '380px') 
+                : '60px'
+          }}
+          className="flex-1 overflow-y-auto bg-slate-50 dark:bg-[#070b13] px-3 sm:px-4 lg:px-6 py-4 custom-scrollbar transition-all duration-300 flex flex-col justify-between ease-in-out"
+        >
           <div className="flex-1 pb-4 w-full">
             {children}
           </div>

@@ -469,6 +469,12 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     starRating: 5,
     tier: 'LUXURY',
     isPetFriendly: true,
+    luggageHourlyRate: 150,
+    metadata: {
+      isLuggageStorageEnabled: true,
+      luggageHourlyRate: 150,
+      luggageDayPassRate: 500,
+    },
     branches: [
       {
         id: 'branch-grand-chennai',
@@ -1496,6 +1502,21 @@ export const useVendorStore = create<VendorStoreState>()(
       }
       if (incomingMeta.isMysteryModeOptIn !== undefined) {
         meta.isMysteryModeOptIn = incomingMeta.isMysteryModeOptIn;
+      }
+      if (incomingMeta.isPgProperty !== undefined) {
+        meta.isPgProperty = incomingMeta.isPgProperty;
+      }
+      if (incomingMeta.pgGenderType !== undefined) {
+        meta.pgGenderType = incomingMeta.pgGenderType;
+      }
+      if (incomingMeta.pgFoodIncluded !== undefined) {
+        meta.pgFoodIncluded = incomingMeta.pgFoodIncluded;
+      }
+      if (incomingMeta.pgGateCurfew !== undefined) {
+        meta.pgGateCurfew = incomingMeta.pgGateCurfew;
+      }
+      if (incomingMeta.pgNoticePeriod !== undefined) {
+        meta.pgNoticePeriod = incomingMeta.pgNoticePeriod;
       }
 
       if (Object.keys(meta).length > 0) payload.metadata = meta;

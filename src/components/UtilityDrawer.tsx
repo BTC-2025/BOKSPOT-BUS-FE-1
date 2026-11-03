@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { 
-  X, Calculator, Sparkles, Plus, Trash2, ArrowLeftRight, 
-  ChevronLeft, ChevronRight, ExternalLink, Check, User, 
+import {
+  X, Calculator, Sparkles, Plus, Trash2, ArrowLeftRight,
+  ChevronLeft, ChevronRight, ExternalLink, Check, User,
   Search, MoreVertical, Lightbulb, CheckSquare, Trash,
   CalendarDays, Settings, RotateCcw, Share2, Edit3, Sliders,
   CloudSun, Keyboard, FileText, MapPin, ShieldCheck, Mail, Send, CheckCircle2, Bookmark,
@@ -27,22 +27,22 @@ interface CompareItem {
   valB: number;
 }
 
-export function UtilityDrawer({ 
-  isOpen, 
-  onClose, 
+export function UtilityDrawer({
+  isOpen,
+  onClose,
   isVendor = false,
   activeTab: propActiveTab,
   setActiveTab: propSetActiveTab
 }: UtilityDrawerProps) {
   const { bookings, currentMerchant } = useVendorStore();
   const [localActiveTab, setLocalActiveTab] = useState<'beta' | 'calendar' | 'calc' | 'tasks' | 'contacts' | 'weather' | 'keyboard' | null>(null);
-  
+
   const activeTab = propActiveTab !== undefined ? propActiveTab : localActiveTab;
   const setActiveTab = propSetActiveTab !== undefined ? propSetActiveTab : setLocalActiveTab;
 
   // Time state for the live red line
   const [now, setNow] = useState(new Date());
-  
+
   // Notes state (matching bit-tool.com NOTES screenshot)
   const [notesList, setNotesList] = useState<Array<{ id: string; title: string; content: string; date: string }>>([]);
   const [showAddNoteModal, setShowAddNoteModal] = useState(false);
@@ -86,7 +86,7 @@ export function UtilityDrawer({
   ]);
 
   const toggleFavorite = (appId: string) => {
-    setFavoriteAppIds((prev) => 
+    setFavoriteAppIds((prev) =>
       prev.includes(appId) ? prev.filter(id => id !== appId) : [...prev, appId]
     );
   };
@@ -321,9 +321,9 @@ export function UtilityDrawer({
   };
 
   // Contacts filtered list
-  const filteredContacts = contactsList.filter(c => 
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (c.role && c.role.toLowerCase().includes(searchQuery.toLowerCase())) || 
+  const filteredContacts = contactsList.filter(c =>
+    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (c.role && c.role.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (c.email && c.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (c.phone && c.phone.includes(searchQuery))
   );
@@ -353,7 +353,7 @@ export function UtilityDrawer({
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
           transition={{ type: 'spring', damping: 26, stiffness: 220 }}
-          className="fixed right-0 top-[104px] bottom-0 z-30 flex flex-row overflow-hidden border-l border-slate-200 dark:border-slate-850 shadow-2xl pointer-events-auto bg-slate-50 dark:bg-[#0b0e14]/90 backdrop-blur-md"
+          className="fixed right-0 top-[104px] bottom-0 z-30 flex flex-row overflow-hidden shadow-2xl pointer-events-auto bg-white dark:bg-[#0a0f1d]"
         >
           {/* Slide-out Left Content Panel (320px) */}
           <AnimatePresence mode="wait">
@@ -364,7 +364,7 @@ export function UtilityDrawer({
                 animate={{ opacity: 1, width: activeTab === 'beta' ? 340 : 320 }}
                 exit={{ opacity: 0, width: 0 }}
                 transition={{ type: 'spring', damping: 28, stiffness: 240 }}
-                className="h-full bg-white dark:bg-[#0b0e14] border-l border-slate-200 dark:border-slate-850 flex flex-col overflow-hidden select-none shrink-0"
+                className="h-full bg-white dark:bg-[#0b0e14] border-l border-slate-200/80 dark:border-white/10 flex flex-col overflow-hidden select-none shrink-0"
               >
                 {/* 1. CALENDAR TAB POPUP */}
                 {activeTab === 'calendar' && (
@@ -437,13 +437,12 @@ export function UtilityDrawer({
                                     const newD = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth(), day);
                                     setSelectedDate(newD);
                                   }}
-                                  className={`w-8 h-8 rounded-full flex items-center justify-center font-medium text-xs transition-all cursor-pointer ${
-                                    isSelected
+                                  className={`w-8 h-8 rounded-full flex items-center justify-center font-medium text-xs transition-all cursor-pointer ${isSelected
                                       ? 'bg-[#ff6325] text-white shadow-md shadow-orange-500/30'
                                       : isToday
-                                      ? 'border border-[#ff6325] text-[#ff6325] font-semibold'
-                                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                                  }`}
+                                        ? 'border border-[#ff6325] text-[#ff6325] font-semibold'
+                                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                                    }`}
                                 >
                                   {day}
                                 </button>
@@ -528,28 +527,28 @@ export function UtilityDrawer({
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <button 
+                        <button
                           type="button"
-                          onClick={() => setCalcHistory([])} 
+                          onClick={() => setCalcHistory([])}
                           className="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
                           title="History"
                         >
                           <History size={14} className="stroke-[1.75]" />
                         </button>
-                        <button 
+                        <button
                           type="button"
                           className="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
                           title="Share"
                         >
                           <Share2 size={14} className="stroke-[1.75]" />
                         </button>
-                        <button 
+                        <button
                           type="button"
                           onClick={() => {
                             setCalcInput('');
                             setCalcResult(null);
                             setCalcOperator('');
-                          }} 
+                          }}
                           className="w-8 h-8 rounded-full bg-red-50 hover:bg-red-100 dark:bg-red-950/30 flex items-center justify-center text-red-500 transition-colors cursor-pointer"
                           title="Clear Output"
                         >
@@ -622,11 +621,10 @@ export function UtilityDrawer({
                       <button
                         type="button"
                         onClick={() => setCompareMode(!compareMode)}
-                        className={`py-1.5 px-2 rounded-xl border text-[10.5px] font-medium transition-all flex items-center justify-center gap-1 shadow-2xs hover:scale-[1.02] cursor-pointer ${
-                          compareMode
+                        className={`py-1.5 px-2 rounded-xl border text-[10.5px] font-medium transition-all flex items-center justify-center gap-1 shadow-2xs hover:scale-[1.02] cursor-pointer ${compareMode
                             ? 'bg-[#00875a] text-white border-[#00875a]'
                             : 'border-slate-200 dark:border-white/10 hover:border-slate-300 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200'
-                        }`}
+                          }`}
                       >
                         <ArrowUpDown size={11} className="stroke-[1.75]" /> Compare
                       </button>
@@ -862,7 +860,7 @@ export function UtilityDrawer({
                       ) : (
                         <div className="space-y-3 pt-2">
                           {notesList.map((n) => (
-                            <div 
+                            <div
                               key={n.id}
                               className="p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-slate-50/60 dark:bg-white/5 space-y-1 shadow-2xs group hover:border-[#ff6325] transition-all"
                             >
@@ -1004,8 +1002,8 @@ export function UtilityDrawer({
                       ) : (
                         <div className="space-y-2">
                           {filteredContacts.map((c) => (
-                            <div 
-                              key={c.id} 
+                            <div
+                              key={c.id}
                               className="p-3 rounded-2xl border border-slate-200/80 dark:border-white/10 hover:border-blue-400 dark:hover:border-blue-500 bg-slate-50/50 dark:bg-white/5 transition-all shadow-2xs group"
                             >
                               <div className="flex justify-between items-start">
@@ -1227,19 +1225,18 @@ export function UtilityDrawer({
                     {/* Header: BETA Logo + Edit Button + Close */}
                     <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-100 dark:border-slate-800 shrink-0">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-xl font-semibold text-[#0052cc] dark:text-[#38bdf8] tracking-wider font-sans">
+                        <h2 id="launcher-title" className="launcher-brand-title text-[28px] leading-none text-[#004aad] dark:text-[#38bdf8] tracking-wider select-none" style={{ fontFamily: '"Saira Stencil One", Anton, sans-serif' }}>
                           BETA
-                        </span>
+                        </h2>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <button
                           type="button"
                           onClick={() => setIsEditingBeta(!isEditingBeta)}
-                          className={`flex items-center gap-1 px-3 py-1 rounded-lg border text-[11px] font-medium shadow-2xs transition-all cursor-pointer ${
-                            isEditingBeta
+                          className={`flex items-center gap-1 px-3 py-1 rounded-lg border text-[11px] font-medium shadow-2xs transition-all cursor-pointer ${isEditingBeta
                               ? 'border-emerald-500 bg-emerald-50/80 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-600'
                               : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50'
-                          }`}
+                            }`}
                         >
                           {isEditingBeta ? (
                             <>
@@ -1275,11 +1272,10 @@ export function UtilityDrawer({
                               <button
                                 type="button"
                                 onClick={() => setBetaSubTab('favorites')}
-                                className={`transition-all cursor-pointer pb-1 ${
-                                  betaSubTab === 'favorites'
+                                className={`transition-all cursor-pointer pb-1 ${betaSubTab === 'favorites'
                                     ? 'text-[#00875a] border-b-2 border-[#00875a] font-semibold'
                                     : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 border-b-2 border-transparent'
-                                }`}
+                                  }`}
                               >
                                 FAVORITES
                               </button>
@@ -1287,11 +1283,10 @@ export function UtilityDrawer({
                               <button
                                 type="button"
                                 onClick={() => setBetaSubTab('recent')}
-                                className={`transition-all cursor-pointer pb-1 ${
-                                  betaSubTab === 'recent'
+                                className={`transition-all cursor-pointer pb-1 ${betaSubTab === 'recent'
                                     ? 'text-[#00875a] border-b-2 border-[#00875a] font-semibold'
                                     : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 border-b-2 border-transparent'
-                                }`}
+                                  }`}
                               >
                                 RECENT
                               </button>
@@ -1321,13 +1316,10 @@ export function UtilityDrawer({
                                     onClick={() => !isEditingBeta && handleAppLaunch({ id: 'cliks', name: 'Cliks', url: 'https://cliks.beta-softnet.com/', icon: 'cliks', bg: 'bg-[#00875a]/10', color: 'text-[#00875a]' })}
                                     className="flex flex-col items-center gap-1 cursor-pointer w-full"
                                   >
-                                    <div className="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700 flex items-center justify-center transition-all group-hover:scale-105 shadow-2xs">
-                                      <svg className="w-6 h-6 text-[#00875a]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                                        <polyline points="22 4 12 14.01 9 11.01" />
-                                      </svg>
+                                    <div className="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700 flex items-center justify-center transition-all group-hover:scale-105 shadow-2xs overflow-hidden p-1.5">
+                                      <img src="/tools/cliks.png" alt="Cliks" className="w-full h-full object-contain" />
                                     </div>
-                                    <span className="text-[11px] font-medium text-slate-800 dark:text-slate-200">Cliks</span>
+                                    <span className="launcher-mini-name text-[11px] font-bold text-slate-900 dark:text-slate-100 px-0.5">Cliks</span>
                                   </a>
                                 </div>
                               )}
@@ -1352,22 +1344,10 @@ export function UtilityDrawer({
                                     onClick={() => !isEditingBeta && handleAppLaunch({ id: 'bnxmail', name: 'BNXmail', url: 'https://www.bnxmail.com/login', icon: 'bnxmail', bg: 'bg-sky-500/10', color: 'text-[#0052cc]' })}
                                     className="flex flex-col items-center gap-1 cursor-pointer w-full"
                                   >
-                                    <div className="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700 flex items-center justify-center transition-all group-hover:scale-105 shadow-2xs">
-                                      <svg className="w-7 h-7 text-[#0052cc]" viewBox="0 0 32 32" fill="none">
-                                        <path 
-                                          d="M7 16.5L16 22.5L25 16.5M6 14.5V23C6 24.1 6.9 25 8 25H24C25.1 25 26 24.1 26 23V14.5" 
-                                          stroke="#0052cc" 
-                                          strokeWidth="1.8" 
-                                          strokeLinecap="round" 
-                                          strokeLinejoin="round" 
-                                        />
-                                        <path 
-                                          d="M7.5 12C9 12 11.5 10 13 8C14.5 6 17 5 19 6C18 7.5 17 9.5 17 11C21 12 18.5 13.5 17 14.5C15.5 15.5 13 16 11 15C9.5 14.2 8.5 13 7.5 12Z" 
-                                          fill="#0052cc" 
-                                        />
-                                      </svg>
+                                    <div className="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700 flex items-center justify-center transition-all group-hover:scale-105 shadow-2xs overflow-hidden p-1.5">
+                                      <img src="/tools/bnxmail.png" alt="BNXmail" className="w-full h-full object-contain" />
                                     </div>
-                                    <span className="text-[11px] font-medium text-slate-800 dark:text-slate-200">BNXmail</span>
+                                    <span className="launcher-mini-name text-[11px] font-bold text-slate-900 dark:text-slate-100 px-0.5">BNXmail</span>
                                   </a>
                                 </div>
                               )}
@@ -1392,16 +1372,10 @@ export function UtilityDrawer({
                                     onClick={() => !isEditingBeta && handleAppLaunch({ id: 'bit-tool', name: 'Bit-Tool', url: 'https://bit-tool.com/', icon: 'sliders', bg: 'bg-blue-500/10', color: 'text-[#0052cc]' })}
                                     className="flex flex-col items-center gap-1 cursor-pointer w-full"
                                   >
-                                    <div className="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700 flex items-center justify-center transition-all group-hover:scale-105 shadow-2xs">
-                                      <svg className="w-6 h-6 text-[#0052cc]" viewBox="0 0 24 24" fill="currentColor">
-                                        <circle cx="5" cy="5.5" r="1.8" />
-                                        <rect x="3.4" y="9.5" width="3.2" height="11.5" rx="1.6" />
-                                        <rect x="10.4" y="4.5" width="3.2" height="15.5" rx="1.6" />
-                                        <rect x="17.4" y="9.5" width="3.2" height="11.5" rx="1.6" />
-                                        <circle cx="19" cy="23.5" r="1.8" />
-                                      </svg>
+                                    <div className="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700 flex items-center justify-center transition-all group-hover:scale-105 shadow-2xs overflow-hidden p-1.5">
+                                      <img src="/tools/bit-tool.png" alt="Bit-Tool" className="w-full h-full object-contain" />
                                     </div>
-                                    <span className="text-[11px] font-medium text-slate-800 dark:text-slate-200">Bit-Tool</span>
+                                    <span className="launcher-mini-name text-[11px] font-bold text-slate-900 dark:text-slate-100 px-0.5">Bit-Tool</span>
                                   </a>
                                 </div>
                               )}
@@ -1426,10 +1400,10 @@ export function UtilityDrawer({
                                     onClick={() => !isEditingBeta && handleAppLaunch({ id: 'b2auth', name: 'B2Auth', url: 'https://www.b2auth.com/', icon: 'b2auth', bg: 'bg-slate-100', color: 'text-slate-700' })}
                                     className="flex flex-col items-center gap-1 cursor-pointer w-full"
                                   >
-                                    <div className="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700 flex items-center justify-center transition-all group-hover:scale-105 shadow-2xs">
-                                      <ShieldCheck size={22} className="text-slate-700 dark:text-slate-300" />
+                                    <div className="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700 flex items-center justify-center transition-all group-hover:scale-105 shadow-2xs overflow-hidden p-1.5">
+                                      <img src="/tools/b2auth.png" alt="B2Auth" className="w-full h-full object-contain" />
                                     </div>
-                                    <span className="text-[11px] font-medium text-slate-800 dark:text-slate-200">B2Auth</span>
+                                    <span className="launcher-mini-name text-[11px] font-bold text-slate-900 dark:text-slate-100 px-0.5">B2Auth</span>
                                   </a>
                                 </div>
                               )}
@@ -1452,36 +1426,20 @@ export function UtilityDrawer({
                                       onClick={() => setActiveTab(null)}
                                       className="flex flex-col items-center gap-1 group cursor-pointer"
                                     >
-                                      <div className="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700 flex items-center justify-center transition-all group-hover:scale-105 shadow-2xs">
+                                      <div className="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700 flex items-center justify-center transition-all group-hover:scale-105 shadow-2xs overflow-hidden p-1.5">
                                         {app.id === 'bit-tool' ? (
-                                          <svg className="w-6 h-6 text-[#0052cc]" viewBox="0 0 24 24" fill="currentColor">
-                                            <circle cx="5" cy="5.5" r="1.8" />
-                                            <rect x="3.4" y="9.5" width="3.2" height="11.5" rx="1.6" />
-                                            <rect x="10.4" y="4.5" width="3.2" height="15.5" rx="1.6" />
-                                            <rect x="17.4" y="9.5" width="3.2" height="11.5" rx="1.6" />
-                                            <circle cx="19" cy="23.5" r="1.8" />
-                                          </svg>
+                                          <img src="/tools/bit-tool.png" alt="Bit-Tool" className="w-full h-full object-contain" />
                                         ) : app.id === 'cliks' ? (
-                                          <CheckCircle2 size={22} className="text-[#00875a]" />
+                                          <img src="/tools/cliks.png" alt="Cliks" className="w-full h-full object-contain" />
+                                        ) : app.id === 'cliks-bus' ? (
+                                          <img src="/tools/cliks-business.png" alt="CliksBusiness" className="w-full h-full object-contain" />
                                         ) : app.id === 'bnxmail' ? (
-                                          <svg className="w-7 h-7 text-[#0052cc]" viewBox="0 0 32 32" fill="none">
-                                            <path 
-                                              d="M7 16.5L16 22.5L25 16.5M6 14.5V23C6 24.1 6.9 25 8 25H24C25.1 25 26 24.1 26 23V14.5" 
-                                              stroke="#0052cc" 
-                                              strokeWidth="1.8" 
-                                              strokeLinecap="round" 
-                                              strokeLinejoin="round" 
-                                            />
-                                            <path 
-                                              d="M7.5 12C9 12 11.5 10 13 8C14.5 6 17 5 19 6C18 7.5 17 9.5 17 11C18.5 10.5 21 10 23.5 11C21 12 18.5 13.5 17 14.5C15.5 15.5 13 16 11 15C9.5 14.2 8.5 13 7.5 12Z" 
-                                              fill="#0052cc" 
-                                            />
-                                          </svg>
+                                          <img src="/tools/bnxmail.png" alt="BNXmail" className="w-full h-full object-contain" />
                                         ) : (
-                                          <ShieldCheck size={20} className="text-slate-700 dark:text-slate-300" />
+                                          <img src="/tools/b2auth.png" alt="B2Auth" className="w-full h-full object-contain" />
                                         )}
                                       </div>
-                                      <span className="text-[11px] font-semibold text-slate-800 dark:text-slate-200">
+                                      <span className="launcher-mini-name text-[11px] font-bold text-slate-900 dark:text-slate-100 px-0.5">
                                         {app.name}
                                       </span>
                                     </a>
@@ -1496,7 +1454,7 @@ export function UtilityDrawer({
                         {/* BASE Section (Exact match to all 3 screenshots: BASE, PUBLIC, and BUSINESS) */}
                         <div className="space-y-3 pt-1">
                           <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider">
-                            <span 
+                            <span
                               onClick={() => setBaseFilter('all')}
                               className="text-[#0a1120] dark:text-slate-100 font-semibold tracking-wide text-xs cursor-pointer select-none"
                               title="Show all BASE apps"
@@ -1507,11 +1465,10 @@ export function UtilityDrawer({
                               <button
                                 type="button"
                                 onClick={() => setBaseFilter(prev => prev === 'public' ? 'all' : 'public')}
-                                className={`cursor-pointer transition-all pb-1 text-[11px] ${
-                                  baseFilter === 'public'
+                                className={`cursor-pointer transition-all pb-1 text-[11px] ${baseFilter === 'public'
                                     ? 'text-[#00875a] dark:text-[#00c781] border-b-2 border-[#00875a] font-semibold'
                                     : 'text-[#94a3b8] hover:text-slate-600 font-semibold border-b-2 border-transparent'
-                                }`}
+                                  }`}
                               >
                                 PUBLIC
                               </button>
@@ -1519,11 +1476,10 @@ export function UtilityDrawer({
                               <button
                                 type="button"
                                 onClick={() => setBaseFilter(prev => prev === 'business' ? 'all' : 'business')}
-                                className={`cursor-pointer transition-all pb-1 text-[11px] ${
-                                  baseFilter === 'business'
+                                className={`cursor-pointer transition-all pb-1 text-[11px] ${baseFilter === 'business'
                                     ? 'text-[#00875a] dark:text-[#00c781] border-b-2 border-[#00875a] font-semibold'
                                     : 'text-[#94a3b8] hover:text-slate-600 font-semibold border-b-2 border-transparent'
-                                }`}
+                                  }`}
                               >
                                 BUSINESS
                               </button>
@@ -1534,18 +1490,23 @@ export function UtilityDrawer({
                           {baseFilter === 'business' ? (
                             <div className="grid grid-cols-4 gap-2.5 text-center">
                               {/* Cliks Business */}
-                              <a
-                                href="https://www.cliksbusiness.com/"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={() => handleAppLaunch({ id: 'cliks-bus', name: 'CliksBusiness', url: 'https://www.cliksbusiness.com/', icon: 'cliks', bg: 'bg-[#00875a]/10', color: 'text-[#00875a]' })}
-                                className="p-2.5 rounded-[18px] border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900/40 flex flex-col items-center justify-center gap-1.5 hover:shadow-xs transition-all group hover:scale-[1.03] cursor-pointer"
-                              >
-                                <div className="w-9 h-9 rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center group-hover:scale-105 transition-transform">
-                                  <CheckCircle2 size={22} className="text-[#00875a]" />
+                              <div className="relative group">
+                                <div className="base-app-tooltip absolute -top-8 left-1/2 z-30 px-2.5 py-1 bg-[#10172a] text-white text-[11px] font-bold rounded-lg shadow-lg whitespace-nowrap">
+                                  CliksBusiness
                                 </div>
-                                <span className="text-[10px] font-semibold text-slate-900 dark:text-slate-100 whitespace-nowrap tracking-tighter">CliksBus...</span>
-                              </a>
+                                <a
+                                  href="https://www.cliksbusiness.com/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={() => handleAppLaunch({ id: 'cliks-bus', name: 'CliksBusiness', url: 'https://www.cliksbusiness.com/', icon: 'cliks', bg: 'bg-[#00875a]/10', color: 'text-[#00875a]' })}
+                                  className="p-2.5 rounded-[18px] border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900/40 flex flex-col items-center justify-center gap-1.5 hover:shadow-xs transition-all group hover:scale-[1.03] cursor-pointer"
+                                >
+                                  <div className="w-9 h-9 rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center group-hover:scale-105 transition-transform overflow-hidden p-1">
+                                    <img src="/tools/cliks-business.png" alt="CliksBusiness" className="w-full h-full object-contain" />
+                                  </div>
+                                  <span className="launcher-mini-name text-[10px] font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap tracking-tighter px-0.5">CliksBus...</span>
+                                </a>
+                              </div>
                             </div>
                           ) : (
                             <div className="space-y-2.5">
@@ -1553,6 +1514,9 @@ export function UtilityDrawer({
                               <div className="grid grid-cols-4 gap-2.5 text-center">
                                 {/* Cliks */}
                                 <div className={`relative group ${isEditingBeta ? 'animate-jiggle' : ''}`}>
+                                  <div className="base-app-tooltip absolute -top-8 left-1/2 z-30 px-2.5 py-1 bg-[#10172a] text-white text-[11px] font-bold rounded-lg shadow-lg whitespace-nowrap">
+                                    Cliks
+                                  </div>
                                   {isEditingBeta && (
                                     <button
                                       type="button"
@@ -1570,15 +1534,18 @@ export function UtilityDrawer({
                                     onClick={() => !isEditingBeta && handleAppLaunch({ id: 'cliks', name: 'Cliks', url: 'https://cliks.beta-softnet.com/', icon: 'cliks', bg: 'bg-[#00875a]/10', color: 'text-[#00875a]' })}
                                     className="p-2.5 rounded-[18px] border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900/40 flex flex-col items-center justify-center gap-1.5 hover:shadow-xs transition-all group hover:scale-[1.03] cursor-pointer w-full"
                                   >
-                                    <div className="w-9 h-9 rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center group-hover:scale-105 transition-transform">
-                                      <CheckCircle2 size={22} className="text-[#00875a]" />
+                                    <div className="w-9 h-9 rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center group-hover:scale-105 transition-transform overflow-hidden p-1">
+                                      <img src="/tools/cliks.png" alt="Cliks" className="w-full h-full object-contain" />
                                     </div>
-                                    <span className="text-[11px] font-semibold text-slate-900 dark:text-slate-100 truncate w-full">Cliks</span>
+                                    <span className="launcher-mini-name text-[10.5px] font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap tracking-tight">Cliks</span>
                                   </a>
                                 </div>
 
                                 {/* BNXmail */}
                                 <div className={`relative group ${isEditingBeta ? 'animate-jiggle-reverse' : ''}`}>
+                                  <div className="base-app-tooltip absolute -top-8 left-1/2 z-30 px-2.5 py-1 bg-[#10172a] text-white text-[11px] font-bold rounded-lg shadow-lg whitespace-nowrap">
+                                    BNXmail
+                                  </div>
                                   {isEditingBeta && (
                                     <button
                                       type="button"
@@ -1596,27 +1563,18 @@ export function UtilityDrawer({
                                     onClick={() => !isEditingBeta && handleAppLaunch({ id: 'bnxmail', name: 'BNXmail', url: 'https://www.bnxmail.com/login', icon: 'bnxmail', bg: 'bg-sky-500/10', color: 'text-[#0052cc]' })}
                                     className="p-2.5 rounded-[18px] border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900/40 flex flex-col items-center justify-center gap-1.5 hover:shadow-xs transition-all group hover:scale-[1.03] cursor-pointer w-full"
                                   >
-                                    <div className="w-9 h-9 rounded-full bg-sky-50 dark:bg-sky-950/40 flex items-center justify-center group-hover:scale-105 transition-transform">
-                                      <svg className="w-6 h-6 text-[#0052cc]" viewBox="0 0 32 32" fill="none">
-                                        <path 
-                                          d="M7 16.5L16 22.5L25 16.5M6 14.5V23C6 24.1 6.9 25 8 25H24C25.1 25 26 24.1 26 23V14.5" 
-                                          stroke="#0052cc" 
-                                          strokeWidth="1.8" 
-                                          strokeLinecap="round" 
-                                          strokeLinejoin="round" 
-                                        />
-                                        <path 
-                                          d="M7.5 12C9 12 11.5 10 13 8C14.5 6 17 5 19 6C18 7.5 17 9.5 17 11C18.5 10.5 21 10 23.5 11C21 12 18.5 13.5 17 14.5C15.5 15.5 13 16 11 15C9.5 14.2 8.5 13 7.5 12Z" 
-                                          fill="#0052cc" 
-                                        />
-                                      </svg>
+                                    <div className="w-9 h-9 rounded-full bg-sky-50 dark:bg-sky-950/40 flex items-center justify-center group-hover:scale-105 transition-transform overflow-hidden p-1">
+                                      <img src="/tools/bnxmail.png" alt="BNXmail" className="w-full h-full object-contain" />
                                     </div>
-                                    <span className="text-[11px] font-semibold text-slate-900 dark:text-slate-100 truncate w-full">BNXmail</span>
+                                    <span className="launcher-mini-name text-[10px] font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap tracking-tight">BNXmail</span>
                                   </a>
                                 </div>
 
                                 {/* Bit-Tool */}
                                 <div className={`relative group ${isEditingBeta ? 'animate-jiggle' : ''}`}>
+                                  <div className="base-app-tooltip absolute -top-8 left-1/2 z-30 px-2.5 py-1 bg-[#10172a] text-white text-[11px] font-bold rounded-lg shadow-lg whitespace-nowrap">
+                                    Bit-Tool
+                                  </div>
                                   {isEditingBeta && (
                                     <button
                                       type="button"
@@ -1634,21 +1592,18 @@ export function UtilityDrawer({
                                     onClick={() => !isEditingBeta && handleAppLaunch({ id: 'bit-tool', name: 'Bit-Tool', url: 'https://bit-tool.com/', icon: 'sliders', bg: 'bg-blue-500/10', color: 'text-[#0052cc]' })}
                                     className="p-2.5 rounded-[18px] border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900/40 flex flex-col items-center justify-center gap-1.5 hover:shadow-xs transition-all group hover:scale-[1.03] cursor-pointer w-full"
                                   >
-                                    <div className="w-9 h-9 rounded-full bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center group-hover:scale-105 transition-transform">
-                                      <svg className="w-5 h-5 text-[#0052cc]" viewBox="0 0 24 24" fill="currentColor">
-                                        <circle cx="5" cy="5.5" r="1.8" />
-                                        <rect x="3.4" y="9.5" width="3.2" height="11.5" rx="1.6" />
-                                        <rect x="10.4" y="4.5" width="3.2" height="15.5" rx="1.6" />
-                                        <rect x="17.4" y="9.5" width="3.2" height="11.5" rx="1.6" />
-                                        <circle cx="19" cy="23.5" r="1.8" />
-                                      </svg>
+                                    <div className="w-9 h-9 rounded-full bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center group-hover:scale-105 transition-transform overflow-hidden p-1">
+                                      <img src="/tools/bit-tool.png" alt="Bit-Tool" className="w-full h-full object-contain" />
                                     </div>
-                                    <span className="text-[11px] font-semibold text-slate-900 dark:text-slate-100 truncate w-full">Bit-Tool</span>
+                                    <span className="launcher-mini-name text-[10.5px] font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap tracking-tight">Bit-Tool</span>
                                   </a>
                                 </div>
 
                                 {/* B2Auth */}
                                 <div className={`relative group ${isEditingBeta ? 'animate-jiggle-reverse' : ''}`}>
+                                  <div className="base-app-tooltip absolute -top-8 left-1/2 z-30 px-2.5 py-1 bg-[#10172a] text-white text-[11px] font-bold rounded-lg shadow-lg whitespace-nowrap">
+                                    B2Auth
+                                  </div>
                                   {isEditingBeta && (
                                     <button
                                       type="button"
@@ -1666,10 +1621,10 @@ export function UtilityDrawer({
                                     onClick={() => !isEditingBeta && handleAppLaunch({ id: 'b2auth', name: 'B2Auth', url: 'https://www.b2auth.com/', icon: 'b2auth', bg: 'bg-slate-100', color: 'text-slate-700' })}
                                     className="p-2.5 rounded-[18px] border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900/40 flex flex-col items-center justify-center gap-1.5 hover:shadow-xs transition-all group hover:scale-[1.03] cursor-pointer w-full"
                                   >
-                                    <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:scale-105 transition-transform">
-                                      <ShieldCheck size={20} className="text-slate-800 dark:text-slate-200" />
+                                    <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:scale-105 transition-transform overflow-hidden p-1">
+                                      <img src="/tools/b2auth.png" alt="B2Auth" className="w-full h-full object-contain" />
                                     </div>
-                                    <span className="text-[11px] font-semibold text-slate-900 dark:text-slate-100 truncate w-full">B2Auth</span>
+                                    <span className="launcher-mini-name text-[10.5px] font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap tracking-tight">B2Auth</span>
                                   </a>
                                 </div>
                               </div>
@@ -1678,6 +1633,9 @@ export function UtilityDrawer({
                               {baseFilter === 'all' && (
                                 <div className="grid grid-cols-4 gap-2.5 text-center">
                                   <div className={`relative group ${isEditingBeta ? 'animate-jiggle' : ''}`}>
+                                    <div className="base-app-tooltip absolute -top-8 left-1/2 z-30 px-2.5 py-1 bg-[#10172a] text-white text-[11px] font-bold rounded-lg shadow-lg whitespace-nowrap">
+                                      CliksBusiness
+                                    </div>
                                     {isEditingBeta && (
                                       <button
                                         type="button"
@@ -1695,10 +1653,10 @@ export function UtilityDrawer({
                                       onClick={() => !isEditingBeta && handleAppLaunch({ id: 'cliks-bus', name: 'CliksBusiness', url: 'https://www.cliksbusiness.com/', icon: 'cliks', bg: 'bg-[#00875a]/10', color: 'text-[#00875a]' })}
                                       className="p-2.5 rounded-[18px] border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900/40 flex flex-col items-center justify-center gap-1.5 hover:shadow-xs transition-all group hover:scale-[1.03] cursor-pointer w-full"
                                     >
-                                      <div className="w-9 h-9 rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center group-hover:scale-105 transition-transform">
-                                        <CheckCircle2 size={22} className="text-[#00875a]" />
+                                      <div className="w-9 h-9 rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center group-hover:scale-105 transition-transform overflow-hidden p-1">
+                                        <img src="/tools/cliks-business.png" alt="CliksBusiness" className="w-full h-full object-contain" />
                                       </div>
-                                      <span className="text-[10px] font-semibold text-slate-900 dark:text-slate-100 whitespace-nowrap tracking-tighter">
+                                      <span className="launcher-mini-name text-[10px] font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap tracking-tighter px-0.5">
                                         CliksBus...
                                       </span>
                                     </a>
@@ -1713,34 +1671,38 @@ export function UtilityDrawer({
                       {/* Coming Soon Beta Labs Card - Centered with rolling spinning star */}
                       <div className="relative pt-6 pb-2 my-auto">
                         {/* Rolling/Spinning 4-pointed Ninja Star Sparkle Icon Badge */}
-                        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-purple-200 dark:border-purple-800/60 shadow-md flex items-center justify-center text-purple-600 z-10">
-                          <svg 
-                            className="w-4 h-4 text-[#7c3aed] animate-spin" 
-                            style={{ animationDuration: '3s' }}
-                            viewBox="0 0 24 24" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            strokeWidth="2.5" 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round"
-                          >
-                            {/* 4-pointed Ninja Star / Sparkle blade */}
-                            <path d="M12 2C12 7.5 7.5 12 2 12C7.5 12 12 16.5 12 22C12 16.5 16.5 12 22 12C16.5 12 12 7.5 12 2Z" fill="currentColor" fillOpacity="0.15" />
-                            <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-                          </svg>
+                        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-purple-200/90 dark:border-purple-800/60 shadow-xs flex items-center justify-center text-purple-600 z-10">
+                          <div className="animate-spin" style={{ animationDuration: '4s' }}>
+                            <svg
+                              className="launcher-labs-sparkles-icon text-[#7c3aed] dark:text-[#a855f7]"
+                              width="12"
+                              height="12"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M12 2C12 7.5 7.5 12 2 12C7.5 12 12 16.5 12 22C12 16.5 16.5 12 22 12C16.5 12 12 7.5 12 2Z" />
+                              <circle cx="5" cy="5" r="1.5" fill="currentColor" stroke="none" />
+                              <line x1="19" y1="17" x2="19" y2="21" strokeWidth="2.2" />
+                              <line x1="17" y1="19" x2="21" y2="19" strokeWidth="2.2" />
+                            </svg>
+                          </div>
                         </div>
 
                         {/* Coming Soon Card Body */}
-                        <div className="rounded-[22px] border border-purple-100 dark:border-purple-900/40 p-4 pt-5 text-center bg-gradient-to-b from-purple-50/50 via-white to-purple-50/30 dark:from-purple-950/20 dark:via-slate-900/40 dark:to-transparent space-y-2 shadow-xs">
+                        <div className="rounded-[24px] border border-[#e0e7ff]/80 dark:border-purple-900/40 p-4 pt-6 text-center bg-white dark:bg-[#0c121e] flex flex-col items-center shadow-2xs">
                           <div>
-                            <span className="px-3 py-1 rounded-full bg-[#f3e8ff] dark:bg-purple-900/60 text-[#7c3aed] dark:text-purple-300 text-[9.5px] font-semibold uppercase tracking-wider inline-block">
+                            <span className="px-3.5 py-1 rounded-full bg-[#f3e8ff] dark:bg-purple-950/60 text-[#8b5cf6] dark:text-purple-300 text-[10px] font-black uppercase tracking-wider inline-block font-sans">
                               BETA LABS RELEASE
                             </span>
                           </div>
-                          <h4 className="text-base font-semibold text-[#8b5cf6] dark:text-purple-400 tracking-wide uppercase font-sans">
+                          <h3 className="launcher-labs-title">
                             COMING SOON
-                          </h4>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed font-normal">
+                          </h3>
+                          <p className="launcher-labs-description">
                             Building the next generation of Beta applications.
                           </p>
                         </div>
@@ -1760,7 +1722,7 @@ export function UtilityDrawer({
           </AnimatePresence>
 
           {/* Right Sidebar (60px wide) - Beta signature modern utility rail */}
-          <div className="w-[60px] h-full flex flex-col items-center py-3 bg-white/95 dark:bg-[#0a0f1d] border-l border-slate-200/80 dark:border-white/10 shrink-0 select-none shadow-xs">
+          <div className="w-[60px] h-full flex flex-col items-center py-3 bg-white dark:bg-[#0a0f1d] border-l border-slate-200/80 dark:border-white/10 shrink-0 select-none shadow-xs">
             {/* 1. Top Beta "B" Monogram Button - Exact match to user screenshot */}
             <button
               type="button"
@@ -1771,13 +1733,12 @@ export function UtilityDrawer({
               className="relative group focus:outline-hidden cursor-pointer"
               title="Beta Ecosystem Apps"
             >
-              <div className={`w-11 h-11 rounded-[16px] flex items-center justify-center shrink-0 transition-all bg-white hover:bg-slate-50 border border-[#b8c9dc] dark:border-slate-700 shadow-2xs hover:scale-105 ${
-                activeTab === 'beta' ? 'ring-2 ring-[#0052cc] border-transparent scale-105' : ''
-              }`}>
-                <img 
-                  src="/beta-logo.png" 
-                  alt="Beta" 
-                  className="w-5 h-5 object-contain select-none pointer-events-none drop-shadow-[0_1px_1px_rgba(0,82,204,0.3)] contrast-125 brightness-95" 
+              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 transition-all bg-white hover:bg-slate-50 border border-slate-200 dark:border-slate-700 shadow-xs hover:scale-105 ${activeTab === 'beta' ? 'ring-2 ring-[#0052cc] border-transparent scale-105' : ''
+                }`}>
+                <img
+                  src="/beta-logo.png"
+                  alt="Beta"
+                  className="w-5 h-5 object-contain select-none pointer-events-none drop-shadow-[0_1px_1px_rgba(0,82,204,0.3)] contrast-125 brightness-95"
                 />
               </div>
               {!activeTab && (
@@ -1804,55 +1765,97 @@ export function UtilityDrawer({
                 {
                   id: 'calendar',
                   label: 'Calendar',
-                  icon: <CalendarDays size={20} className="stroke-[1.75]" />,
-                  color: 'text-amber-500',
-                  bg: 'bg-amber-50 dark:bg-amber-950/30',
-                  border: 'border-amber-400 dark:border-amber-500',
-                  activeBg: 'bg-amber-500 text-white',
+                  icon: (
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="4" width="18" height="17" rx="3" />
+                      <line x1="16" y1="2" x2="16" y2="6" strokeWidth="2.2" />
+                      <line x1="8" y1="2" x2="8" y2="6" strokeWidth="2.2" />
+                      <line x1="3" y1="9" x2="21" y2="9" strokeWidth="2" />
+                    </svg>
+                  ),
+                  color: 'text-[#e69500] dark:text-[#f59e0b]',
+                  bg: 'bg-[#fffbeb] dark:bg-amber-950/20',
+                  border: 'border-transparent',
+                  activeBg: 'bg-[#f59e0b] text-white',
                 },
                 {
                   id: 'calc',
                   label: 'Calculator',
-                  icon: <Calculator size={20} className="stroke-[1.75]" />,
-                  color: 'text-emerald-500',
-                  bg: 'bg-emerald-50 dark:bg-emerald-950/30',
-                  border: 'border-emerald-500',
-                  activeBg: 'bg-emerald-600 text-white',
+                  icon: (
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="4" y="3" width="16" height="18" rx="3" />
+                      <line x1="8" y1="7" x2="16" y2="7" strokeWidth="2" />
+                      <circle cx="8.5" cy="11.5" r="0.75" fill="currentColor" stroke="none" />
+                      <circle cx="12" cy="11.5" r="0.75" fill="currentColor" stroke="none" />
+                      <circle cx="15.5" cy="11.5" r="0.75" fill="currentColor" stroke="none" />
+                      <circle cx="8.5" cy="14.5" r="0.75" fill="currentColor" stroke="none" />
+                      <circle cx="12" cy="14.5" r="0.75" fill="currentColor" stroke="none" />
+                      <line x1="15.5" y1="13.5" x2="15.5" y2="17.5" strokeWidth="2" />
+                      <circle cx="8.5" cy="17.5" r="0.75" fill="currentColor" stroke="none" />
+                      <circle cx="12" cy="17.5" r="0.75" fill="currentColor" stroke="none" />
+                    </svg>
+                  ),
+                  color: 'text-[#059669] dark:text-[#10b981]',
+                  bg: 'bg-[#ecfdf5] dark:bg-emerald-950/20',
+                  border: 'border-transparent',
+                  activeBg: 'bg-[#10b981] text-white',
                 },
                 {
                   id: 'contacts',
                   label: 'Contacts',
-                  icon: <User size={20} className="stroke-[1.75]" />,
-                  color: 'text-blue-500',
-                  bg: 'bg-blue-50 dark:bg-blue-950/30',
-                  border: 'border-blue-400 dark:border-blue-500',
-                  activeBg: 'bg-blue-600 text-white',
+                  icon: (
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="4" y="4" width="16" height="16" rx="3" />
+                      <line x1="9" y1="2" x2="9" y2="4.5" strokeWidth="2.2" />
+                      <line x1="15" y1="2" x2="15" y2="4.5" strokeWidth="2.2" />
+                      <circle cx="12" cy="10.5" r="2.2" strokeWidth="2" />
+                      <path d="M7.5 17c0-2.3 2-3.8 4.5-3.8s4.5 1.5 4.5 3.8" strokeWidth="2" />
+                    </svg>
+                  ),
+                  color: 'text-[#2563eb] dark:text-[#3b82f6]',
+                  bg: 'bg-[#eff6ff] dark:bg-blue-950/20',
+                  border: 'border-transparent',
+                  activeBg: 'bg-[#2563eb] text-white',
                 },
                 {
                   id: 'keyboard',
                   label: 'Keyboard & Hotkeys',
-                  icon: <Keyboard size={18} className="stroke-[1.75]" />,
-                  color: 'text-indigo-500',
-                  bg: 'bg-indigo-50 dark:bg-indigo-950/30',
-                  border: 'border-indigo-400 dark:border-indigo-500',
-                  activeBg: 'bg-indigo-600 text-white',
+                  icon: (
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="6" width="18" height="12" rx="3" />
+                      <circle cx="7" cy="10" r="0.75" fill="currentColor" stroke="none" />
+                      <circle cx="10.5" cy="10" r="0.75" fill="currentColor" stroke="none" />
+                      <circle cx="14" cy="10" r="0.75" fill="currentColor" stroke="none" />
+                      <circle cx="17" cy="10" r="0.75" fill="currentColor" stroke="none" />
+                      <line x1="7" y1="14" x2="17" y2="14" strokeWidth="2" />
+                    </svg>
+                  ),
+                  color: 'text-[#7c3aed] dark:text-[#8b5cf6]',
+                  bg: 'bg-[#f5f3ff] dark:bg-purple-950/20',
+                  border: 'border-transparent',
+                  activeBg: 'bg-[#7c3aed] text-white',
                 },
                 {
                   id: 'tasks',
                   label: 'Notes & Tasks',
-                  icon: <FileText size={18} className="stroke-[1.75]" />,
-                  color: 'text-[#ff6325]',
-                  bg: 'bg-orange-50 dark:bg-orange-950/30',
-                  border: 'border-[#ff6325]',
-                  activeBg: 'bg-[#ff6325] text-white',
+                  icon: (
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                    </svg>
+                  ),
+                  color: 'text-[#db2777] dark:text-[#f43f5e]',
+                  bg: 'bg-[#fdf2f8] dark:bg-pink-950/20',
+                  border: 'border-transparent',
+                  activeBg: 'bg-[#db2777] text-white',
                 },
                 {
                   id: 'weather',
                   label: 'Weather',
-                  icon: <CloudSun size={19} className="stroke-[1.75]" />,
-                  color: 'text-teal-500',
-                  bg: 'bg-teal-50 dark:bg-teal-950/30',
-                  border: 'border-teal-400 dark:border-teal-500',
+                  icon: <CloudSun size={19} className="stroke-[2.2]" />,
+                  color: 'text-teal-600 dark:text-teal-400',
+                  bg: 'bg-[#f0fdfa] dark:bg-teal-950/20',
+                  border: 'border-transparent',
                   activeBg: 'bg-teal-600 text-white',
                 },
               ].map((tool) => {
@@ -1874,15 +1877,14 @@ export function UtilityDrawer({
                     className="relative group focus:outline-hidden cursor-pointer"
                   >
                     <div
-                      className={`w-10 h-10 rounded-[18px] flex items-center justify-center transition-all ${
-                        isEditingPins
+                      className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${isEditingPins
                           ? isPinned
-                            ? `${tool.bg} border ${tool.border} ${tool.color} shadow-xs scale-100 ring-2 ring-[#0a3161]/20`
-                            : 'bg-transparent border border-dashed border-[#b8c2cc] dark:border-slate-700 text-[#64748b] dark:text-slate-400 hover:border-[#ff6325] hover:text-[#ff6325]'
+                            ? `${tool.bg} border-2 border-[#ff6325] ${tool.color} shadow-xs scale-100`
+                            : 'border-2 border-dashed border-[#cbd5e1] dark:border-white/20 bg-transparent text-[#94a3b8] dark:text-slate-500 hover:border-[#ff6325] opacity-70'
                           : activeTab === tool.id
                             ? `${tool.activeBg} shadow-[0_4px_14px_rgba(0,0,0,0.15)] scale-105 border border-transparent`
-                            : `${tool.bg} border ${tool.border} ${tool.color} hover:scale-105 shadow-2xs`
-                      }`}
+                            : `${tool.bg} border border-transparent ${tool.color} hover:scale-105 shadow-xs`
+                        }`}
                     >
                       {tool.icon}
                     </div>
@@ -1901,17 +1903,16 @@ export function UtilityDrawer({
               <button
                 type="button"
                 onClick={() => setIsEditingPins(!isEditingPins)}
-                className={`w-10 h-10 rounded-[18px] flex items-center justify-center transition-all cursor-pointer hover:scale-105 relative group mt-0.5 ${
-                  isEditingPins
-                    ? 'bg-[#ff6325] hover:bg-[#e0531c] text-white shadow-[0_4px_14px_rgba(255,99,37,0.4)]'
-                    : 'border border-dashed border-slate-300 dark:border-white/20 hover:border-[#ff6325] dark:hover:border-[#ff6325] bg-transparent text-slate-400 hover:text-[#ff6325] dark:hover:text-[#ff6325] shadow-2xs'
-                }`}
+                className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all cursor-pointer hover:scale-105 relative group mt-0.5 ${isEditingPins
+                    ? 'bg-[#ff6325] hover:bg-[#e0531c] text-white shadow-[0_4px_14px_rgba(255,99,37,0.4)] border border-[#ff6325]'
+                    : 'border border-slate-200/90 dark:border-white/10 hover:border-[#ff6325] dark:hover:border-[#ff6325] bg-white dark:bg-white/5 hover:bg-orange-50/50 dark:hover:bg-orange-950/20 text-slate-500 hover:text-[#ff6325] dark:text-slate-400 dark:hover:text-[#ff6325] shadow-2xs'
+                  }`}
                 title={isEditingPins ? "Save Pinned Tools" : "Customize Pinned Tools"}
               >
                 {isEditingPins ? (
-                  <Check size={22} className="stroke-[1.75]" />
+                  <Check size={20} className="stroke-[2.5]" />
                 ) : (
-                  <Plus size={18} className="stroke-[1.75]" />
+                  <Plus size={18} className="stroke-[2]" />
                 )}
                 {!activeTab && (
                   <div className="absolute right-14 top-1/2 -translate-y-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-medium px-2.5 py-1 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
@@ -1926,20 +1927,16 @@ export function UtilityDrawer({
               {/* Subtle Divider */}
               <div className="w-8 h-[1px] bg-slate-200/80 dark:bg-white/10 mb-0.5 shrink-0" />
 
-              {/* Pencil Icon Button: Toggles EDIT PINS Customize mode matching BokSpot theme */}
+              {/* Pencil Icon Button */}
               <button
                 type="button"
                 onClick={() => setIsEditingPins(!isEditingPins)}
-                className={`w-10 h-10 rounded-[16px] flex items-center justify-center transition-all cursor-pointer shadow-2xs hover:scale-105 relative group ${
-                  isEditingPins
-                    ? 'bg-[#0a3161] text-white shadow-[0_4px_12px_rgba(10,49,97,0.35)]'
-                    : 'bg-[#f4f7fa] dark:bg-white/5 hover:bg-[#eef2f6] dark:hover:bg-white/10 border border-[#e2e8f0] dark:border-white/10 text-[#475569] dark:text-slate-300 hover:text-[#ff6325]'
-                }`}
-                title={isEditingPins ? "Save Pins" : "Edit Pinned Icons"}
+                className="w-10 h-10 rounded-2xl flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95 relative group border border-slate-200/90 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 shadow-2xs"
+                title={isEditingPins ? "Done Editing Pins" : "Edit Pinned Icons"}
               >
-                <svg className="w-5 h-5 stroke-[1.75] text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                  <path d="m15 5 4 4"/>
+                <svg className="w-5 h-5 stroke-[2] text-slate-600 dark:text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                 </svg>
                 {!activeTab && (
                   <div className="absolute right-14 top-1/2 -translate-y-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-medium px-2.5 py-1 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
@@ -1952,10 +1949,20 @@ export function UtilityDrawer({
               <button
                 type="button"
                 onClick={onClose}
-                className="w-10 h-10 rounded-[16px] bg-[#f4f7fa] dark:bg-white/5 hover:bg-[#eef2f6] dark:hover:bg-white/10 border border-[#e2e8f0] dark:border-white/10 flex items-center justify-center text-[#475569] dark:text-slate-300 hover:text-[#ff6325] transition-all cursor-pointer shadow-2xs hover:scale-105 relative group"
+                className="w-10 h-10 rounded-2xl bg-[#f8fafc] dark:bg-white/5 hover:bg-[#f1f5f9] dark:hover:bg-white/10 border border-[#cbd5e1]/70 dark:border-white/10 flex items-center justify-center text-[#475569] dark:text-slate-300 hover:text-[#0052cc] transition-all cursor-pointer shadow-xs hover:scale-105 relative group"
                 title="Toggle Utility Panel"
               >
-                <Sliders size={17} className="stroke-[1.75]" />
+                <svg className="w-5 h-5 stroke-[2] text-[#475569] dark:text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="4" y1="21" x2="4" y2="14" />
+                  <line x1="4" y1="10" x2="4" y2="3" />
+                  <line x1="12" y1="21" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12" y2="3" />
+                  <line x1="20" y1="21" x2="20" y2="16" />
+                  <line x1="20" y1="12" x2="20" y2="3" />
+                  <line x1="1" y1="14" x2="7" y2="14" />
+                  <line x1="9" y1="8" x2="15" y2="8" />
+                  <line x1="17" y1="16" x2="23" y2="16" />
+                </svg>
                 {!activeTab && (
                   <div className="absolute right-14 top-1/2 -translate-y-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-medium px-2.5 py-1 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
                     Close Rails
@@ -1973,19 +1980,19 @@ export function UtilityDrawer({
 // Simple internal icon to avoid Lucide resolution differences
 function ChevronDownIcon({ size = 16, className = "" }) {
   return (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2.5" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round" strokeLinejoin="round"
+
+
       className={className}
     >
-      <path d="m6 9 6 6 6-6"/>
+      <path d="m6 9 6 6 6-6" />
     </svg>
   );
 }

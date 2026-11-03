@@ -50,6 +50,23 @@ export default function VenueProfilePage() {
     return currentMerchant?.metadata?.isLuggageStorageEnabled ?? true;
   });
 
+  // PG & Coliving Settings
+  const [isPgProperty, setIsPgProperty] = useState<boolean>(() => {
+    return Boolean(currentMerchant?.metadata?.isPgProperty || (currentMerchant?.category || '').toLowerCase().includes('pg'));
+  });
+  const [pgGenderType, setPgGenderType] = useState<string>(() => {
+    return currentMerchant?.metadata?.pgGenderType || 'coliving';
+  });
+  const [pgFoodIncluded, setPgFoodIncluded] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.pgFoodIncluded ?? true;
+  });
+  const [pgGateCurfew, setPgGateCurfew] = useState<string>(() => {
+    return currentMerchant?.metadata?.pgGateCurfew || '24/7 Biometric Entry (No Curfew)';
+  });
+  const [pgNoticePeriod, setPgNoticePeriod] = useState<string>(() => {
+    return currentMerchant?.metadata?.pgNoticePeriod || '15 Days';
+  });
+
   const [luggageHourlyRate, setLuggageHourlyRate] = useState<number>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -230,6 +247,21 @@ export default function VenueProfilePage() {
             if (data.metadata?.isPetFriendly !== undefined) {
               setIsPetFriendly(Boolean(data.metadata.isPetFriendly));
             }
+            if (data.metadata?.isPgProperty !== undefined) {
+              setIsPgProperty(Boolean(data.metadata.isPgProperty));
+            }
+            if (data.metadata?.pgGenderType) {
+              setPgGenderType(data.metadata.pgGenderType);
+            }
+            if (data.metadata?.pgFoodIncluded !== undefined) {
+              setPgFoodIncluded(Boolean(data.metadata.pgFoodIncluded));
+            }
+            if (data.metadata?.pgGateCurfew) {
+              setPgGateCurfew(data.metadata.pgGateCurfew);
+            }
+            if (data.metadata?.pgNoticePeriod) {
+              setPgNoticePeriod(data.metadata.pgNoticePeriod);
+            }
           }
         } catch (err) {
           console.error('Failed to fetch merchant profile', err);
@@ -343,19 +375,59 @@ export default function VenueProfilePage() {
         checkInTime,
         checkOutTime,
         operatingHours,
+        isPgProperty,
+        pgGenderType,
+        pgFoodIncluded,
+        pgGateCurfew,
+        pgNoticePeriod,
       }
     } as any);
 
     if (typeof window !== 'undefined') {
       try {
-        localStorage.setItem(`hotel_mystery_optin_${currentMerchant.id}`, String(isMysteryModeOptIn));
+        const id = currentMerchant.id;
+        const uname = currentMerchant.username;
+        const valStr = String(isLuggageStorageEnabled);
+
+        localStorage.setItem(`hotel_mystery_optin_${id}`, String(isMysteryModeOptIn));
         localStorage.setItem('hotel_mystery_optin_default', String(isMysteryModeOptIn));
-        localStorage.setItem(`hotel_luggage_enabled_${currentMerchant.id}`, String(isLuggageStorageEnabled));
-        localStorage.setItem('hotel_luggage_enabled_default', String(isLuggageStorageEnabled));
-        localStorage.setItem(`hotel_luggage_rate_${currentMerchant.id}`, String(luggageHourlyRate));
+        
+        // Multi-key sync so H101 / UUID / default never get out of sync
+        localStorage.setItem(`hotel_luggage_enabled_${id}`, valStr);
+        if (uname) localStorage.setItem(`hotel_luggage_enabled_${uname}`, valStr);
+        localStorage.setItem('hotel_luggage_enabled_H101', valStr);
+        localStorage.setItem('hotel_luggage_enabled_default', valStr);
+
+        localStorage.setItem(`hotel_luggage_rate_${id}`, String(luggageHourlyRate));
+        if (uname) localStorage.setItem(`hotel_luggage_rate_${uname}`, String(luggageHourlyRate));
         localStorage.setItem('hotel_luggage_rate_default', String(luggageHourlyRate));
-        localStorage.setItem(`hotel_luggage_daypass_${currentMerchant.id}`, String(luggageDayPassRate));
+
+        localStorage.setItem(`hotel_luggage_daypass_${id}`, String(luggageDayPassRate));
+        if (uname) localStorage.setItem(`hotel_luggage_daypass_${uname}`, String(luggageDayPassRate));
         localStorage.setItem('hotel_luggage_daypass_default', String(luggageDayPassRate));
+
+        // Venue photo gallery sync to localStorage for instant customer preview
+        localStorage.setItem(`venue_gallery_${id}`, JSON.stringify(gallery));
+        if (uname) localStorage.setItem(`venue_gallery_${uname}`, JSON.stringify(gallery));
+        localStorage.setItem('venue_gallery_default', JSON.stringify(gallery));
+
+        // PG & Coliving configurations localStorage sync
+        const pgConfig = {
+          isPgProperty,
+          pgGenderType,
+          pgFoodIncluded,
+          pgGateCurfew,
+          pgNoticePeriod
+        };
+        localStorage.setItem(`pg_config_${id}`, JSON.stringify(pgConfig));
+        if (uname) localStorage.setItem(`pg_config_${uname}`, JSON.stringify(pgConfig));
+        localStorage.setItem('pg_config_default', JSON.stringify(pgConfig));
+
+        // Dispatch instant events for other components and tabs
+        window.dispatchEvent(new CustomEvent('hotel_luggage_toggle', { detail: { enabled: isLuggageStorageEnabled, merchantId: id } }));
+        window.dispatchEvent(new CustomEvent('pg_config_updated', { detail: { ...pgConfig, merchantId: id } }));
+        window.dispatchEvent(new CustomEvent('venue_gallery_updated', { detail: { gallery, merchantId: id } }));
+        window.dispatchEvent(new Event('storage'));
       } catch {}
     }
 
@@ -652,7 +724,56 @@ export default function VenueProfilePage() {
 
             <button
               type="button"
-              onClick={() => setIsLuggageStorageEnabled(!isLuggageStorageEnabled)}
+              onClick={async () => {
+                const nextVal = !isLuggageStorageEnabled;
+                setIsLuggageStorageEnabled(nextVal);
+                
+                // Direct fast fetch to Backend API
+                try {
+                  const targetId = currentMerchant?.id || '8fb83f4b-62aa-3a5b-3e42-074005378435';
+                  await fetch(`http://localhost:9000/api/v1/merchants/${targetId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      metadata: {
+                        ...(currentMerchant?.metadata || {}),
+                        isLuggageStorageEnabled: nextVal,
+                        luggageHourlyRate: luggageHourlyRate || 100,
+                        luggageDayPassRate: luggageDayPassRate || 500
+                      }
+                    })
+                  });
+                } catch (e) {
+                  console.error('Failed to patch merchant directly', e);
+                }
+
+                if (typeof window !== 'undefined') {
+                  try {
+                    const id = currentMerchant?.id;
+                    const uname = currentMerchant?.username;
+                    const valStr = String(nextVal);
+                    if (id) localStorage.setItem(`hotel_luggage_enabled_${id}`, valStr);
+                    if (uname) localStorage.setItem(`hotel_luggage_enabled_${uname}`, valStr);
+                    localStorage.setItem('hotel_luggage_enabled_H101', valStr);
+                    localStorage.setItem('hotel_luggage_enabled_default', valStr);
+                    window.dispatchEvent(new CustomEvent('hotel_luggage_toggle', { detail: { enabled: nextVal, merchantId: id } }));
+                    window.dispatchEvent(new Event('storage'));
+                  } catch {}
+                }
+
+                // Also update local store
+                try {
+                  if (currentMerchant?.id) {
+                    await updateMerchantProfile(currentMerchant.id, {
+                      metadata: {
+                        ...(currentMerchant.metadata || {}),
+                        isLuggageStorageEnabled: nextVal,
+                        luggageHourlyRate: luggageHourlyRate
+                      }
+                    } as any);
+                  }
+                } catch (e) {}
+              }}
               className={`relative inline-flex h-6 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                 isLuggageStorageEnabled ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-700'
               }`}
@@ -894,7 +1015,101 @@ export default function VenueProfilePage() {
 
 
 
-        {/* 8. Location & Map Coordinates */}
+        {/* 7.5 PG & Co-Living Specific Settings */}
+        <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all">
+          <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100 dark:border-white/5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-[#ff6325] text-white flex items-center justify-center font-bold shadow-md shadow-[#ff6325]/25 ring-4 ring-[#ff6325]/15 shrink-0">
+                <span className="text-lg">🏢</span>
+              </div>
+              <div>
+                <h2 className="text-base font-black text-slate-900 dark:text-white">8. PG & Co-Living Stay Configurations</h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Configure Gender exclusivity, food inclusion models, curfew and visit permissions.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                {isPgProperty ? 'PG Mode Active' : 'Enable PG Features'}
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsPgProperty(!isPgProperty)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
+                  isPgProperty ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                }`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  isPgProperty ? 'translate-x-6' : 'translate-x-1'
+                }`} />
+              </button>
+            </div>
+          </div>
+
+          {isPgProperty && (
+            <div className="space-y-4 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                    PG Gender Type
+                  </label>
+                  <select
+                    value={pgGenderType}
+                    onChange={(e) => setPgGenderType(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-xs font-bold text-slate-800 dark:text-white outline-none cursor-pointer"
+                  >
+                    <option value="coliving">👥 Unisex / Coliving</option>
+                    <option value="gents">🚹 Gents Only PG</option>
+                    <option value="ladies">🚺 Ladies Only PG</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                    Food Inclusions Model
+                  </label>
+                  <select
+                    value={pgFoodIncluded ? 'with-food' : 'without-food'}
+                    onChange={(e) => setPgFoodIncluded(e.target.value === 'with-food')}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-xs font-bold text-slate-800 dark:text-white outline-none cursor-pointer"
+                  >
+                    <option value="with-food">🍛 3 Homely Meals Included</option>
+                    <option value="without-food">🍳 Self-Cooking / Food Excluded</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                    Gate Curfew / Closing Time
+                  </label>
+                  <select
+                    value={pgGateCurfew}
+                    onChange={(e) => setPgGateCurfew(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-xs font-bold text-slate-800 dark:text-white outline-none cursor-pointer"
+                  >
+                    <option value="24/7 Biometric Entry (No Curfew)">24/7 Biometric Entry (No Curfew)</option>
+                    <option value="10:00 PM Gate Closing">10:00 PM Gate Closing</option>
+                    <option value="10:30 PM Gate Closing">10:30 PM Gate Closing</option>
+                    <option value="11:00 PM Gate Closing">11:00 PM Gate Closing</option>
+                    <option value="12:00 AM Midnight">12:00 AM Midnight</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-orange-500/10 border border-orange-500/20 text-xs text-orange-950 dark:text-orange-200 flex items-center justify-between">
+                <div>
+                  <span className="font-bold">✓ Free Property Visit Requests Allowed</span>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Customers can schedule in-person room inspections directly through Bokspot before paying.</p>
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-[#ff6325] text-white text-[10px] font-bold">Active</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 9. Location & Map Coordinates */}
         <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all">
           <div className="flex items-center gap-3 mb-5 pb-3 border-b border-slate-100 dark:border-white/5">
             <div className="w-10 h-10 rounded-2xl bg-[#ff6325] text-white flex items-center justify-center font-bold shadow-md shadow-[#ff6325]/25 ring-4 ring-[#ff6325]/15 shrink-0">

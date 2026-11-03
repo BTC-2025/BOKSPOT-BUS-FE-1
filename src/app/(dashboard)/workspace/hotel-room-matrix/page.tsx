@@ -110,15 +110,28 @@ export default function HotelRoomMatrixPage() {
   const [selectedRoom, setSelectedRoom] = useState<RoomUnit | null>(null);
 
   // Mini Space (Luggage & Cloakroom Management) state
-  const [miniSpaceEnabled, setMiniSpaceEnabled] = useState(() => {
+  const checkMiniSpaceEnabled = () => {
     if (typeof window !== 'undefined') {
       try {
-        const stored = localStorage.getItem(`hotel_luggage_enabled_${currentMerchant?.id || 'default'}`);
-        if (stored !== null) return stored === 'true';
+        const id = currentMerchant?.id;
+        const uname = currentMerchant?.username;
+        const keys = [
+          id ? `hotel_luggage_enabled_${id}` : null,
+          uname ? `hotel_luggage_enabled_${uname}` : null,
+          'hotel_luggage_enabled_H101',
+          'hotel_luggage_enabled_default'
+        ].filter(Boolean) as string[];
+
+        for (const k of keys) {
+          const val = localStorage.getItem(k);
+          if (val !== null) return val === 'true';
+        }
       } catch {}
     }
     return currentMerchant?.metadata?.isLuggageStorageEnabled ?? true;
-  });
+  };
+
+  const [miniSpaceEnabled, setMiniSpaceEnabled] = useState<boolean>(checkMiniSpaceEnabled);
   const [miniSpaceSlots, setMiniSpaceSlots] = useState([
     { slotId: 'MS-01', status: 'OCCUPIED', token: 'MNI-K92X', guest: 'Priya Sundaram', bags: 2, dropTime: '10:30 AM', pickupEst: '04:30 PM', phone: '+91 98401 22334', amount: 196 },
     { slotId: 'MS-02', status: 'OCCUPIED', token: 'MNI-7B8A', guest: 'Rohan Sharma', bags: 1, dropTime: '11:15 AM', pickupEst: '03:15 PM', phone: '+91 98840 55667', amount: 98 },
@@ -167,20 +180,22 @@ export default function HotelRoomMatrixPage() {
 
   const archetypeConfig = getArchetypeConfig(currentMerchant?.archetype || currentMerchant?.category);
 
-  // Sync mini space state on merchant profile changes
+  // Sync mini space state on merchant profile changes and storage/custom events
   useEffect(() => {
-    if (currentMerchant) {
-      if (typeof window !== 'undefined') {
-        const stored = localStorage.getItem(`hotel_luggage_enabled_${currentMerchant.id}`);
-        if (stored !== null) {
-          setMiniSpaceEnabled(stored === 'true');
-          return;
-        }
-      }
-      if (currentMerchant.metadata?.isLuggageStorageEnabled !== undefined) {
-        setMiniSpaceEnabled(Boolean(currentMerchant.metadata.isLuggageStorageEnabled));
-      }
-    }
+    const syncStatus = () => {
+      setMiniSpaceEnabled(checkMiniSpaceEnabled());
+    };
+
+    syncStatus();
+
+    // Listen to cross-window storage event and immediate custom event
+    window.addEventListener('storage', syncStatus);
+    window.addEventListener('hotel_luggage_toggle', syncStatus);
+
+    return () => {
+      window.removeEventListener('storage', syncStatus);
+      window.removeEventListener('hotel_luggage_toggle', syncStatus);
+    };
   }, [currentMerchant]);
 
   // Poll backend for real-time customer bookings every 4 seconds

@@ -52,10 +52,17 @@ export default function BookingsPage() {
     if (!b) return false;
     const bId = String(b.merchantId || '').trim();
     const bName = (b.merchantName || '').toLowerCase().trim();
+    const curLower = curName.toLowerCase();
     
     // Match by ID or Name
     let matchesMerchant = (curId && bId && curId === bId) || 
                           (curName && bName && (curName === bName || bName.includes(curName) || curName.includes(bName)));
+    
+    if (!matchesMerchant && (curLower.includes('hostel') || curLower.includes('backpackers') || (currentMerchant?.category || '').toLowerCase().includes('hostel'))) {
+      if (bName.includes('hostel') || bName.includes('backpackers') || (b.category || '').toLowerCase().includes('hostel') || (b.serviceName || '').toLowerCase().includes('hostel') || bId === '51c6a3b8-2abc-9421-7644-2a2dea05dbc0') {
+        matchesMerchant = true;
+      }
+    }
     
     // Also match if booking has merchantName starting with Sunstone / Arena or matching active branch
     if (!matchesMerchant && (curName.includes('sunstone') || curName.includes('resort') || curName.includes('arena'))) {
