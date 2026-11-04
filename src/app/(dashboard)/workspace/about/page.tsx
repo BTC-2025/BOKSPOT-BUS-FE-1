@@ -167,7 +167,24 @@ export default function VenueProfilePage() {
       setThingsToKnow(currentMerchant.thingsToKnow || currentMerchant.amenities || [
         'Free Wi-Fi', 'Swimming Pool', 'Air Conditioning', 'Valet Parking', '24/7 Front Desk'
       ]);
-      setGallery(currentMerchant.gallery || []);
+
+      // Restore gallery from localStorage if previously uploaded or fallback to currentMerchant
+      let initialGallery = currentMerchant.gallery || [];
+      if (typeof window !== 'undefined') {
+        try {
+          const storedG = localStorage.getItem(`venue_gallery_${currentMerchant.id}`) ||
+            (currentMerchant.username ? localStorage.getItem(`venue_gallery_${currentMerchant.username}`) : null) ||
+            localStorage.getItem('venue_gallery_default');
+          if (storedG) {
+            const parsedG = JSON.parse(storedG);
+            if (Array.isArray(parsedG) && parsedG.length > 0) {
+              initialGallery = parsedG;
+            }
+          }
+        } catch {}
+      }
+      setGallery(initialGallery);
+
       setAddress(currentMerchant.address || '');
       setCity(currentMerchant.city || 'Chennai');
       setState((currentMerchant as any).state || 'Tamil Nadu');

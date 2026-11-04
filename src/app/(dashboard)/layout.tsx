@@ -530,7 +530,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Left Column: Logo, Location & Branch Switcher */}
         <div className="flex-1 flex items-center gap-3.5 sm:gap-4 lg:gap-5">
           <Link href="/home/dashboard-home" className="flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shrink-0">
-            <img src="/logo.png?v=3" alt="BokSpot Logo" className="h-10 lg:h-12 object-contain" />
+            <img src="/logo.png?v=original_restored" alt="BokSpot Logo" className="h-10 lg:h-12 object-contain" />
           </Link>
           
           {/* Global Branch Switcher Pill (Always visible across all pages) */}
@@ -712,17 +712,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </nav>
         </div>
 
-        {/* Right Column: Actions (Search, Notification, Profile, Utility) */}
-        <div className="flex-1 flex items-center justify-end gap-3.5 pl-4 lg:pl-6">
-          {/* Spotlight Search Toggle Button */}
-          <button
-            onClick={() => setSpotlightOpen(true)}
-            className="rounded-xl p-2 border border-white/25 hover:border-white/40 bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer flex items-center gap-1.5 pr-3 shadow-md"
-            title="Search Console (⌘K)"
-          >
-            <Search className="h-3.5 w-3.5 text-white" />
-            <span className="text-[10px] font-extrabold tracking-wider uppercase text-white select-none hidden md:inline">Spotlight</span>
-          </button>
+        {/* Right Column: Actions (Search, Notification, Profile) + Utility Bit Tool */}
+        <div className="flex-1 h-full flex items-center justify-end">
+          <div className="flex items-center gap-2 pr-3">
+            {/* Spotlight Search Toggle Button */}
+            <button
+              onClick={() => setSpotlightOpen(true)}
+              className="rounded-full px-3 h-8 border border-white/22 hover:border-white/40 bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer flex items-center gap-1.5 shadow-md hover:scale-105 active:scale-95"
+              title="Search Console (⌘K)"
+            >
+              <Search className="h-3.5 w-3.5 text-white" />
+              <span className="text-[10px] font-extrabold tracking-wider uppercase text-white select-none hidden md:inline">Spotlight</span>
+            </button>
 
           {/* Direct 1-Click Theme Toggle Button */}
           <button
@@ -744,7 +745,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 document.body?.classList.add('dark');
               }
             }}
-            className="flex items-center justify-center rounded-xl p-2 border border-white/25 hover:border-white/40 bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer shadow-md"
+            className="custom-nav-icon-container custom-nav-icon-btn w-8 h-8 shadow-md transition-all hover:scale-105 active:scale-95"
             title="Toggle Light / Dark Mode"
             aria-label="Toggle theme"
           >
@@ -759,11 +760,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="relative" ref={popoverRef}>
             <button 
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative flex items-center justify-center rounded-xl p-2 border border-white/25 hover:border-white/40 bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer shadow-md"
+              className="custom-nav-icon-container custom-nav-icon-btn w-8 h-8 shadow-md transition-all hover:scale-105 active:scale-95 relative"
+              aria-label="Notifications"
+              title="Notifications"
             >
-              <Bell className="h-3.5 w-3.5" />
+              <Bell className="h-3.5 w-3.5 text-white" />
               {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-[#8b6508]" />
+                <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-[#ff6325] shadow-[0_0_8px_rgba(255,99,37,0.8)]" />
               )}
             </button>
 
@@ -839,21 +842,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           {/* Profile Dropdown */}
-          <div className="relative border-l border-white/10 pl-4 animate-fade-in" ref={profileRef}>
+          <div className="relative animate-fade-in" ref={profileRef}>
             <button
               onClick={() => setProfileOpen(!profileOpen)}
-              className="flex items-center gap-2 rounded-full border border-white/25 hover:border-white/40 bg-white/10 hover:bg-white/20 px-3.5 py-1.5 text-xs font-bold text-white hover:text-white transition-all cursor-pointer select-none shadow-md"
+              className="group custom-nav-btn pl-1.5 pr-3 h-8.5 rounded-full flex items-center gap-2 shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 border border-white/15 bg-white/5 hover:bg-white/10 hover:border-[#ff6325]/40"
               aria-label="Toggle profile menu"
               title="Partner Profile Settings"
             >
-              <div className="h-6 w-6 rounded-full bg-gradient-to-br from-[#ff6325] to-[#ea580c] flex items-center justify-center shrink-0 shadow-sm overflow-hidden text-white font-black text-[11px] border border-white/30">
+              <div className="h-6 w-6 rounded-full bg-gradient-to-br from-[#ff6325] to-[#1557bf] flex items-center justify-center shrink-0 shadow-sm overflow-hidden text-white font-black text-[11px] ring-1 ring-white/30">
                 {currentMerchant?.logoUrl ? (
                   <img src={currentMerchant.logoUrl} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
                   <span>{(loginRole === 'supervisor' ? (supervisorId || 'S') : (currentMerchant?.username || 'P')).charAt(0).toUpperCase()}</span>
                 )}
               </div>
-              <span>{loginRole === 'supervisor' ? (supervisorId || 'Supervisor') : (currentMerchant?.username || 'Partner')}</span>
+              <span className="!text-white text-[12px] font-bold tracking-wide select-none truncate max-w-[130px]">
+                {loginRole === 'supervisor' ? (supervisorId || 'Supervisor') : (currentMerchant?.username || 'Partner')}
+              </span>
               <ChevronDown className={`h-3 w-3 text-white transition-transform duration-200 ${profileOpen ? 'rotate-180' : ''}`} />
             </button>
 
@@ -976,9 +981,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             )}
           </div>
+          </div>
           
-          {/* Utility Drawer Button Box (60px wide column to align with right sidebar) */}
-          <div className="w-[60px] shrink-0 h-full flex items-center justify-center border-l border-white/10 bg-transparent">
+          {/* Utility Drawer Button Box (56px wide column matching user booking portal) */}
+          <div className="w-[56px] shrink-0 h-full flex items-center justify-center relative">
+            {/* Perfectly Balanced Vertical Divider Line (Clean, subtle & visible) */}
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-[1px] bg-white/18" />
             <button
               onClick={() => {
                 if (utilityDrawerOpen) {
@@ -990,12 +998,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   setActiveUtilityTab(null);
                 }
               }}
-              className={`relative flex items-center justify-center transition-all cursor-pointer shadow-md rounded-full w-9 h-9 ${
+              className={`relative flex items-center justify-center transition-all cursor-pointer shadow-md custom-nav-icon-container custom-nav-icon-btn w-9 h-9 ${
                 utilityDrawerOpen
-                  ? 'bg-[#ff6325] text-white shadow-[0_0_14px_rgba(255,99,37,0.45)] ring-2 ring-[#ff6325]/50 scale-105'
-                  : 'bg-white/10 hover:bg-white/20 text-white/90 hover:text-white border border-white/25 hover:border-white/40 hover:scale-105'
+                  ? 'opacity-100 scale-105'
+                  : 'opacity-85 hover:opacity-100 hover:scale-105'
               }`}
-              title="Signature Utilities"
+              title="Bokspot Utilities"
             >
               <img src="/utility-icon.png?v=3" alt="Utilities" className="w-[20px] h-[20px] object-contain" />
             </button>
@@ -1004,7 +1012,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </header>
 
       {/* Floating Modern Compact Subnav Bar (Slim Height) */}
-      <div className="bg-white/85 dark:bg-[#0c121e]/90 backdrop-blur-2xl flex items-center px-6 py-1 h-10 shrink-0 shadow-[0_1px_8px_rgba(0,0,0,0.03)] border-b border-black/[0.04] dark:border-white/[0.06] relative z-40 transition-all duration-300">
+      <div 
+        style={{
+          paddingRight: !utilityDrawerOpen 
+            ? '16px' 
+            : activeUtilityTab 
+              ? (activeUtilityTab === 'beta' ? '412px' : '392px') 
+              : '72px'
+        }}
+        className="bg-white/85 dark:bg-[#0c121e]/90 backdrop-blur-2xl flex items-center px-6 py-1 h-10 shrink-0 shadow-[0_1px_8px_rgba(0,0,0,0.03)] border-b border-black/[0.04] dark:border-white/[0.06] relative z-40 transition-[padding-right] duration-200 ease-out"
+      >
         {/* Left side empty space to keep subnav tabs centered */}
         <div className="flex-1 hidden md:flex items-center justify-start pl-2" />
         

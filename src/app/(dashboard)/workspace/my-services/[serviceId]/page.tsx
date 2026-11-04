@@ -143,21 +143,38 @@ export default function ServiceListingsPage() {
 
                   {/* Top Bar on Cover */}
                   <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between z-10">
-                    {list.price !== undefined && list.price > 0 ? (
-                      <span
-                        className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-black shadow-lg border border-white/20 backdrop-blur-md"
-                        style={{ backgroundColor: 'rgba(255, 99, 37, 0.95)', color: '#ffffff' }}
-                      >
-                        ₹{Number(list.price).toLocaleString('en-IN')}
-                      </span>
-                    ) : (
-                      <span
-                        className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/20 backdrop-blur-md"
-                        style={{ color: '#ffffff' }}
-                      >
-                        Custom Pricing
-                      </span>
-                    )}
+                    <div className="flex flex-col gap-0.5">
+                      {list.price !== undefined && list.price > 0 ? (
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span
+                            className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-black shadow-lg border border-white/20 backdrop-blur-md"
+                            style={{ backgroundColor: 'rgba(255, 99, 37, 0.95)', color: '#ffffff' }}
+                          >
+                            ₹{Number(list.price).toLocaleString('en-IN')}
+                            <span className="text-[10px] font-semibold ml-1 opacity-90">
+                              {list.priceUnit || (list.metadata as any)?.priceUnit || (isTurfListing ? '/hr' : '/night')}
+                            </span>
+                          </span>
+                          {(list.discountPercentage || (list.metadata as any)?.discountPercentage) ? (
+                            <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black bg-rose-500/90 text-white backdrop-blur-md border border-white/20">
+                              -{list.discountPercentage || (list.metadata as any)?.discountPercentage}%
+                            </span>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <span
+                          className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/20 backdrop-blur-md"
+                          style={{ color: '#ffffff' }}
+                        >
+                          Custom Pricing
+                        </span>
+                      )}
+                      {(list.securityDeposit || (list.metadata as any)?.securityDeposit) ? (
+                        <span className="text-[9px] font-bold text-amber-200 drop-shadow-md backdrop-blur-xs px-1 rounded bg-black/40 w-fit">
+                          Deposit: ₹{Number(list.securityDeposit || (list.metadata as any)?.securityDeposit).toLocaleString('en-IN')}
+                        </span>
+                      ) : null}
+                    </div>
 
                     <button
                       onClick={(e) => handleDeleteListing(e, list.id)}

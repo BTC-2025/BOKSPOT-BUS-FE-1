@@ -30,6 +30,8 @@ export default function ListingEditorPage() {
   const [discountPercentage, setDiscountPercentage] = useState('');
   const [offerBadge, setOfferBadge] = useState('');
   const [bannerTagline, setBannerTagline] = useState('');
+  const [priceUnit, setPriceUnit] = useState('');
+  const [securityDeposit, setSecurityDeposit] = useState('');
   const [addons, setAddons] = useState<{name: string, price: number}[]>([]);
   const [equipmentAddons, setEquipmentAddons] = useState('');
   
@@ -80,6 +82,11 @@ export default function ListingEditorPage() {
 
           setOfferBadge(list.metadata?.offerBadge || (list as any).offerBadge || '');
           setBannerTagline(list.metadata?.bannerTagline || (list as any).bannerTagline || '');
+          setPriceUnit(list.metadata?.priceUnit || (list as any).priceUnit || '');
+          const existingDeposit = list.metadata?.securityDeposit !== undefined 
+            ? list.metadata.securityDeposit 
+            : (list as any).securityDeposit;
+          setSecurityDeposit(existingDeposit !== undefined && existingDeposit !== null ? existingDeposit.toString() : '');
           setMetadata(list.metadata || {});
           setAddons(list.metadata?.addons || []);
           setEquipmentAddons(list.metadata?.equipmentAddons || '');
@@ -168,6 +175,8 @@ export default function ListingEditorPage() {
       discountPercentage: discountPercentage ? parseFloat(discountPercentage) : undefined,
       offerBadge: offerBadge.trim() || undefined,
       bannerTagline: bannerTagline.trim() || undefined,
+      priceUnit: priceUnit.trim() || (isTurfCategory ? '/ hour' : isAccommodation ? '/ night' : '/ service'),
+      securityDeposit: securityDeposit ? parseFloat(securityDeposit) : undefined,
       duration: 30, // Default duration
       metadata: { 
         ...metadata, 
@@ -178,6 +187,8 @@ export default function ListingEditorPage() {
         discountPercentage: discountPercentage ? parseFloat(discountPercentage) : undefined,
         offerBadge: offerBadge.trim() || undefined,
         bannerTagline: bannerTagline.trim() || undefined,
+        priceUnit: priceUnit.trim() || (isTurfCategory ? '/ hour' : isAccommodation ? '/ night' : '/ service'),
+        securityDeposit: securityDeposit ? parseFloat(securityDeposit) : undefined,
         gstEnabled, 
         gstPercentage: gstEnabled ? gstPercentage : 0, 
         gstNumber: gstEnabled ? gstNumber : undefined 
@@ -378,7 +389,7 @@ export default function ListingEditorPage() {
                 </div>
 
                 {/* 3. Auto-Calculated Final Tariff Per Night & Deal Badges */}
-                <div className="md:col-span-2 p-4 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200 dark:border-white/10 space-y-3">
+                <div className="md:col-span-2 p-4 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200 dark:border-white/10 space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
                     <div>
                       <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
@@ -393,13 +404,20 @@ export default function ListingEditorPage() {
                             ₹{Number(originalPrice).toLocaleString()}
                           </span>
                         )}
-                        <span className="text-xs text-slate-400 font-bold">{isTurfCategory ? '/ hour' : '/ night'}</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-300 font-bold">
+                          {priceUnit || (isTurfCategory ? '/ hour' : isAccommodation ? '/ night' : '/ service')}
+                        </span>
                       </div>
                       <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
                         {discountPercentage && Number(discountPercentage) > 0
                           ? `Customer saves ₹${(Number(originalPrice) - Number(basePrice)).toLocaleString()} (${discountPercentage}% OFF)`
                           : 'Full price tariff without discount.'}
                       </span>
+                      {securityDeposit && Number(securityDeposit) > 0 && (
+                        <span className="inline-block mt-1 text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                          Refundable Deposit: <span className="font-extrabold text-[#ff6325]">₹{Number(securityDeposit).toLocaleString()}</span>
+                        </span>
+                      )}
                     </div>
 
                     <div>
@@ -413,6 +431,57 @@ export default function ListingEditorPage() {
                         placeholder={isTurfCategory ? "e.g. Prime Evening Slot, Weekend Match Offer" : "e.g. Early Bird 10% Offer, Limited Period"}
                         className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
                       />
+                    </div>
+                  </div>
+
+                  {/* Rent Cadence / Price Unit & Refundable Deposit Inputs */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-200 dark:border-white/10">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                        Billing Period / Rent Cadence <span className="text-slate-400 font-normal">(e.g. monthly rent)</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={priceUnit}
+                          onChange={(e) => setPriceUnit(e.target.value)}
+                          placeholder={isTurfCategory ? "/ hour" : "e.g. monthly rent (all inclusive) or / night"}
+                          list="price-unit-suggestions"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                        />
+                        <datalist id="price-unit-suggestions">
+                          <option value="monthly rent (all inclusive)" />
+                          <option value="/ month" />
+                          <option value="/ night" />
+                          <option value="/ hour" />
+                          <option value="/ day" />
+                          <option value="/ slot" />
+                          <option value="/ person / month" />
+                        </datalist>
+                      </div>
+                      <p className="text-[10px] text-slate-400 mt-1">
+                        Subtitle shown below price (e.g. &apos;monthly rent (all inclusive)&apos;).
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                        Refundable Security Deposit (₹) <span className="text-slate-400 font-normal">(Optional)</span>
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">₹</span>
+                        <input
+                          type="number"
+                          value={securityDeposit}
+                          onChange={(e) => setSecurityDeposit(e.target.value)}
+                          placeholder="e.g. 3000"
+                          min="0"
+                          className="w-full pl-7 pr-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                        />
+                      </div>
+                      <p className="text-[10px] text-slate-400 mt-1">
+                        Shown as &apos;Refundable Deposit: ₹X,XXX&apos; on listing card.
+                      </p>
                     </div>
                   </div>
 

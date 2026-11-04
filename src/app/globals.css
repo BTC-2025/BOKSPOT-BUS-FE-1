@@ -639,6 +639,38 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
+/* Nav action circular button styles matching customer TopNav */
+.vendor-navbar .custom-nav-icon-container {
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 9999px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.25s ease !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+.vendor-navbar .custom-nav-icon-container:hover {
+  background-color: rgba(255, 99, 37, 0.3) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.vendor-navbar .custom-nav-icon-btn {
+  border-radius: 9999px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #ffffff !important;
+  cursor: pointer !important;
+}
+
+.vendor-navbar .utility-divider-line {
+  /* Clean divider container */
+  position: relative;
+}
+
 /* Link Items */
 .custom-nav-link-inactive {
   transition: all 0.2s ease;
@@ -787,6 +819,29 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 html, body, * {
   scrollbar-width: none !important; /* Firefox */
   -ms-overflow-style: none !important; /* IE & Edge */
+}
+
+/* Icon Button Containers (Exact Match to User Booking FE) */
+.custom-nav-icon-container {
+  position: relative;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.custom-nav-icon-btn {
+  border-radius: 9999px;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 html::-webkit-scrollbar,

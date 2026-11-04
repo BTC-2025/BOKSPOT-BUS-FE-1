@@ -345,15 +345,55 @@ export function UtilityDrawer({
     setShowAddContactModal(false);
   };
 
+  // Prevent wheel scroll from bubbling up and scrolling the main page behind the drawer
+  const stopScrollPropagation = (e: React.WheelEvent) => {
+    e.stopPropagation();
+  };
+
+  const drawerRef = useRef<HTMLDivElement>(null);
+
+  // Lock body / background scroll when hovering over the utility drawer
+  useEffect(() => {
+    const el = drawerRef.current;
+    if (!el) return;
+
+    const onWheel = (e: WheelEvent) => {
+      // Find if we are scrolling within a scrollable container in the drawer
+      let target = e.target as HTMLElement | null;
+      let canScroll = false;
+      while (target && target !== el) {
+        const overflowY = window.getComputedStyle(target).overflowY;
+        if ((overflowY === 'auto' || overflowY === 'scroll') && target.scrollHeight > target.clientHeight) {
+          canScroll = true;
+          break;
+        }
+        target = target.parentElement;
+      }
+
+      // Always stop the wheel event from reaching window / body / main workspace container
+      e.stopPropagation();
+      if (!canScroll) {
+        e.preventDefault();
+      }
+    };
+
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => {
+      el.removeEventListener('wheel', onWheel);
+    };
+  }, [isOpen, activeTab]);
+
   return (
     <AnimatePresence>
       {isOpen && (
         <motion.div
+          ref={drawerRef}
           initial={{ x: '100%' }}
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
           transition={{ type: 'spring', damping: 26, stiffness: 220 }}
-          className="fixed right-0 top-[104px] bottom-0 z-30 flex flex-row overflow-hidden shadow-2xl pointer-events-auto bg-white dark:bg-[#0a0f1d]"
+          onWheel={stopScrollPropagation}
+          className="fixed right-0 top-16 bottom-0 z-[10000] flex flex-row overflow-hidden shadow-2xl pointer-events-auto bg-white dark:bg-[#0a0f1d] overscroll-contain"
         >
           {/* Slide-out Left Content Panel (320px) */}
           <AnimatePresence mode="wait">
@@ -364,7 +404,7 @@ export function UtilityDrawer({
                 animate={{ opacity: 1, width: activeTab === 'beta' ? 340 : 320 }}
                 exit={{ opacity: 0, width: 0 }}
                 transition={{ type: 'spring', damping: 28, stiffness: 240 }}
-                className="h-full bg-white dark:bg-[#0b0e14] border-l border-slate-200/80 dark:border-white/10 flex flex-col overflow-hidden select-none shrink-0"
+                className="h-full bg-white dark:bg-[#0b0e14] border-l border-slate-200/80 dark:border-white/10 flex flex-col overflow-hidden select-none shrink-0 overscroll-contain"
               >
                 {/* 1. CALENDAR TAB POPUP */}
                 {activeTab === 'calendar' && (
@@ -1721,9 +1761,9 @@ export function UtilityDrawer({
             )}
           </AnimatePresence>
 
-          {/* Right Sidebar (60px wide) - Beta signature modern utility rail */}
-          <div className="w-[60px] h-full flex flex-col items-center py-3 bg-white dark:bg-[#0a0f1d] border-l border-slate-200/80 dark:border-white/10 shrink-0 select-none shadow-xs">
-            {/* 1. Top Beta "B" Monogram Button - Exact match to user screenshot */}
+          {/* Right Sidebar (56px wide) - Beta signature modern utility rail, unified team with B logo on top */}
+          <div className="w-[56px] h-full flex flex-col items-center pt-2 pb-3 overflow-y-auto custom-scrollbar bg-white dark:bg-[#0a0f1d] border-l border-slate-200/80 dark:border-white/10 shrink-0 select-none shadow-xs overscroll-contain">
+            {/* 1. Top Beta "B" Monogram Button - Part of the unified utility team */}
             <button
               type="button"
               onClick={() => {
@@ -1733,12 +1773,17 @@ export function UtilityDrawer({
               className="relative group focus:outline-hidden cursor-pointer"
               title="Beta Ecosystem Apps"
             >
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 transition-all bg-white hover:bg-slate-50 border border-slate-200 dark:border-slate-700 shadow-xs hover:scale-105 ${activeTab === 'beta' ? 'ring-2 ring-[#0052cc] border-transparent scale-105' : ''
-                }`}>
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                  activeTab === 'beta'
+                    ? 'bg-[#004aad]/10 dark:bg-[#004aad]/25 border-2 border-[#004aad] dark:border-[#38bdf8] shadow-xs scale-105'
+                    : 'bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800/60 border border-slate-200/90 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 hover:scale-105 shadow-2xs'
+                }`}
+              >
                 <img
                   src="/beta-logo.png"
                   alt="Beta"
-                  className="w-5 h-5 object-contain select-none pointer-events-none drop-shadow-[0_1px_1px_rgba(0,82,204,0.3)] contrast-125 brightness-95"
+                  className="w-5 h-5 object-contain select-none pointer-events-none drop-shadow-none contrast-105 brightness-100 mix-blend-multiply dark:mix-blend-normal"
                 />
               </div>
               {!activeTab && (
@@ -1877,7 +1922,7 @@ export function UtilityDrawer({
                     className="relative group focus:outline-hidden cursor-pointer"
                   >
                     <div
-                      className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${isEditingPins
+                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isEditingPins
                           ? isPinned
                             ? `${tool.bg} border-2 border-[#ff6325] ${tool.color} shadow-xs scale-100`
                             : 'border-2 border-dashed border-[#cbd5e1] dark:border-white/20 bg-transparent text-[#94a3b8] dark:text-slate-500 hover:border-[#ff6325] opacity-70'
@@ -1903,7 +1948,7 @@ export function UtilityDrawer({
               <button
                 type="button"
                 onClick={() => setIsEditingPins(!isEditingPins)}
-                className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all cursor-pointer hover:scale-105 relative group mt-0.5 ${isEditingPins
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer hover:scale-105 relative group mt-0.5 ${isEditingPins
                     ? 'bg-[#ff6325] hover:bg-[#e0531c] text-white shadow-[0_4px_14px_rgba(255,99,37,0.4)] border border-[#ff6325]'
                     : 'border border-slate-200/90 dark:border-white/10 hover:border-[#ff6325] dark:hover:border-[#ff6325] bg-white dark:bg-white/5 hover:bg-orange-50/50 dark:hover:bg-orange-950/20 text-slate-500 hover:text-[#ff6325] dark:text-slate-400 dark:hover:text-[#ff6325] shadow-2xs'
                   }`}
@@ -1931,7 +1976,7 @@ export function UtilityDrawer({
               <button
                 type="button"
                 onClick={() => setIsEditingPins(!isEditingPins)}
-                className="w-10 h-10 rounded-2xl flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95 relative group border border-slate-200/90 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 shadow-2xs"
+                className="w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95 relative group border border-slate-200/90 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 shadow-2xs"
                 title={isEditingPins ? "Done Editing Pins" : "Edit Pinned Icons"}
               >
                 <svg className="w-5 h-5 stroke-[2] text-slate-600 dark:text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
@@ -1949,7 +1994,7 @@ export function UtilityDrawer({
               <button
                 type="button"
                 onClick={onClose}
-                className="w-10 h-10 rounded-2xl bg-[#f8fafc] dark:bg-white/5 hover:bg-[#f1f5f9] dark:hover:bg-white/10 border border-[#cbd5e1]/70 dark:border-white/10 flex items-center justify-center text-[#475569] dark:text-slate-300 hover:text-[#0052cc] transition-all cursor-pointer shadow-xs hover:scale-105 relative group"
+                className="w-10 h-10 rounded-full bg-[#f8fafc] dark:bg-white/5 hover:bg-[#f1f5f9] dark:hover:bg-white/10 border border-[#cbd5e1]/70 dark:border-white/10 flex items-center justify-center text-[#475569] dark:text-slate-300 hover:text-[#0052cc] transition-all cursor-pointer shadow-xs hover:scale-105 relative group"
                 title="Toggle Utility Panel"
               >
                 <svg className="w-5 h-5 stroke-[2] text-[#475569] dark:text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">

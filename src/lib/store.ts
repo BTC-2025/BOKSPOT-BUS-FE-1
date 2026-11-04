@@ -156,6 +156,8 @@ export interface CatalogListing {
   originalPrice?: number;
   discountPercentage?: number;
   offerBadge?: string;
+  priceUnit?: string; // e.g. '/ night', '/ month (monthly rent)', 'monthly rent (all inclusive)', '/ hour', '/ day'
+  securityDeposit?: number; // Refundable security deposit
   duration?: number;
   active?: boolean;
 
@@ -1467,7 +1469,6 @@ export const useVendorStore = create<VendorStoreState>()(
       }
       if (profileData.about || profileData.aboutText) payload.description = profileData.about || profileData.aboutText;
       if (profileData.amenities || profileData.thingsToKnow) payload.amenities = profileData.amenities || profileData.thingsToKnow;
-      if (profileData.gallery) payload.images = profileData.gallery;
       if (profileData.phone) payload.phone = profileData.phone;
       if (profileData.website) payload.website = profileData.website;
       if (profileData.postalCode) payload.postalCode = profileData.postalCode;
@@ -1476,8 +1477,12 @@ export const useVendorStore = create<VendorStoreState>()(
       if (profileData.city) payload.city = profileData.city;
       if (profileData.latitude !== undefined) payload.latitude = Number(profileData.latitude);
       if (profileData.longitude !== undefined) payload.longitude = Number(profileData.longitude);
-      
+
       const meta: any = {};
+      if (profileData.gallery) {
+        payload.images = profileData.gallery;
+        meta.gallery = profileData.gallery;
+      }
       if (profileData.policies) meta.policies = profileData.policies;
       if (profileData.aroundProperty) meta.aroundProperty = profileData.aroundProperty;
       if (profileData.highlights) meta.highlights = profileData.highlights;
