@@ -584,45 +584,47 @@ export default function VenueProfilePage() {
           </div>
         </div>
 
-        {/* 2. Check-in / Check-out & Operating Timings */}
-        <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all">
-          <div className="flex items-center gap-3 mb-5 pb-3 border-b border-slate-100 dark:border-white/5">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-md shadow-amber-500/25 ring-4 ring-amber-500/15 shrink-0">
-              <Clock size={18} className="text-white stroke-[2.2]" />
+        {/* 2. Check-in / Check-out & Operating Timings (For Daily Stays / Hostels) */}
+        {!isPgProperty && (
+          <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all">
+            <div className="flex items-center gap-3 mb-5 pb-3 border-b border-slate-100 dark:border-white/5">
+              <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-md shadow-amber-500/25 ring-4 ring-amber-500/15 shrink-0">
+                <Clock size={18} className="text-white stroke-[2.2]" />
+              </div>
+              <div>
+                <h2 className="text-base font-black text-slate-900 dark:text-white">2. Check-in & Check-out Window</h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Clear timing guidelines displayed prominently to guests upon booking.</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-base font-black text-slate-900 dark:text-white">2. Check-in & Check-out Window</h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Clear timing guidelines displayed prominently to guests upon booking.</p>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                Standard Check-in Time
-              </label>
-              <input
-                type="text"
-                value={checkInTime}
-                onChange={(e) => setCheckInTime(e.target.value)}
-                placeholder="e.g. 12:00 PM or 02:00 PM"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-[#162033] text-slate-900 dark:text-white font-medium text-xs outline-none focus:border-[#ff6325]"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                Standard Check-out Time
-              </label>
-              <input
-                type="text"
-                value={checkOutTime}
-                onChange={(e) => setCheckOutTime(e.target.value)}
-                placeholder="e.g. 11:00 AM"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-[#162033] text-slate-900 dark:text-white font-medium text-xs outline-none focus:border-[#ff6325]"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                  Standard Check-in Time
+                </label>
+                <input
+                  type="text"
+                  value={checkInTime}
+                  onChange={(e) => setCheckInTime(e.target.value)}
+                  placeholder="e.g. 12:00 PM or 02:00 PM"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-[#162033] text-slate-900 dark:text-white font-medium text-xs outline-none focus:border-[#ff6325]"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                  Standard Check-out Time
+                </label>
+                <input
+                  type="text"
+                  value={checkOutTime}
+                  onChange={(e) => setCheckOutTime(e.target.value)}
+                  placeholder="e.g. 11:00 AM"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-[#162033] text-slate-900 dark:text-white font-medium text-xs outline-none focus:border-[#ff6325]"
+                />
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* 3. Amenities & Facilities */}
         <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all">
@@ -1133,7 +1135,7 @@ export default function VenueProfilePage() {
               <MapPin size={18} className="text-white stroke-[2.2]" />
             </div>
             <div>
-              <h2 className="text-base font-black text-slate-900 dark:text-white">8. Location & Map Coordinates</h2>
+              <h2 className="text-base font-black text-slate-900 dark:text-white">9. Location & Map Coordinates</h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 Full address, pin code, and GPS coordinates for guest navigation and Google Maps routing.
               </p>
@@ -1298,14 +1300,14 @@ export default function VenueProfilePage() {
           </div>
         </div>
 
-        {/* 9. Property Highlights */}
+        {/* 10. Property Highlights */}
         <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all">
           <div className="flex items-center gap-3 mb-5 pb-3 border-b border-slate-100 dark:border-white/5">
             <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-md shadow-amber-500/25 ring-4 ring-amber-500/15 shrink-0">
               <Sparkles size={18} className="text-white stroke-[2.2]" />
             </div>
             <div>
-              <h2 className="text-base font-black text-slate-900 dark:text-white">9. Property Highlights & Key Selling Points</h2>
+              <h2 className="text-base font-black text-slate-900 dark:text-white">10. Property Highlights & Key Selling Points</h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 These highlights display directly on the customer Overview page (e.g., breakfast buffet, dining options, 24/7 front desk, sanitization).
               </p>
@@ -1445,7 +1447,7 @@ export default function VenueProfilePage() {
           </div>
         </div>
 
-        {/* 10. Photo Gallery */}
+        {/* 11. Photo Gallery */}
         <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all">
           <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100 dark:border-white/5">
             <div className="flex items-center gap-3">
@@ -1453,7 +1455,7 @@ export default function VenueProfilePage() {
                 <ImageIcon size={18} className="text-white stroke-[2.2]" />
               </div>
               <div>
-                <h2 className="text-base font-black text-slate-900 dark:text-white">10. Venue Photo Showcase Gallery</h2>
+                <h2 className="text-base font-black text-slate-900 dark:text-white">11. Venue Photo Showcase Gallery</h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400">High-resolution photos of reception, pool, dining, architecture, and garden grounds.</p>
               </div>
             </div>

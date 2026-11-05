@@ -56,19 +56,33 @@ export default function DynamicForm({
     categoryName.toLowerCase().includes('badminton') ||
     merchantCategory.toLowerCase().includes('badminton');
 
+  const isPgOrHostel =
+    categoryName.toLowerCase().includes('pg') ||
+    categoryName.toLowerCase().includes('hostel') ||
+    categoryName.toLowerCase().includes('co-living') ||
+    merchantCategory.toLowerCase().includes('pg') ||
+    merchantCategory.toLowerCase().includes('hostel') ||
+    merchantCategory.toLowerCase().includes('co-living');
+
   const isHotel =
-    categoryName.toLowerCase().includes('hotel') ||
-    categoryName.toLowerCase().includes('room') ||
-    merchantCategory.toLowerCase().includes('hotel');
+    !isPgOrHostel && (
+      categoryName.toLowerCase().includes('hotel') ||
+      categoryName.toLowerCase().includes('room') ||
+      merchantCategory.toLowerCase().includes('hotel')
+    );
 
   const isResortVilla =
-    categoryName.toLowerCase().includes('resort') ||
-    categoryName.toLowerCase().includes('villa') ||
-    categoryName.toLowerCase().includes('cottage');
+    !isPgOrHostel && (
+      categoryName.toLowerCase().includes('resort') ||
+      categoryName.toLowerCase().includes('villa') ||
+      categoryName.toLowerCase().includes('cottage')
+    );
 
   const isCamping =
-    categoryName.toLowerCase().includes('camp') ||
-    categoryName.toLowerCase().includes('tent');
+    !isPgOrHostel && (
+      categoryName.toLowerCase().includes('camp') ||
+      categoryName.toLowerCase().includes('tent')
+    );
 
   const title = (archetype === 'RENTAL' || archetype === 'FACILITY_HOURLY')
     ? (isCricket 
@@ -81,7 +95,9 @@ export default function DynamicForm({
         ? "Football Turf & Ground Specification"
         : baseSchema.title)
     : archetype === 'ACCOMMODATION'
-    ? (isHotel
+    ? (isPgOrHostel
+        ? "PG, Hostel & Co-Living Room Specification"
+        : isHotel
         ? "Hotel Room & Suite Details"
         : isCamping
         ? "Campsite & Tent Stay Setup"
@@ -225,7 +241,103 @@ export default function DynamicForm({
       }
     }
     if (archetype === 'ACCOMMODATION') {
-      if (isHotel) {
+      if (isPgOrHostel) {
+        if (field.name === 'roomType') {
+          return {
+            ...field,
+            label: "Room / Bed Sharing Type",
+            placeholder: "e.g., 2-Sharing AC Room, 4-Sharing Non-AC, Single Private Room"
+          };
+        }
+        if (field.name === 'totalUnits') {
+          return {
+            ...field,
+            label: "Available Beds / Rooms Count",
+            placeholder: "e.g., 4"
+          };
+        }
+        if (field.name === 'maxGuests') {
+          return {
+            ...field,
+            label: "Max Residents per Room",
+            placeholder: "e.g., 2 Residents"
+          };
+        }
+        if (field.name === 'bedType') {
+          return {
+            ...field,
+            label: "Bed Setup",
+            placeholder: "e.g., Single Cot Bed with Mattress, Bunk Bed"
+          };
+        }
+        if (field.name === 'sizeSqFt') {
+          return {
+            ...field,
+            label: "Room Area (Sq.Ft) [Optional]",
+            placeholder: "e.g., 220"
+          };
+        }
+        if (field.name === 'viewType') {
+          return {
+            ...field,
+            label: "Attached Balcony & Ventilation",
+            placeholder: "e.g., Attached Private Balcony (Clothes Drying) / Road Facing Window"
+          };
+        }
+        if (field.name === 'bathroomType') {
+          return {
+            ...field,
+            label: "Washroom Setup",
+            placeholder: "e.g., Attached Ensuite Bathroom with Geyser / Shared Floor Bathroom"
+          };
+        }
+        if (field.name === 'checkInTime') {
+          return {
+            ...field,
+            label: "Hostel Gate Opening Time",
+            required: false
+          };
+        }
+        if (field.name === 'checkOutTime') {
+          return {
+            ...field,
+            label: "Hostel Gate Closing / Curfew Time",
+            required: false
+          };
+        }
+        if (field.name === 'mealPlanOptions') {
+          // Hide or provide clean note since Step 1 already handles meals
+          return null;
+        }
+        if (field.name === 'petPolicy') {
+          return {
+            ...field,
+            label: "Notice Period for Vacating",
+            placeholder: "e.g., 30 Days Prior Notice Required / 15 Days Notice"
+          };
+        }
+        if (field.name === 'cancellationPolicy') {
+          return {
+            ...field,
+            label: "Security Deposit Refund Policy",
+            placeholder: "e.g., 100% Refundable at Checkout after deducting electricity bill"
+          };
+        }
+        if (field.name === 'perks') {
+          return {
+            ...field,
+            label: "PG Free Inclusions & House Rules",
+            placeholder: "e.g., Free Wi-Fi, Laundry Machine Access, Daily Housekeeping, RO Water"
+          };
+        }
+        if (field.name === 'amenities') {
+          return {
+            ...field,
+            label: "Room Amenities & Storage",
+            placeholder: "e.g., Personal Wardrobe / Locker, Geyser, Study Table & Chair, AC"
+          };
+        }
+      } else if (isHotel) {
         if (field.name === 'roomType') {
           return {
             ...field,
@@ -305,8 +417,7 @@ export default function DynamicForm({
         }
       }
     }
-    return field;
-  });
+  }).filter(Boolean);
 
   const schema = {
     title,
@@ -372,6 +483,24 @@ export default function DynamicForm({
                     className={inputClasses}
                     placeholder={field.placeholder || `0`}
                   />
+                )}
+
+                {/* Boolean / Toggle Switch Input */}
+                {field.type === 'boolean' && (
+                  <div className="flex items-center gap-3 pt-1">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(formData[field.name])}
+                        onChange={(e) => handleChange(field.name, e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-slate-200 dark:bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#ff6325]"></div>
+                    </label>
+                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      {formData[field.name] ? 'Included (Active)' : 'Not Included / Optional'}
+                    </span>
+                  </div>
                 )}
 
                 {/* Textarea */}

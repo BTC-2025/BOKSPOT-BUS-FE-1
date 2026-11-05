@@ -76,6 +76,38 @@ export default function WorkspacePage() {
     ]
   };
 
+  const ALL_PRESET_CATEGORIES = useMemo(() => {
+    return [
+      "Hotel Booking",
+      "Hostel Booking",
+      "PG & Co-Living Stays",
+      "Resort Booking",
+      "Homestay / Villa",
+      "Camping Booking",
+      "Football Turf",
+      "Cricket Ground",
+      "Badminton Court",
+      "Tennis Court",
+      "Basketball Court",
+      "Swimming Pool Slots",
+      "Gaming Arena Booking",
+      "Indoor Play Arena",
+      "Restaurant Table Reservation",
+      "Salon / Spa Appointment",
+      "Gym / Yoga Slot Booking",
+      "Doctor Appointment",
+      "Co-working Space",
+      "Meeting Room",
+      "Studio Booking"
+    ];
+  }, []);
+
+  const categorySuggestions = useMemo(() => {
+    const query = (bookingTypeCategory || '').trim().toLowerCase();
+    if (!query) return [];
+    return ALL_PRESET_CATEGORIES.filter(c => c.toLowerCase().includes(query));
+  }, [bookingTypeCategory, ALL_PRESET_CATEGORIES]);
+
   if (!currentMerchant || !mounted) {
     return (
       <div className="flex h-full min-h-[500px] items-center justify-center">
@@ -94,19 +126,19 @@ export default function WorkspacePage() {
     : (presetMatch?.branches && presetMatch.branches.length > 0)
       ? presetMatch.branches
       : [
-          {
-            id: `branch-main-${currentMerchant.id || 'default'}`,
-            name: `${currentMerchant.city || 'Main'} Branch`,
-            city: currentMerchant.city || 'Chennai',
-            category: currentMerchant.category || 'General Service',
-            businessType: currentMerchant.category || 'Service Facility',
-            address: currentMerchant.address || `${currentMerchant.city || 'Chennai'} Location`,
-            gstStatus: (currentMerchant.gstStatus as any) || 'WITHOUT_GST',
-            gstNumber: currentMerchant.gstNumber || '',
-            offeringsSummary: currentMerchant.category || 'Primary Offerings',
-            isMainBranch: true
-          }
-        ];
+        {
+          id: `branch-main-${currentMerchant.id || 'default'}`,
+          name: `${currentMerchant.city || 'Main'} Branch`,
+          city: currentMerchant.city || 'Chennai',
+          category: currentMerchant.category || 'General Service',
+          businessType: currentMerchant.category || 'Service Facility',
+          address: currentMerchant.address || `${currentMerchant.city || 'Chennai'} Location`,
+          gstStatus: (currentMerchant.gstStatus as any) || 'WITHOUT_GST',
+          gstNumber: currentMerchant.gstNumber || '',
+          offeringsSummary: currentMerchant.category || 'Primary Offerings',
+          isMainBranch: true
+        }
+      ];
 
   const activeBranch = effectiveBranches.find(b => b.id === (currentMerchant.activeBranchId || effectiveBranches[0].id)) || effectiveBranches[0];
   const isTurfBranch = (activeBranch.category?.toLowerCase().includes('turf') || activeBranch.name?.toLowerCase().includes('turf'));
@@ -199,7 +231,7 @@ export default function WorkspacePage() {
         if (s.category !== cat) return false;
         const nameMatch = (s.name || '').toLowerCase().includes(q);
         const descMatch = (s.description || '').toLowerCase().includes(q);
-        const listingMatch = (s.listings || []).some((l: any) => 
+        const listingMatch = (s.listings || []).some((l: any) =>
           (l.name || l.title || l.unitNumber || '').toLowerCase().includes(q)
         );
         return nameMatch || descMatch || listingMatch;
@@ -221,7 +253,7 @@ export default function WorkspacePage() {
     if (!q) return true;
     const nameMatch = (s.name || '').toLowerCase().includes(q);
     const descMatch = (s.description || '').toLowerCase().includes(q);
-    const listingMatch = (s.listings || []).some((l: any) => 
+    const listingMatch = (s.listings || []).some((l: any) =>
       (l.name || l.title || l.unitNumber || '').toLowerCase().includes(q)
     );
     return nameMatch || descMatch || listingMatch;
@@ -234,11 +266,11 @@ export default function WorkspacePage() {
 
     // Location / Branch Determination
     const targetLocation = (bookingTypeLocation || activeBranch.city || currentMerchant.city || 'Chennai').trim();
-    
+
     // Check if branch already exists for this location or create a new branch under the merchant's GST
     let targetBranch = effectiveBranches.find(
       b => (b.city && b.city.toLowerCase() === targetLocation.toLowerCase()) ||
-           (b.name && b.name.toLowerCase().includes(targetLocation.toLowerCase()))
+        (b.name && b.name.toLowerCase().includes(targetLocation.toLowerCase()))
     );
 
     if (!targetBranch && targetLocation) {
@@ -352,11 +384,10 @@ export default function WorkspacePage() {
               <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
                 {selectedGroup ? `${selectedGroup} Units` : 'Service Catalog & Units'}
               </h1>
-              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                activeBranch.gstStatus === 'WITH_GST' 
-                  ? 'bg-cyan-500/10 text-cyan-500 border border-cyan-500/30' 
+              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ${activeBranch.gstStatus === 'WITH_GST'
+                  ? 'bg-cyan-500/10 text-cyan-500 border border-cyan-500/30'
                   : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/30'
-              }`}>
+                }`}>
                 {activeBranch.gstStatus === 'WITH_GST' ? `GST: ${activeBranch.gstNumber || currentMerchant?.gstNumber || '33AAAAA0000A1Z5'}` : 'Non-GST (Nett)'}
               </span>
             </div>
@@ -629,14 +660,14 @@ export default function WorkspacePage() {
                         >
                           <span>{isTurfUnit ? '⚽' : '🏨'}</span>
                           <span style={{ color: '#ffffff' }} className="font-black !text-white text-xs">
-                          {isTurfUnit 
-                            ? 'Sports Unit' 
-                            : ((srv.category || srv.name || '').toLowerCase().includes('hotel') 
-                                ? 'Hotel Unit' 
-                                : ((srv.category || srv.name || '').toLowerCase().includes('resort') 
-                                    ? 'Resort Unit' 
-                                    : 'Stay Unit'))}
-                        </span>
+                            {isTurfUnit
+                              ? 'Sports Unit'
+                              : ((srv.category || srv.name || '').toLowerCase().includes('hotel')
+                                ? 'Hotel Unit'
+                                : ((srv.category || srv.name || '').toLowerCase().includes('resort')
+                                  ? 'Resort Unit'
+                                  : 'Stay Unit'))}
+                          </span>
                         </span>
 
                         <div className="flex items-center gap-1.5">
@@ -745,16 +776,36 @@ export default function WorkspacePage() {
             </div>
             <div className="p-6 overflow-y-auto flex-1">
               <form id="bookingTypeForm" onSubmit={handleSaveBookingType} className="space-y-4">
-                <div>
+                <div className="relative">
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Category Name</label>
                   <input
                     type="text"
                     value={bookingTypeCategory}
                     onChange={(e) => setBookingTypeCategory(e.target.value)}
                     placeholder="e.g. Hotel Booking, Football Turf, Resort Booking..."
+                    autoFocus
+                    autoComplete="off"
+                    id="bookingTypeCategoryInput"
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white font-medium focus:border-[#ff6325] outline-none"
                     required
                   />
+                  {categorySuggestions.length > 0 && bookingTypeCategory.trim() !== '' && (
+                    <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white dark:bg-[#162033] border border-slate-200 dark:border-white/10 rounded-xl shadow-xl overflow-hidden max-h-48 overflow-y-auto">
+                      {categorySuggestions.map((cat) => (
+                        <button
+                          key={cat}
+                          type="button"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setBookingTypeCategory(cat);
+                          }}
+                          className="w-full text-left px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-slate-100 hover:bg-[#ff6325]/10 hover:text-[#ff6325] transition-colors flex items-center justify-between cursor-pointer border-b border-slate-100 dark:border-white/5 last:border-0"
+                        >
+                          <span>{cat}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div>

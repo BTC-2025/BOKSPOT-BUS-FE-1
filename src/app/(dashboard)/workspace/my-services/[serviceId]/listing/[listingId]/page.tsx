@@ -14,7 +14,7 @@ export default function ListingEditorPage() {
   const serviceId = params.serviceId as string;
   const listingId = params.listingId as string;
   const isCreating = listingId === 'new';
-  
+
   const { services, updateService, currentMerchant } = useVendorStore();
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState(1);
@@ -30,16 +30,20 @@ export default function ListingEditorPage() {
   const [discountPercentage, setDiscountPercentage] = useState('');
   const [offerBadge, setOfferBadge] = useState('');
   const [bannerTagline, setBannerTagline] = useState('');
-  const [priceUnit, setPriceUnit] = useState('');
+  const [priceUnit, setPriceUnit] = useState('monthly rent (all inclusive)');
   const [securityDeposit, setSecurityDeposit] = useState('');
-  const [addons, setAddons] = useState<{name: string, price: number}[]>([]);
+  const [isTokenAdvanceEnabled, setIsTokenAdvanceEnabled] = useState(true);
+  const [tokenAdvanceAmount, setTokenAdvanceAmount] = useState('');
+  const [foodFacilityProvided, setFoodFacilityProvided] = useState(true);
+  const [foodDeductionAmount, setFoodDeductionAmount] = useState('');
+  const [addons, setAddons] = useState<{ name: string, price: number }[]>([]);
   const [equipmentAddons, setEquipmentAddons] = useState('');
-  
+
   // GST Tax State for this Listing
   const [gstEnabled, setGstEnabled] = useState(false);
   const [gstPercentage, setGstPercentage] = useState(18); // Default standard 18% (9% SGST + 9% CGST)
   const [gstNumber, setGstNumber] = useState('');
-  
+
   // Config-Driven Metadata State
   const [metadata, setMetadata] = useState<Record<string, any>>({});
 
@@ -52,10 +56,10 @@ export default function ListingEditorPage() {
         if (list) {
           setServiceName(list.name || '');
           setImageUrl(list.imageUrl || '');
-          const existingGallery = Array.isArray(list.metadata?.gallery) 
-            ? list.metadata.gallery 
-            : Array.isArray((list as any).images) 
-              ? (list as any).images 
+          const existingGallery = Array.isArray(list.metadata?.gallery)
+            ? list.metadata.gallery
+            : Array.isArray((list as any).images)
+              ? (list as any).images
               : list.imageUrl ? [list.imageUrl] : [];
           setGalleryImages(existingGallery);
           setDescription(list.description || '');
@@ -63,7 +67,7 @@ export default function ListingEditorPage() {
           const orig = list.metadata?.originalPrice || (list as any).originalPrice;
           const disc = list.metadata?.discountPercentage || (list as any).discountPercentage;
           const currentBase = list.price !== undefined && list.price !== null ? Number(list.price) : 0;
-          
+
           if (orig && Number(orig) > currentBase) {
             setOriginalPrice(orig.toString());
           } else if (disc && Number(disc) > 0 && currentBase > 0) {
@@ -82,11 +86,17 @@ export default function ListingEditorPage() {
 
           setOfferBadge(list.metadata?.offerBadge || (list as any).offerBadge || '');
           setBannerTagline(list.metadata?.bannerTagline || (list as any).bannerTagline || '');
-          setPriceUnit(list.metadata?.priceUnit || (list as any).priceUnit || '');
-          const existingDeposit = list.metadata?.securityDeposit !== undefined 
-            ? list.metadata.securityDeposit 
+          setPriceUnit(list.metadata?.priceUnit || (list as any).priceUnit || 'monthly rent (all inclusive)');
+          const existingDeposit = list.metadata?.securityDeposit !== undefined
+            ? list.metadata.securityDeposit
             : (list as any).securityDeposit;
           setSecurityDeposit(existingDeposit !== undefined && existingDeposit !== null ? existingDeposit.toString() : '');
+          setIsTokenAdvanceEnabled(list.metadata?.isTokenAdvanceEnabled ?? (list as any).isTokenAdvanceEnabled ?? true);
+          const existingToken = list.metadata?.tokenAdvanceAmount ?? (list as any).tokenAdvanceAmount;
+          setTokenAdvanceAmount(existingToken !== undefined && existingToken !== null ? existingToken.toString() : '');
+          setFoodFacilityProvided(list.metadata?.foodFacilityProvided ?? (list as any).foodFacilityProvided ?? true);
+          const existingFoodDed = list.metadata?.foodDeductionAmount ?? (list as any).foodDeductionAmount;
+          setFoodDeductionAmount(existingFoodDed !== undefined && existingFoodDed !== null ? existingFoodDed.toString() : '');
           setMetadata(list.metadata || {});
           setAddons(list.metadata?.addons || []);
           setEquipmentAddons(list.metadata?.equipmentAddons || '');
@@ -118,33 +128,44 @@ export default function ListingEditorPage() {
     (category.category || '').toLowerCase().includes('turf') ||
     (category.category || '').toLowerCase().includes('football');
 
-  const isHotel = 
+  const isHotel =
     (categoryDisplayName || '').toLowerCase().includes('hotel') ||
     (categoryDisplayName || '').toLowerCase().includes('room') ||
     (currentMerchant?.category || '').toLowerCase().includes('hotel');
 
-  const isResortVilla = 
+  const isResortVilla =
     (categoryDisplayName || '').toLowerCase().includes('resort') ||
     (categoryDisplayName || '').toLowerCase().includes('villa') ||
     (categoryDisplayName || '').toLowerCase().includes('cottage');
 
-  const isCamping = 
+  const isCamping =
     (categoryDisplayName || '').toLowerCase().includes('camp') ||
     (categoryDisplayName || '').toLowerCase().includes('tent');
 
-  const isAccommodation = isHotel || isResortVilla || isCamping ||
+  const isPgOrHostel =
+    (categoryDisplayName || '').toLowerCase().includes('pg') ||
+    (categoryDisplayName || '').toLowerCase().includes('hostel') ||
+    (categoryDisplayName || '').toLowerCase().includes('dorm') ||
+    (categoryDisplayName || '').toLowerCase().includes('co-living') ||
+    (categoryDisplayName || '').toLowerCase().includes('coliving') ||
+    (category.category || '').toLowerCase().includes('hostel') ||
+    (category.category || '').toLowerCase().includes('pg') ||
+    (currentMerchant?.category || '').toLowerCase().includes('hostel') ||
+    (currentMerchant?.category || '').toLowerCase().includes('pg');
+
+  const isAccommodation = isHotel || isResortVilla || isCamping || isPgOrHostel ||
     (categoryDisplayName || '').toLowerCase().includes('suite') ||
     (categoryDisplayName || '').toLowerCase().includes('stay') ||
     (currentMerchant?.archetype?.toUpperCase() === 'ACCOMMODATION') ||
     ((currentMerchant?.category || '').toLowerCase().includes('hotel') || (currentMerchant?.category || '').toLowerCase().includes('resort'));
 
-  const archetype: Archetype = 
+  const archetype: Archetype =
     isTurfCategory ? 'RENTAL' :
-    isAccommodation ? 'ACCOMMODATION' :
-    getArchetypeFromCategory(category?.name) || 
-    getArchetypeFromCategory(category?.category) || 
-    getArchetypeFromCategory(currentMerchant?.category) || 
-    'RENTAL';
+      isAccommodation ? 'ACCOMMODATION' :
+        getArchetypeFromCategory(category?.name) ||
+        getArchetypeFromCategory(category?.category) ||
+        getArchetypeFromCategory(currentMerchant?.category) ||
+        'RENTAL';
 
   const handleSaveDetails = () => {
     if (!serviceName.trim()) {
@@ -177,11 +198,15 @@ export default function ListingEditorPage() {
       bannerTagline: bannerTagline.trim() || undefined,
       priceUnit: priceUnit.trim() || (isTurfCategory ? '/ hour' : isAccommodation ? '/ night' : '/ service'),
       securityDeposit: securityDeposit ? parseFloat(securityDeposit) : undefined,
+      isTokenAdvanceEnabled,
+      tokenAdvanceAmount: tokenAdvanceAmount ? parseFloat(tokenAdvanceAmount) : undefined,
+      foodFacilityProvided,
+      foodDeductionAmount: foodDeductionAmount ? parseFloat(foodDeductionAmount) : undefined,
       duration: 30, // Default duration
-      metadata: { 
-        ...metadata, 
+      metadata: {
+        ...metadata,
         gallery: galleryImages.length > 0 ? galleryImages : (imageUrl.trim() ? [imageUrl.trim()] : []),
-        addons, 
+        addons,
         equipmentAddons: equipmentAddons.trim() || undefined,
         originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
         discountPercentage: discountPercentage ? parseFloat(discountPercentage) : undefined,
@@ -189,9 +214,13 @@ export default function ListingEditorPage() {
         bannerTagline: bannerTagline.trim() || undefined,
         priceUnit: priceUnit.trim() || (isTurfCategory ? '/ hour' : isAccommodation ? '/ night' : '/ service'),
         securityDeposit: securityDeposit ? parseFloat(securityDeposit) : undefined,
-        gstEnabled, 
-        gstPercentage: gstEnabled ? gstPercentage : 0, 
-        gstNumber: gstEnabled ? gstNumber : undefined 
+        isTokenAdvanceEnabled,
+        tokenAdvanceAmount: tokenAdvanceAmount ? parseFloat(tokenAdvanceAmount) : undefined,
+        foodFacilityProvided,
+        foodDeductionAmount: foodDeductionAmount ? parseFloat(foodDeductionAmount) : undefined,
+        gstEnabled,
+        gstPercentage: gstEnabled ? gstPercentage : 0,
+        gstNumber: gstEnabled ? gstNumber : undefined
       },
       // Direct root attributes for instant compatibility with consumer app & templates
       gstEnabled,
@@ -213,8 +242,8 @@ export default function ListingEditorPage() {
         : typeof metadata.perks === 'string' && metadata.perks.trim() !== ''
           ? metadata.perks.split(',').map((s: string) => s.trim())
           : [],
-      amenities: Array.isArray(metadata.amenities) 
-        ? metadata.amenities 
+      amenities: Array.isArray(metadata.amenities)
+        ? metadata.amenities
         : typeof metadata.amenities === 'string' && metadata.amenities.trim() !== ''
           ? metadata.amenities.split(',').map((s: string) => s.trim())
           : []
@@ -238,11 +267,11 @@ export default function ListingEditorPage() {
 
   return (
     <div className="space-y-6 animate-fade-in pb-24 font-sans max-w-7xl mx-auto px-2 sm:px-4">
-      
+
       {/* 1. Header Strip - Clean Non-Overlapping Bar */}
       <div className="px-6 py-4 rounded-2xl bg-white dark:bg-[#0f1624] border border-slate-200/80 dark:border-white/10 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <button 
+          <button
             onClick={() => router.push(`/workspace/my-services/${serviceId}`)}
             className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-[#ff6325] font-bold mb-1 transition-colors cursor-pointer"
           >
@@ -257,14 +286,14 @@ export default function ListingEditorPage() {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <button 
+          <button
             type="button"
             onClick={() => router.push(`/workspace/my-services/${serviceId}`)}
             className="px-4 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 font-bold text-xs transition-colors cursor-pointer"
           >
             Cancel
           </button>
-          <button 
+          <button
             type="button"
             onClick={handleSaveDetails}
             className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md shadow-[#ff6325]/20 active:scale-95 cursor-pointer"
@@ -276,10 +305,10 @@ export default function ListingEditorPage() {
 
       {/* 2. Responsive 2-Column Executive Studio Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
+
         {/* Left Column: Comprehensive Form (8 Cols) */}
         <div className="lg:col-span-8 space-y-6">
-          
+
           {/* Section 1: Overview & Pricing */}
           <div className="bg-white dark:bg-[#0f1624] rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-sm overflow-hidden transition-all hover:shadow-md">
             {/* Top Accent Bar */}
@@ -309,16 +338,264 @@ export default function ListingEditorPage() {
                       isTurfCategory
                         ? "e.g. 7-a-side Main Astro Turf A, 5s Cage Pitch B, Box Cricket Arena"
                         : isHotel
-                        ? "e.g. Deluxe AC Room, Executive Suite, Standard Non-AC Room"
-                        : isCamping
-                        ? "e.g. 2-Person Alpine Tent, Luxury Glamping Pod, Riverside Dome"
-                        : "e.g. 3BHK Private Pool Villa, Sunset Hill View Cottage, Deluxe Suite"
+                          ? "e.g. Deluxe AC Room, Executive Suite, Standard Non-AC Room"
+                          : isCamping
+                            ? "e.g. 2-Person Alpine Tent, Luxury Glamping Pod, Riverside Dome"
+                            : "e.g. 3BHK Private Pool Villa, Sunset Hill View Cottage, Deluxe Suite"
                     }
                     className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-semibold text-sm focus:border-[#ff6325] focus:bg-white dark:focus:bg-[#131d2e] outline-none transition-all shadow-xs"
                     required
                   />
                 </div>
 
+                {/* If PG / Hostel: Dedicated Clean 3-Payment Flow UI */}
+                {isPgOrHostel ? (
+                  <div className="md:col-span-2 space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {/* 1. Monthly Rent (Selling Price) */}
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                          Monthly Rent (With Food) <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-400 text-sm">₹</span>
+                          <input
+                            type="number"
+                            value={basePrice}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setBasePrice(val);
+                              if (originalPrice && Number(originalPrice) > Number(val) && Number(val) > 0) {
+                                setDiscountPercentage(Math.round(((Number(originalPrice) - Number(val)) / Number(originalPrice)) * 100).toString());
+                              }
+                            }}
+                            placeholder="e.g. 7500"
+                            min="0"
+                            className="w-full pl-9 pr-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-black text-sm focus:border-[#ff6325] outline-none shadow-xs"
+                            required
+                          />
+                        </div>
+                        <span className="text-[10px] text-slate-400">
+                          Final price resident pays.
+                        </span>
+                      </div>
+
+                      {/* 2. Original Rate (Before Discount / Strikethrough) */}
+                      <div className="space-y-1.5">
+                        <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                          Original Rate (₹) <span className="text-slate-400 font-normal">(Optional Offer)</span>
+                        </label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">₹</span>
+                          <input
+                            type="number"
+                            value={originalPrice}
+                            onChange={(e) => {
+                              const orig = e.target.value;
+                              setOriginalPrice(orig);
+                              if (orig && Number(orig) > Number(basePrice) && Number(basePrice) > 0) {
+                                setDiscountPercentage(Math.round(((Number(orig) - Number(basePrice)) / Number(orig)) * 100).toString());
+                              } else {
+                                setDiscountPercentage('');
+                              }
+                            }}
+                            placeholder="e.g. 9000 (Strikethrough)"
+                            min="0"
+                            className="w-full pl-7 pr-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                          />
+                        </div>
+                        <span className="text-[10px] text-slate-400">
+                          {discountPercentage ? `Shows: ₹${originalPrice} (-${discountPercentage}% OFF)` : 'Shown crossed out to attract residents.'}
+                        </span>
+                      </div>
+
+                      {/* 3. Optional Urgency / Offer Tag */}
+                      <div className="space-y-1.5">
+                        <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                          Deal Label / Badge <span className="text-slate-400 font-normal">(Optional)</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={offerBadge}
+                          onChange={(e) => setOfferBadge(e.target.value)}
+                          placeholder="e.g. Early Bird 10% Offer, Limited Beds"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                        />
+                        <span className="text-[10px] text-slate-400">
+                          Promotional tag shown on bed card.
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Refundable Security Deposit & Rent Cadence */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                          Billing Period / Rent Cadence
+                        </label>
+                        <select
+                          value={priceUnit || 'monthly rent (all inclusive)'}
+                          onChange={(e) => setPriceUnit(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325] cursor-pointer"
+                        >
+                          <option value="monthly rent (all inclusive)">monthly rent (all inclusive)</option>
+                          <option value="/ month (stay only)">/ month (stay only)</option>
+                          <option value="/ bed per month">/ bed per month</option>
+                          <option value="/ day (daily stay)">/ day (daily stay / transit)</option>
+                        </select>
+                        <span className="text-[10px] text-slate-400 mt-1 block">
+                          Subtitle shown below price on customer card (e.g. ₹3,000 monthly rent).
+                        </span>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                          Refundable Security Deposit (₹) <span className="text-slate-400 font-normal">(Optional)</span>
+                        </label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">₹</span>
+                          <input
+                            type="number"
+                            value={securityDeposit}
+                            onChange={(e) => setSecurityDeposit(e.target.value)}
+                            placeholder="e.g. 3000"
+                            min="0"
+                            className="w-full pl-7 pr-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                          />
+                        </div>
+                        <span className="text-[10px] text-slate-400 mt-1 block">
+                          Shown as &apos;Refundable Deposit: ₹X,XXX&apos; on listing card.
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 3. Food / Mess Option */}
+                    <div className="p-4 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-800/40 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm">🍱</span>
+                            <span className="text-xs font-black text-slate-900 dark:text-white">
+                              Is Food Provided in this PG?
+                            </span>
+                          </div>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                            {foodFacilityProvided
+                              ? 'Yes, residents get daily meals (Breakfast, Lunch, Dinner).'
+                              : 'No, this is a stay-only room without food.'}
+                          </span>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                          <input
+                            type="checkbox"
+                            checked={foodFacilityProvided}
+                            onChange={(e) => setFoodFacilityProvided(e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-10 h-5 bg-slate-300 dark:bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                        </label>
+                      </div>
+
+                      {foodFacilityProvided && (
+                        <div className="pt-2 border-t border-emerald-200/50 dark:border-emerald-800/30 grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                              Discount if resident does NOT want food (₹ / Month)
+                            </label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">₹</span>
+                              <input
+                                type="number"
+                                value={foodDeductionAmount}
+                                onChange={(e) => setFoodDeductionAmount(e.target.value)}
+                                placeholder="e.g. 1000 or 1500"
+                                min="0"
+                                className="w-full pl-7 pr-3.5 py-2 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-white dark:bg-[#0f1624] text-xs font-black text-slate-900 dark:text-white outline-none focus:border-emerald-500"
+                              />
+                            </div>
+                            <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 block">
+                              Amount reduced when guest chooses &apos;Stay Only&apos;.
+                            </span>
+                          </div>
+
+                          {/* Customer Live Price Preview Box */}
+                          <div className="rounded-xl bg-white dark:bg-[#162033] p-3 border border-emerald-200/60 dark:border-emerald-800/30 shadow-2xs space-y-1.5">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+                              Resident Monthly Rent:
+                            </span>
+                            <div className="flex justify-between items-center text-xs font-bold text-slate-800 dark:text-slate-200">
+                              <span>🍱 Stay + Food:</span>
+                              <span className="font-black text-[#033266] dark:text-[#ff6325]">
+                                ₹{basePrice ? Number(basePrice).toLocaleString() : '3,000'}/mo
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                              <span>🍳 Stay Only (No Food):</span>
+                              <span className="font-black">
+                                ₹{Math.max(0, (Number(basePrice) || 3000) - (Number(foodDeductionAmount) || 0)).toLocaleString()}/mo
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 4. Lock Bed Option / Token Advance Config */}
+                    <div className="p-4 rounded-2xl bg-orange-50/60 dark:bg-[#ff6325]/10 border border-orange-200/60 dark:border-[#ff6325]/20 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm">🔒</span>
+                            <span className="text-xs font-black text-slate-900 dark:text-white">
+                              Allow Bed Lock / Token Advance
+                            </span>
+                          </div>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                            Let residents reserve & hold this bed with partial advance instead of paying full 1st month rent.
+                          </span>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                          <input
+                            type="checkbox"
+                            checked={isTokenAdvanceEnabled}
+                            onChange={(e) => setIsTokenAdvanceEnabled(e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-10 h-5 bg-slate-300 dark:bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#ff6325]"></div>
+                        </label>
+                      </div>
+
+                      {isTokenAdvanceEnabled && (
+                        <div className="pt-2 border-t border-orange-200/50 dark:border-[#ff6325]/20 grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                              Bed Lock Token Amount (₹) <span className="text-[#ff6325]">*</span>
+                            </label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">₹</span>
+                              <input
+                                type="number"
+                                value={tokenAdvanceAmount}
+                                onChange={(e) => setTokenAdvanceAmount(e.target.value)}
+                                placeholder="e.g. 999 or 1500"
+                                min="100"
+                                className="w-full pl-7 pr-3.5 py-2 rounded-xl border border-orange-300 dark:border-[#ff6325]/40 bg-white dark:bg-[#0f1624] text-xs font-black text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                              />
+                            </div>
+                            <span className="text-[10px] text-slate-400 mt-1 block">
+                              Displayed on user app as: &apos;🔒 Lock this bed today for just ₹{tokenAdvanceAmount ? Number(tokenAdvanceAmount).toLocaleString() : '0'}&apos;
+                            </span>
+                          </div>
+                          <div className="p-3 rounded-xl bg-white dark:bg-[#162033] border border-orange-200/60 dark:border-[#ff6325]/20 text-xs text-slate-600 dark:text-slate-300">
+                            Resident pays <strong className="text-[#ff6325]">₹{tokenAdvanceAmount ? Number(tokenAdvanceAmount).toLocaleString() : '0'}</strong> immediately to book. Remaining rent & deposit collected on check-in day.
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                /* Standard Hotel / Turf Pricing Grid (For other categories only) */
+                <div className="contents">
                 {/* 1. Original Rate (Rack Price / MRP) */}
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
@@ -484,9 +761,12 @@ export default function ListingEditorPage() {
                       </p>
                     </div>
                   </div>
+                </div>
+              </div>
+              )}
 
                   {/* Promo Banner Tagline Field */}
-                  <div className="pt-2 border-t border-slate-200 dark:border-white/10">
+                  <div className="md:col-span-2 pt-2 border-t border-slate-200 dark:border-white/10">
                     <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
                       {isTurfCategory ? 'Arena / Pitch Banner Tagline' : 'Promotional Getaway Banner Tagline'} <span className="text-slate-400 font-normal">(Shown on bottom card)</span>
                     </label>
@@ -600,7 +880,6 @@ export default function ListingEditorPage() {
               </div>
             </div>
           </div>
-        </div>
 
           {/* Section 2: Photos & Media */}
           <div className="bg-white dark:bg-[#0f1624] rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-sm overflow-hidden transition-all hover:shadow-md">
@@ -617,7 +896,7 @@ export default function ListingEditorPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                
+
                 {/* 1. Dedicated Primary Cover Image Dropzone */}
                 <div className="flex flex-col space-y-3">
                   <div className="flex items-center justify-between h-6">
@@ -627,7 +906,7 @@ export default function ListingEditorPage() {
                     </label>
                   </div>
 
-                  <div 
+                  <div
                     onClick={() => document.getElementById('cover-image-upload')?.click()}
                     className="h-44 rounded-2xl border-2 border-dashed border-slate-200 dark:border-white/10 hover:border-[#ff6325] bg-slate-50/70 dark:bg-[#162033] flex flex-col items-center justify-center cursor-pointer transition-all relative overflow-hidden group shadow-inner"
                   >
@@ -649,9 +928,9 @@ export default function ListingEditorPage() {
                     )}
                   </div>
 
-                  <input 
+                  <input
                     id="cover-image-upload"
-                    type="file" 
+                    type="file"
                     className="hidden"
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
@@ -699,7 +978,7 @@ export default function ListingEditorPage() {
                   </div>
 
                   {/* Bulk / Folder Dropzone */}
-                  <div 
+                  <div
                     onClick={() => document.getElementById('gallery-bulk-upload')?.click()}
                     className="h-44 rounded-2xl border-2 border-dashed border-slate-200 dark:border-white/10 hover:border-[#ff6325] bg-slate-50/70 dark:bg-[#162033] flex flex-col items-center justify-center cursor-pointer transition-all relative overflow-hidden group shadow-inner"
                   >
@@ -711,16 +990,16 @@ export default function ListingEditorPage() {
                         Upload Folder or Select Multiple Photos
                       </span>
                       <span className="text-[10px] text-slate-400 mt-0.5 block">
-                        {isTurfCategory 
+                        {isTurfCategory
                           ? 'Select photos of Pitch Grass, Goal Posts, Floodlights, Dugout'
                           : 'Select multiple files together (Bedroom, Jacuzzi, Balcony, Sunset View)'}
                       </span>
                     </div>
                   </div>
 
-                  <input 
+                  <input
                     id="gallery-bulk-upload"
-                    type="file" 
+                    type="file"
                     multiple
                     className="hidden"
                     onChange={async (e) => {
@@ -803,12 +1082,11 @@ export default function ListingEditorPage() {
                     </div>
                     <div className="flex flex-wrap gap-2.5 max-h-40 overflow-y-auto custom-scrollbar p-1">
                       {galleryImages.map((img, idx) => (
-                        <div 
+                        <div
                           key={idx}
                           onClick={() => setImageUrl(img)}
-                          className={`h-16 w-20 rounded-xl relative overflow-hidden group cursor-pointer border-2 transition-all ${
-                            img === imageUrl ? 'border-[#ff6325] ring-2 ring-[#ff6325]/30' : 'border-slate-200 dark:border-white/10 hover:border-slate-400'
-                          }`}
+                          className={`h-16 w-20 rounded-xl relative overflow-hidden group cursor-pointer border-2 transition-all ${img === imageUrl ? 'border-[#ff6325] ring-2 ring-[#ff6325]/30' : 'border-slate-200 dark:border-white/10 hover:border-slate-400'
+                            }`}
                         >
                           <img src={img} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover" />
                           {img === imageUrl && (
@@ -865,44 +1143,46 @@ export default function ListingEditorPage() {
                     isTurfCategory
                       ? "e.g. FIFA certified 50mm monofilament turf, high-intensity LED floodlights, professional dugout, complimentary match bibs and ball, shower facilities..."
                       : isHotel
-                      ? "e.g. Well-ventilated modern room featuring comfortable bedding, clean attached washroom with 24/7 hot water, work desk, high-speed WiFi, and daily housekeeping..."
-                      : isCamping
-                      ? "e.g. Weatherproof pitched dome tent with foam sleeping mats, clean sleeping bags, campfire setup, shared washrooms, and starry night outdoor BBQ..."
-                      : "e.g. Spacious beachfront villa featuring private plunge pool, king-size bed, sunset sea views, complimentary breakfast, and signature bath amenities..."
+                        ? "e.g. Well-ventilated modern room featuring comfortable bedding, clean attached washroom with 24/7 hot water, work desk, high-speed WiFi, and daily housekeeping..."
+                        : isCamping
+                          ? "e.g. Weatherproof pitched dome tent with foam sleeping mats, clean sleeping bags, campfire setup, shared washrooms, and starry night outdoor BBQ..."
+                          : "e.g. Spacious beachfront villa featuring private plunge pool, king-size bed, sunset sea views, complimentary breakfast, and signature bath amenities..."
                   }
                   rows={3}
                   className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-medium text-xs focus:border-[#ff6325] focus:bg-white dark:focus:bg-[#131d2e] outline-none transition-all shadow-xs"
                 />
               </div>
 
-              {/* Complimentary / Included Gear or Inclusions */}
-              <div>
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2">
-                  {isTurfCategory 
-                    ? '⚽ Complimentary / Included Playing Gear' 
-                    : isHotel
-                    ? '🎁 Complimentary Welcome Pack & Free Inclusions'
-                    : 'Included Amenities / Welcome Gear'}
-                </label>
-                <input
-                  type="text"
-                  value={equipmentAddons}
-                  onChange={(e) => setEquipmentAddons(e.target.value)}
-                  placeholder={
-                    isTurfCategory
-                      ? "e.g. 2 Match Balls (Size 5), 14 Team Bibs (Neon Green & Orange), Goalkeeper Gloves"
+              {/* Complimentary / Included Gear or Inclusions (Hotels, Turfs & Camps only - PG handles this cleanly in Step 4) */}
+              {!isPgOrHostel && (
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2">
+                    {isTurfCategory
+                      ? '⚽ Complimentary / Included Playing Gear'
                       : isHotel
-                      ? "e.g. RO Drinking Water, High-Speed WiFi, Clean Towels & Bath Soap, Electric Kettle"
-                      : isCamping
-                      ? "e.g. Sleeping Bags, Flashlight & Lanterns, Campfire Wood, Mineral Water"
-                      : "e.g. Welcome Drinks, High-Speed WiFi, Beach Towels, Snorkeling Kit"
-                  }
-                  className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-medium text-xs focus:border-[#ff6325] outline-none transition-all shadow-xs"
-                />
-                <span className="text-[11px] text-slate-400 mt-1 block">
-                  Items you provide for free with this booking (displayed in the green banner on the customer page).
-                </span>
-              </div>
+                        ? '🎁 Complimentary Welcome Pack & Free Inclusions'
+                        : 'Included Amenities / Welcome Gear'}
+                  </label>
+                  <input
+                    type="text"
+                    value={equipmentAddons}
+                    onChange={(e) => setEquipmentAddons(e.target.value)}
+                    placeholder={
+                      isTurfCategory
+                        ? "e.g. 2 Match Balls (Size 5), 14 Team Bibs (Neon Green & Orange), Goalkeeper Gloves"
+                        : isHotel
+                          ? "e.g. RO Drinking Water, High-Speed WiFi, Clean Towels & Bath Soap, Electric Kettle"
+                          : isCamping
+                            ? "e.g. Sleeping Bags, Flashlight & Lanterns, Campfire Wood, Mineral Water"
+                            : "e.g. Welcome Drinks, High-Speed WiFi, Beach Towels, Snorkeling Kit"
+                    }
+                    className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-medium text-xs focus:border-[#ff6325] outline-none transition-all shadow-xs"
+                  />
+                  <span className="text-[11px] text-slate-400 mt-1 block">
+                    Items you provide for free with this booking (displayed in the green banner on the customer page).
+                  </span>
+                </div>
+              )}
 
               <div className="pt-2">
                 <div className="flex items-center justify-between mb-3 bg-slate-50 dark:bg-white/[0.03] p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10">
@@ -911,13 +1191,13 @@ export default function ListingEditorPage() {
                       {isTurfCategory ? 'Optional Turf Add-ons' : 'Optional Unit Add-ons'}
                     </span>
                     <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                      {isTurfCategory 
-                        ? 'Match Referee, Mineral Water Dispenser, Extra Match Ball, Video Recording' 
+                      {isTurfCategory
+                        ? 'Match Referee, Mineral Water Dispenser, Extra Match Ball, Video Recording'
                         : isHotel
-                        ? 'Buffet Breakfast, Extra Rollaway Bed, Airport Drop Taxi, Late Checkout'
-                        : isCamping
-                        ? 'BBQ Grill Kit, Extra Sleeping Bag, Guided Night Trek, Bonfire Wood'
-                        : 'Extra Bed, BBQ Setup, Candlelight Dinner, Airport Pickup'}
+                          ? 'Homely 3 Meals (Breakfast/Lunch/Dinner), Extra Pillow & Blanket, Covered Parking'
+                          : isCamping
+                            ? 'BBQ Grill Kit, Extra Sleeping Bag, Guided Night Trek, Bonfire Wood'
+                            : 'Homely Meals (Mess), Extra Bed, BBQ Setup, Candlelight Dinner, Airport Pickup'}
                     </span>
                   </div>
                   <button
@@ -929,54 +1209,54 @@ export default function ListingEditorPage() {
                   </button>
                 </div>
 
-              {addons.length > 0 ? (
-                <div className="space-y-2.5">
-                  {addons.map((addon, idx) => (
-                    <div key={idx} className="flex items-center gap-2.5">
-                      <input
-                        type="text"
-                        placeholder={
-                          isTurfCategory 
-                            ? "Add-on item (e.g. Match Referee / Video Recording / Energy Drinks)" 
-                            : archetype === 'APPOINTMENT'
-                            ? "Add-on service (e.g. Blood Sugar Test / ECG / Diet Plan)"
-                            : "Add-on item (e.g. Extra Bed / Candlelight Dinner / Airport Pickup)"
-                        }
-                        value={addon.name}
-                        onChange={(e) => {
-                          const next = [...addons];
-                          next[idx].name = e.target.value;
-                          setAddons(next);
-                        }}
-                        className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-xs font-medium outline-none text-slate-900 dark:text-white"
-                      />
-                      <div className="relative w-32">
-                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">₹</span>
+                {addons.length > 0 ? (
+                  <div className="space-y-2.5">
+                    {addons.map((addon, idx) => (
+                      <div key={idx} className="flex items-center gap-2.5">
                         <input
-                          type="number"
-                          placeholder="Price"
-                          value={addon.price || ''}
+                          type="text"
+                          placeholder={
+                            isTurfCategory
+                              ? "Add-on item (e.g. Match Referee / Video Recording / Energy Drinks)"
+                              : archetype === 'APPOINTMENT'
+                                ? "Add-on service (e.g. Blood Sugar Test / ECG / Diet Plan)"
+                                : "Add-on item (e.g. Extra Bed / Candlelight Dinner / Airport Pickup)"
+                          }
+                          value={addon.name}
                           onChange={(e) => {
                             const next = [...addons];
-                            next[idx].price = Number(e.target.value);
+                            next[idx].name = e.target.value;
                             setAddons(next);
                           }}
-                          className="w-full pl-8 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-xs font-bold outline-none text-slate-900 dark:text-white"
+                          className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-xs font-medium outline-none text-slate-900 dark:text-white"
                         />
+                        <div className="relative w-32">
+                          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">₹</span>
+                          <input
+                            type="number"
+                            placeholder="Price"
+                            value={addon.price || ''}
+                            onChange={(e) => {
+                              const next = [...addons];
+                              next[idx].price = Number(e.target.value);
+                              setAddons(next);
+                            }}
+                            className="w-full pl-8 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-xs font-bold outline-none text-slate-900 dark:text-white"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setAddons(prev => prev.filter((_, i) => i !== idx))}
+                          className="h-9 w-9 rounded-xl bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                        >
+                          <X size={15} />
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => setAddons(prev => prev.filter((_, i) => i !== idx))}
-                        className="h-9 w-9 rounded-xl bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
-                      >
-                        <X size={15} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-slate-400 italic">No add-ons added yet. Click &quot;Add Add-on&quot; to configure optional upsells.</p>
-              )}
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400 italic">No add-ons added yet. Click &quot;Add Add-on&quot; to configure optional upsells.</p>
+                )}
               </div>
             </div>
           </div>
@@ -995,7 +1275,7 @@ export default function ListingEditorPage() {
                 <span className="text-[11px] font-bold text-slate-400">Step 4 of 4</span>
               </div>
 
-              <DynamicForm 
+              <DynamicForm
                 archetype={archetype}
                 categoryName={category?.name || ''}
                 merchantCategory={currentMerchant?.category || ''}
@@ -1028,7 +1308,7 @@ export default function ListingEditorPage() {
             </div>
 
             <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-              <button 
+              <button
                 type="button"
                 onClick={() => router.push(`/workspace/my-services/${serviceId}`)}
                 className="px-5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 font-bold text-xs cursor-pointer transition-colors"
@@ -1036,7 +1316,7 @@ export default function ListingEditorPage() {
                 Cancel
               </button>
 
-              <button 
+              <button
                 type="button"
                 onClick={handleSaveDetails}
                 className="flex items-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md shadow-[#ff6325]/20 active:scale-95 cursor-pointer"
@@ -1050,7 +1330,7 @@ export default function ListingEditorPage() {
 
         {/* Right Column: Sticky Live Customer View Mockup (4 Cols) */}
         <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
-          
+
           {/* Card: Customer Card Real-Time Preview */}
           <div className="bg-white dark:bg-[#0f1624] rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-lg overflow-hidden p-6 space-y-5">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/5">
@@ -1067,9 +1347,9 @@ export default function ListingEditorPage() {
 
             {/* Exact Agoda-style Live Customer Booking Card Preview */}
             <div className="rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden bg-white dark:bg-[#162033] shadow-md p-4 space-y-4">
-              
+
               {/* Photo with Units Badge & Image Pill */}
-              <div 
+              <div
                 className="h-44 w-full relative rounded-xl overflow-hidden bg-cover bg-center bg-slate-800"
                 style={{
                   backgroundImage: `url("${imageUrl || (galleryImages.length > 0 ? galleryImages[0] : (isTurfCategory ? 'https://images.unsplash.com/photo-1574629810360-7efbb49fec90?w=800&auto=format&fit=crop&q=80' : 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop&q=80'))}"), linear-gradient(135deg, ${isTurfCategory ? '#0d381e, #1a5632' : '#1e293b, #0f172a'})`
@@ -1079,8 +1359,8 @@ export default function ListingEditorPage() {
                 <div className="absolute top-2.5 left-2.5 bg-[#033266]/90 dark:bg-[#ff6325]/90 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] font-black text-white flex items-center gap-1 shadow-md z-10">
                   <Users size={11} />
                   <span>
-                    {metadata.totalUnits 
-                      ? `${metadata.totalUnits} ${isTurfCategory ? (Number(metadata.totalUnits) > 1 ? 'PITCHES OPEN' : 'PITCH AVAILABLE') : 'UNITS LEFT'}` 
+                    {metadata.totalUnits
+                      ? `${metadata.totalUnits} ${isTurfCategory ? (Number(metadata.totalUnits) > 1 ? 'PITCHES OPEN' : 'PITCH AVAILABLE') : 'UNITS LEFT'}`
                       : (isTurfCategory ? 'PITCH AVAILABLE' : '3 UNITS LEFT')}
                   </span>
                 </div>
@@ -1103,11 +1383,11 @@ export default function ListingEditorPage() {
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-1 leading-relaxed">
-                  {description.trim() 
-                    ? description 
-                    : (isTurfCategory 
-                        ? 'FIFA certified astro turf with high-mast floodlights, dugout seating, and match ball gear.'
-                        : 'Spacious modern unit featuring premium bedding, clean washroom, and essential hospitality amenities.')}
+                  {description.trim()
+                    ? description
+                    : (isTurfCategory
+                      ? 'FIFA certified astro turf with high-mast floodlights, dugout seating, and match ball gear.'
+                      : 'Spacious modern unit featuring premium bedding, clean washroom, and essential hospitality amenities.')}
                 </p>
               </div>
 
@@ -1276,17 +1556,17 @@ export default function ListingEditorPage() {
                         ₹{basePrice ? Number(basePrice).toLocaleString() : '0'}
                       </span>
                       <span className="text-[10px] text-slate-400">
-                        {isTurfCategory ? '/ hour' : archetype === 'ACCOMMODATION' ? '/ night' : archetype === 'ASSET_RENTAL' ? '/ day' : archetype === 'APPOINTMENT' ? '/ consult' : '/ person'}
+                        {isPgOrHostel ? (priceUnit || 'monthly rent (all inclusive)') : isTurfCategory ? '/ hour' : archetype === 'ACCOMMODATION' ? (priceUnit || '/ night') : archetype === 'ASSET_RENTAL' ? '/ day' : archetype === 'APPOINTMENT' ? '/ consult' : '/ person'}
                       </span>
                     </div>
                   </div>
 
-                  <button 
-                    type="button" 
-                    disabled 
-                    className="px-4 py-2 rounded-xl bg-[#033266] dark:bg-[#ff6325] text-white text-[11px] font-black uppercase tracking-wider shadow-sm opacity-90 cursor-default"
+                  <button
+                    type="button"
+                    disabled
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#f4511e] text-white text-[11px] font-black uppercase tracking-wider shadow-sm opacity-90 cursor-default"
                   >
-                    {isTurfCategory ? 'BOOK SLOT →' : archetype === 'ACCOMMODATION' ? 'BOOK ROOM →' : archetype === 'APPOINTMENT' ? 'BOOK APPOINTMENT →' : archetype === 'DINING' ? 'RESERVE TABLE →' : archetype === 'ASSET_RENTAL' ? 'RENT NOW →' : 'BOOK NOW →'}
+                    {isPgOrHostel ? 'SELECT BED & BOOK →' : isTurfCategory ? 'BOOK SLOT →' : archetype === 'ACCOMMODATION' ? 'BOOK ROOM →' : archetype === 'APPOINTMENT' ? 'BOOK APPOINTMENT →' : archetype === 'DINING' ? 'RESERVE TABLE →' : archetype === 'ASSET_RENTAL' ? 'RENT NOW →' : 'BOOK NOW →'}
                   </button>
                 </div>
 
@@ -1299,7 +1579,7 @@ export default function ListingEditorPage() {
               </div>
 
               {/* Getaway / Turf Showcase Banner Preview */}
-              <div 
+              <div
                 className="h-24 rounded-xl overflow-hidden relative shadow-inner border border-slate-200 dark:border-white/10 bg-cover bg-center"
                 style={{
                   backgroundImage: `url("${imageUrl || (galleryImages.length > 0 ? galleryImages[0] : (isTurfCategory ? 'https://images.unsplash.com/photo-1574629810360-7efbb49fec90?w=800&auto=format&fit=crop&q=80' : 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop&q=80'))}"), linear-gradient(135deg, ${isTurfCategory ? '#0d381e, #1a5632' : '#1e293b, #0f172a'})`

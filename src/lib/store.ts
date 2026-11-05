@@ -158,6 +158,10 @@ export interface CatalogListing {
   offerBadge?: string;
   priceUnit?: string; // e.g. '/ night', '/ month (monthly rent)', 'monthly rent (all inclusive)', '/ hour', '/ day'
   securityDeposit?: number; // Refundable security deposit
+  isTokenAdvanceEnabled?: boolean; // Allow locking bed / unit with partial advance
+  tokenAdvanceAmount?: number; // Amount to hold / lock bed (e.g. ₹999 or ₹1,500)
+  foodFacilityProvided?: boolean; // Mess / Food provided or optional
+  foodDeductionAmount?: number; // Amount deducted when resident opts out of mess (e.g. ₹1,500/month)
   duration?: number;
   active?: boolean;
 
@@ -604,10 +608,64 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     merchantName: 'Backpackers Hostel',
     category: 'Hostel Booking',
     logoLetter: 'B',
-    aboutText: 'Welcome to Backpackers Hostel. We provide professional Hostel Booking services.',
+    aboutText: 'Welcome to Backpackers Hostel. Clean, safe, and vibrant hostel & PG accommodation for students, backpackers, and working professionals.',
     vendorId: '20260003',
     email: 'h104@bnxmail.com',
-    archetype: 'Accommodation'
+    archetype: 'Accommodation',
+    thingsToKnow: [
+      'High-Speed Wi-Fi',
+      'Washing Machine & Laundry',
+      'RO Purified Drinking Water',
+      '3 Times Homely Meals',
+      '24/7 CCTV & Biometric Security',
+      'Daily Housekeeping',
+      'Two-Wheeler Parking'
+    ],
+    policies: [
+      'Valid Government Photo ID (Aadhaar / Passport) and College/Office ID required at check-in.',
+      'Notice Period: 15 / 30 days mandatory notice before vacating bed.',
+      'Monthly rent to be paid on or before the 5th of every calendar month.',
+      'Strictly no smoking, alcohol, or substance consumption inside rooms or corridors.',
+      'Day visitors allowed only in the common lounge area up to 8:00 PM.'
+    ],
+    highlights: [
+      {
+        title: '3 Times Homely Hygienic Food',
+        description: 'Nutritious breakfast, lunch, and dinner cooked fresh daily with both veg and non-veg options.',
+        icon: '🍳'
+      },
+      {
+        title: 'High-Speed Wi-Fi & Work Lounge',
+        description: 'Dedicated study space and high-speed fiber internet ideal for remote work and students.',
+        icon: '📶'
+      },
+      {
+        title: '24/7 Biometric & CCTV Security',
+        description: 'Safe environment with biometric door entry and CCTV surveillance in common areas.',
+        icon: '🛡️'
+      },
+      {
+        title: 'Daily Housekeeping & Laundry',
+        description: 'Fully automatic washing machines, drying area, and regular deep room cleaning.',
+        icon: '✨'
+      }
+    ],
+    isPetFriendly: false,
+    isLuxeVerified: false,
+    isMysteryModeOptIn: false,
+    luggageHourlyRate: 49,
+    metadata: {
+      isLuggageStorageEnabled: true,
+      luggageHourlyRate: 49,
+      luggageDayPassRate: 199,
+      isPetFriendly: false,
+      isMysteryModeOptIn: false,
+      isPgProperty: true,
+      pgGenderType: 'gents',
+      pgFoodIncluded: true,
+      pgGateCurfew: '24/7 Biometric Entry (No Curfew)',
+      pgNoticePeriod: '15 Days'
+    }
   },
   {
     id: 'a1f48aa6-72ae-8830-257a-5d3c190bebf8',
