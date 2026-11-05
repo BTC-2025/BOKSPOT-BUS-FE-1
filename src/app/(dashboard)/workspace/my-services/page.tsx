@@ -495,6 +495,7 @@ export default function WorkspacePage() {
                         city: activeBranch.city || currentMerchant.city || 'Chennai',
                         rating: 5,
                         reviews: 0,
+                        bookingsCount: 0,
                         description: `Primary bookable units for ${cat}`,
                         status: 'ACTIVE',
                         listings: []

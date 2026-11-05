@@ -182,7 +182,7 @@ export interface CatalogListing {
   isOffersEnabled?: boolean;
   offersAndDiscounts?: string;
   metadata?: Record<string, any>;
-  schedule?: Array<{ dayOfWeek: string; startTime: string; endTime: string; price: number }>;
+  schedule?: Array<{ dayOfWeek?: string; specificDate?: string; startTime: string; endTime: string; price: number }>;
 }
 
 export interface SupportTicket {
@@ -1385,6 +1385,27 @@ export const VENDOR_ACCOUNTS = [
   { username: 'vendor123', passwordHash: 'vendorpass123' }
 ];
 
+function sanitizeMerchantForStorage(m: any) {
+  if (!m) return m;
+  const clone = { ...m };
+  if (Array.isArray(clone.gallery)) {
+    // Only keep up to 4 preview images and cap base64 size in localStorage
+    clone.gallery = clone.gallery.slice(0, 4).map((img: string) => {
+      if (typeof img === 'string' && img.startsWith('data:image') && img.length > 50000) {
+        return img.slice(0, 50000); // truncate overly bloated raw base64 to avoid quota overflow
+      }
+      return img;
+    });
+  }
+  if (clone.metadata?.gallery && Array.isArray(clone.metadata.gallery)) {
+    clone.metadata = {
+      ...clone.metadata,
+      gallery: clone.metadata.gallery.slice(0, 4)
+    };
+  }
+  return clone;
+}
+
 export const useVendorStore = create<VendorStoreState>()(
   persist(
     (set, get) => ({
@@ -1506,13 +1527,33 @@ export const useVendorStore = create<VendorStoreState>()(
   }),
 
   updateMerchantProfile: async (merchantId, profileData) => {
-    // 1. Update local state immediately for optimistic UI
-    set((state) => ({
-      customMerchants: { ...state.customMerchants, [merchantId]: { ...(state.customMerchants[merchantId] || {}), ...profileData } },
-      currentMerchant: state.currentMerchant?.id === merchantId 
-        ? { ...state.currentMerchant, ...profileData }
-        : state.currentMerchant
-    }));
+    // 1. Update local state immediately for optimistic UI with storage overflow protection
+    try {
+      set((state) => ({
+        customMerchants: { ...state.customMerchants, [merchantId]: { ...(state.customMerchants[merchantId] || {}), ...profileData } },
+        currentMerchant: state.currentMerchant?.id === merchantId 
+          ? { ...state.currentMerchant, ...profileData }
+          : state.currentMerchant
+      }));
+    } catch (storageErr) {
+      console.warn('Quota exceeded in optimistic store set, clearing old cache keys:', storageErr);
+      if (typeof window !== 'undefined') {
+        try {
+          // Clear bloated preview keys
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (key.startsWith('venue_gallery_') || key.includes('cache'))) {
+              localStorage.removeItem(key);
+            }
+          }
+        } catch {}
+      }
+      set((state) => ({
+        currentMerchant: state.currentMerchant?.id === merchantId 
+          ? { ...state.currentMerchant, ...profileData }
+          : state.currentMerchant
+      }));
+    }
 
     // 2. Sync to Backend Database
     try {
@@ -2422,12 +2463,15 @@ export const useVendorStore = create<VendorStoreState>()(
       name: 'vendor-portal-storage-v10',
       // partialize prevents massive catalogs, heavy base64 images, and tickets from overflowing 5MB localStorage quota
       partialize: (state) => ({
-        currentMerchant: state.currentMerchant,
+        currentMerchant: sanitizeMerchantForStorage(state.currentMerchant),
         loginRole: state.loginRole,
         supervisorId: state.supervisorId,
         currentStaff: state.currentStaff,
         theme: state.theme,
-        customMerchants: state.customMerchants,
+        customMerchants: Object.keys(state.customMerchants || {}).reduce((acc: any, k) => {
+          acc[k] = sanitizeMerchantForStorage(state.customMerchants[k]);
+          return acc;
+        }, {}),
         staffAccounts: state.staffAccounts,
         registeredMerchants: state.registeredMerchants
       }),

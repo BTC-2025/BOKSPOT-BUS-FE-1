@@ -407,6 +407,7 @@ export default function VenueProfilePage() {
         const valStr = String(isLuggageStorageEnabled);
 
         localStorage.setItem(`hotel_mystery_optin_${id}`, String(isMysteryModeOptIn));
+        if (uname) localStorage.setItem(`hotel_mystery_optin_${uname}`, String(isMysteryModeOptIn));
         localStorage.setItem('hotel_mystery_optin_default', String(isMysteryModeOptIn));
         
         // Multi-key sync so H101 / UUID / default never get out of sync
@@ -423,10 +424,15 @@ export default function VenueProfilePage() {
         if (uname) localStorage.setItem(`hotel_luggage_daypass_${uname}`, String(luggageDayPassRate));
         localStorage.setItem('hotel_luggage_daypass_default', String(luggageDayPassRate));
 
-        // Venue photo gallery sync to localStorage for instant customer preview
-        localStorage.setItem(`venue_gallery_${id}`, JSON.stringify(gallery));
-        if (uname) localStorage.setItem(`venue_gallery_${uname}`, JSON.stringify(gallery));
-        localStorage.setItem('venue_gallery_default', JSON.stringify(gallery));
+        // Venue photo gallery sync to localStorage for instant customer preview (capped to avoid 5MB quota overflow)
+        try {
+          const safeGallery = (gallery || []).slice(0, 4);
+          localStorage.setItem(`venue_gallery_${id}`, JSON.stringify(safeGallery));
+          if (uname) localStorage.setItem(`venue_gallery_${uname}`, JSON.stringify(safeGallery));
+          localStorage.setItem('venue_gallery_default', JSON.stringify(safeGallery));
+        } catch (storageErr) {
+          console.warn('Skipping heavy gallery cache to avoid localStorage QuotaExceededError');
+        }
 
         // PG & Coliving configurations localStorage sync
         const pgConfig = {
@@ -441,6 +447,7 @@ export default function VenueProfilePage() {
         localStorage.setItem('pg_config_default', JSON.stringify(pgConfig));
 
         // Dispatch instant events for other components and tabs
+        window.dispatchEvent(new CustomEvent('hotel_mystery_toggle', { detail: { enabled: isMysteryModeOptIn, merchantId: id } }));
         window.dispatchEvent(new CustomEvent('hotel_luggage_toggle', { detail: { enabled: isLuggageStorageEnabled, merchantId: id } }));
         window.dispatchEvent(new CustomEvent('pg_config_updated', { detail: { ...pgConfig, merchantId: id } }));
         window.dispatchEvent(new CustomEvent('venue_gallery_updated', { detail: { gallery, merchantId: id } }));
@@ -907,7 +914,8 @@ export default function VenueProfilePage() {
           </div>
         </div>
 
-        {/* 7. BokSpot Luxe™ Certification */}
+        {/* 7. BokSpot Luxe™ Certification — Exclusively for Luxury Hotels, Resorts & Villas (Hidden for Hostels & PG) */}
+        {!isPgProperty && !currentMerchant?.category?.toLowerCase().includes('hostel') && !currentMerchant?.category?.toLowerCase().includes('pg') && !currentMerchant?.merchantName?.toLowerCase().includes('hostel') && (
         <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all space-y-4">
           {(() => {
             const guestRating = Number((currentMerchant as any)?.rating || (currentMerchant as any)?.metadata?.rating || 4.8);
@@ -1031,6 +1039,7 @@ export default function VenueProfilePage() {
             );
           })()}
         </div>
+        )}
 
 
 
