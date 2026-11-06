@@ -67,6 +67,67 @@ export default function VenueProfilePage() {
     return currentMerchant?.metadata?.pgNoticePeriod || '15 Days';
   });
 
+  // Dedicated Women's / Ladies PG Security & Comfort States
+  const [hasLadyWarden, setHasLadyWarden] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.hasLadyWarden ?? true;
+  });
+  const [zeroMaleFloorAccess, setZeroMaleFloorAccess] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.zeroMaleFloorAccess ?? true;
+  });
+  const [hasReceptionVisitorLobby, setHasReceptionVisitorLobby] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.hasReceptionVisitorLobby ?? true;
+  });
+  const [hasParentsDaytimeLounge, setHasParentsDaytimeLounge] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.hasParentsDaytimeLounge ?? true;
+  });
+  const [hasPeriodEmergencyKit, setHasPeriodEmergencyKit] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.hasPeriodEmergencyKit ?? true;
+  });
+  const [hasPrivateDryingZone, setHasPrivateDryingZone] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.hasPrivateDryingZone ?? true;
+  });
+  const [hasVanityMirrorSocket, setHasVanityMirrorSocket] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.hasVanityMirrorSocket ?? true;
+  });
+  const [hasPackedLunchBox, setHasPackedLunchBox] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.hasPackedLunchBox ?? true;
+  });
+  const [hasContactlessParcelHub, setHasContactlessParcelHub] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.hasContactlessParcelHub ?? true;
+  });
+  const [parentMotherStayAllowed, setParentMotherStayAllowed] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.parentMotherStayAllowed ?? true;
+  });
+
+  // Dedicated Co-Living Lifestyle & Remote Work States
+  const [hasCoworkingLounge, setHasCoworkingLounge] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.hasCoworkingLounge ?? true;
+  });
+  const [hasHighSpeedDualWifi, setHasHighSpeedDualWifi] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.hasHighSpeedDualWifi ?? true;
+  });
+  const [hasFullPowerBackup, setHasFullPowerBackup] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.hasFullPowerBackup ?? true;
+  });
+  const [hasGamingLounge, setHasGamingLounge] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.hasGamingLounge ?? true;
+  });
+  const [hasRooftopCafe, setHasRooftopCafe] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.hasRooftopCafe ?? true;
+  });
+  const [hasModularKitchen, setHasModularKitchen] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.hasModularKitchen ?? true;
+  });
+  const [hasFitnessGym, setHasFitnessGym] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.hasFitnessGym ?? true;
+  });
+  const [hasCommercialDryerLaundry, setHasCommercialDryerLaundry] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.hasCommercialDryerLaundry ?? true;
+  });
+  const [hasEvChargingPoint, setHasEvChargingPoint] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.hasEvChargingPoint ?? false;
+  });
+
   const [luggageHourlyRate, setLuggageHourlyRate] = useState<number>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -279,6 +340,63 @@ export default function VenueProfilePage() {
             if (data.metadata?.pgNoticePeriod) {
               setPgNoticePeriod(data.metadata.pgNoticePeriod);
             }
+            if (data.metadata?.hasLadyWarden !== undefined) {
+              setHasLadyWarden(Boolean(data.metadata.hasLadyWarden));
+            }
+            if (data.metadata?.zeroMaleFloorAccess !== undefined) {
+              setZeroMaleFloorAccess(Boolean(data.metadata.zeroMaleFloorAccess));
+            }
+            if (data.metadata?.hasReceptionVisitorLobby !== undefined) {
+              setHasReceptionVisitorLobby(Boolean(data.metadata.hasReceptionVisitorLobby));
+            }
+            if (data.metadata?.hasParentsDaytimeLounge !== undefined) {
+              setHasParentsDaytimeLounge(Boolean(data.metadata.hasParentsDaytimeLounge));
+            }
+            if (data.metadata?.hasPeriodEmergencyKit !== undefined) {
+              setHasPeriodEmergencyKit(Boolean(data.metadata.hasPeriodEmergencyKit));
+            }
+            if (data.metadata?.hasPrivateDryingZone !== undefined) {
+              setHasPrivateDryingZone(Boolean(data.metadata.hasPrivateDryingZone));
+            }
+            if (data.metadata?.hasVanityMirrorSocket !== undefined) {
+              setHasVanityMirrorSocket(Boolean(data.metadata.hasVanityMirrorSocket));
+            }
+            if (data.metadata?.hasPackedLunchBox !== undefined) {
+              setHasPackedLunchBox(Boolean(data.metadata.hasPackedLunchBox));
+            }
+            if (data.metadata?.hasContactlessParcelHub !== undefined) {
+              setHasContactlessParcelHub(Boolean(data.metadata.hasContactlessParcelHub));
+            }
+            if (data.metadata?.parentMotherStayAllowed !== undefined) {
+              setParentMotherStayAllowed(Boolean(data.metadata.parentMotherStayAllowed));
+            }
+            if (data.metadata?.hasCoworkingLounge !== undefined) {
+              setHasCoworkingLounge(Boolean(data.metadata.hasCoworkingLounge));
+            }
+            if (data.metadata?.hasHighSpeedDualWifi !== undefined) {
+              setHasHighSpeedDualWifi(Boolean(data.metadata.hasHighSpeedDualWifi));
+            }
+            if (data.metadata?.hasFullPowerBackup !== undefined) {
+              setHasFullPowerBackup(Boolean(data.metadata.hasFullPowerBackup));
+            }
+            if (data.metadata?.hasGamingLounge !== undefined) {
+              setHasGamingLounge(Boolean(data.metadata.hasGamingLounge));
+            }
+            if (data.metadata?.hasRooftopCafe !== undefined) {
+              setHasRooftopCafe(Boolean(data.metadata.hasRooftopCafe));
+            }
+            if (data.metadata?.hasModularKitchen !== undefined) {
+              setHasModularKitchen(Boolean(data.metadata.hasModularKitchen));
+            }
+            if (data.metadata?.hasFitnessGym !== undefined) {
+              setHasFitnessGym(Boolean(data.metadata.hasFitnessGym));
+            }
+            if (data.metadata?.hasCommercialDryerLaundry !== undefined) {
+              setHasCommercialDryerLaundry(Boolean(data.metadata.hasCommercialDryerLaundry));
+            }
+            if (data.metadata?.hasEvChargingPoint !== undefined) {
+              setHasEvChargingPoint(Boolean(data.metadata.hasEvChargingPoint));
+            }
           }
         } catch (err) {
           console.error('Failed to fetch merchant profile', err);
@@ -397,6 +515,25 @@ export default function VenueProfilePage() {
         pgFoodIncluded,
         pgGateCurfew,
         pgNoticePeriod,
+        hasLadyWarden,
+        zeroMaleFloorAccess,
+        hasReceptionVisitorLobby,
+        hasParentsDaytimeLounge,
+        hasPeriodEmergencyKit,
+        hasPrivateDryingZone,
+        hasVanityMirrorSocket,
+        hasPackedLunchBox,
+        hasContactlessParcelHub,
+        parentMotherStayAllowed,
+        hasCoworkingLounge,
+        hasHighSpeedDualWifi,
+        hasFullPowerBackup,
+        hasGamingLounge,
+        hasRooftopCafe,
+        hasModularKitchen,
+        hasFitnessGym,
+        hasCommercialDryerLaundry,
+        hasEvChargingPoint,
       }
     } as any);
 
@@ -440,7 +577,26 @@ export default function VenueProfilePage() {
           pgGenderType,
           pgFoodIncluded,
           pgGateCurfew,
-          pgNoticePeriod
+          pgNoticePeriod,
+          hasLadyWarden,
+          zeroMaleFloorAccess,
+          hasReceptionVisitorLobby,
+          hasParentsDaytimeLounge,
+          hasPeriodEmergencyKit,
+          hasPrivateDryingZone,
+          hasVanityMirrorSocket,
+          hasPackedLunchBox,
+          hasContactlessParcelHub,
+          parentMotherStayAllowed,
+          hasCoworkingLounge,
+          hasHighSpeedDualWifi,
+          hasFullPowerBackup,
+          hasGamingLounge,
+          hasRooftopCafe,
+          hasModularKitchen,
+          hasFitnessGym,
+          hasCommercialDryerLaundry,
+          hasEvChargingPoint,
         };
         localStorage.setItem(`pg_config_${id}`, JSON.stringify(pgConfig));
         if (uname) localStorage.setItem(`pg_config_${uname}`, JSON.stringify(pgConfig));
@@ -1133,6 +1289,443 @@ export default function VenueProfilePage() {
                 </div>
                 <span className="px-2.5 py-1 rounded-full bg-[#ff6325] text-white text-[10px] font-bold">Active</span>
               </div>
+
+              {/* Dedicated Women's / Ladies PG Security & Living Comfort Controls */}
+              {pgGenderType === 'ladies' && (
+                <div className="pt-4 border-t border-slate-100 dark:border-white/5 space-y-4">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-base">🏢</span>
+                    <div>
+                      <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                        Women's Safety, Privacy & Living Comfort Controls
+                      </h3>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        These verified safety badges display directly to female guests and parents looking for safe accommodations.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    {/* 1. Lady Warden */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <span>👩‍💼</span> 24/7 Resident Lady Warden
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">On-campus lady caretaker for health & security support.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setHasLadyWarden(!hasLadyWarden)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
+                          hasLadyWarden ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                        }`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          hasLadyWarden ? 'translate-x-4.5' : 'translate-x-1'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* 2. Zero Male Floor Access */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <span>🚷</span> Strictly Zero Male Floor Access
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Male visitors strictly prohibited from entering room floors & corridors.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setZeroMaleFloorAccess(!zeroMaleFloorAccess)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
+                          zeroMaleFloorAccess ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                        }`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          zeroMaleFloorAccess ? 'translate-x-4.5' : 'translate-x-1'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* 3. Reception Visitor Lobby */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <span>🛋️</span> Reception Waiting Lobby for Visitors
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Friends, colleagues and delivery persons can meet only in frontdesk reception.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setHasReceptionVisitorLobby(!hasReceptionVisitorLobby)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
+                          hasReceptionVisitorLobby ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                        }`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          hasReceptionVisitorLobby ? 'translate-x-4.5' : 'translate-x-1'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* 4. Parents Daytime Visiting Lounge */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <span>👨‍👩‍👧</span> Parents Daytime Visiting Lounge
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Dedicated family seating lounge during visiting hours (10 AM – 7 PM).</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setHasParentsDaytimeLounge(!hasParentsDaytimeLounge)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
+                          hasParentsDaytimeLounge ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                        }`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          hasParentsDaytimeLounge ? 'translate-x-4.5' : 'translate-x-1'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* 3. Period Emergency Kit & Sanitary Incinerator */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <span>🩸</span> Period Care & Sanitary Dispenser
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Pad vending, electric incinerator & hot water bag relief.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setHasPeriodEmergencyKit(!hasPeriodEmergencyKit)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
+                          hasPeriodEmergencyKit ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                        }`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          hasPeriodEmergencyKit ? 'translate-x-4.5' : 'translate-x-1'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* 4. Private / Covered Cloth Drying Zone */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <span>🧺</span> Private Covered Cloth Drying Zone
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Covered balcony / indoor private racks for undergarments & laundry.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setHasPrivateDryingZone(!hasPrivateDryingZone)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
+                          hasPrivateDryingZone ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                        }`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          hasPrivateDryingZone ? 'translate-x-4.5' : 'translate-x-1'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* 5. Vanity Corner (Mirror + Styling Plug) */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <span>🪞</span> Full Vanity Mirror & Styling Socket
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Full-length mirror with high-watt plug for straightener/dryer.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setHasVanityMirrorSocket(!hasVanityMirrorSocket)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
+                          hasVanityMirrorSocket ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                        }`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          hasVanityMirrorSocket ? 'translate-x-4.5' : 'translate-x-1'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* 6. Packed Lunch Box Provision */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <span>🍱</span> Morning Dabba / Packed Lunch Box
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Early morning packed food for college or office shifts.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setHasPackedLunchBox(!hasPackedLunchBox)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
+                          hasPackedLunchBox ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                        }`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          hasPackedLunchBox ? 'translate-x-4.5' : 'translate-x-1'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* 7. Contactless Parcel Hub at Gate */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <span>📦</span> Contactless Gate Parcel Hub
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Swiggy/Amazon delivery boys strictly kept at security gate.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setHasContactlessParcelHub(!hasContactlessParcelHub)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
+                          hasContactlessParcelHub ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                        }`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          hasContactlessParcelHub ? 'translate-x-4.5' : 'translate-x-1'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* 8. Mother / Sister Guest Stay */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <span>👭</span> Mother / Sister Overnight Stay Allowed
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Female family members can stay overnight with prior intimation.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setParentMotherStayAllowed(!parentMotherStayAllowed)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
+                          parentMotherStayAllowed ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                        }`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          parentMotherStayAllowed ? 'translate-x-4.5' : 'translate-x-1'
+                        }`} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Dedicated Co-Living Lifestyle & Remote Work Amenities Controls */}
+              {(pgGenderType === 'coliving' || pgGenderType === 'unisex') && (
+                <div className="pt-4 border-t border-slate-100 dark:border-white/5 space-y-4">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-base">🏢</span>
+                    <div>
+                      <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                        Co-Living Lifestyle & Remote Work Amenities
+                      </h3>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        Highlighted perks for working professionals, freelancers & digital nomads.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    {/* 1. Coworking Lounge */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <span>💻</span> Dedicated Coworking Lounge / Desks
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Ergonomic seating, charging pods & quiet productivity zone.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setHasCoworkingLounge(!hasCoworkingLounge)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
+                          hasCoworkingLounge ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                        }`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          hasCoworkingLounge ? 'translate-x-4.5' : 'translate-x-1'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* 2. Dual High-Speed Wi-Fi */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <span>🚀</span> Dual High-Speed Wi-Fi (300+ Mbps)
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Dual line ISP failover backup for seamless Zoom/Teams calls.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setHasHighSpeedDualWifi(!hasHighSpeedDualWifi)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
+                          hasHighSpeedDualWifi ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                        }`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          hasHighSpeedDualWifi ? 'translate-x-4.5' : 'translate-x-1'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* 3. 100% Full Power Backup */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <span>⚡</span> 100% Full Power Backup (AC & Wi-Fi)
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Heavy generator support for nonstop AC and workstations.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setHasFullPowerBackup(!hasFullPowerBackup)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
+                          hasFullPowerBackup ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                        }`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          hasFullPowerBackup ? 'translate-x-4.5' : 'translate-x-1'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* 4. Gaming Lounge */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <span>🎮</span> Gaming Lounge (PS5 / TT / Foosball)
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Recreation chill-out zone for community tournaments & bonding.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setHasGamingLounge(!hasGamingLounge)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
+                          hasGamingLounge ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                        }`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          hasGamingLounge ? 'translate-x-4.5' : 'translate-x-1'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* 5. Rooftop Cafe */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <span>☕</span> Rooftop Cafe & Open Deck
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Evening hangout lounge, movie nights & coffee counter.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setHasRooftopCafe(!hasRooftopCafe)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
+                          hasRooftopCafe ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                        }`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          hasRooftopCafe ? 'translate-x-4.5' : 'translate-x-1'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* 6. Modular Kitchen */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <span>🍳</span> Self-Cooking Modular Kitchen
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Induction, microwave, refrigerator & basic pantry utensils.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setHasModularKitchen(!hasModularKitchen)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
+                          hasModularKitchen ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                        }`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          hasModularKitchen ? 'translate-x-4.5' : 'translate-x-1'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* 7. Fitness Gym */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <span>🏋️‍♂️</span> In-House Fitness Gym / Yoga Deck
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Cardio machines, dumbbells and morning yoga space.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setHasFitnessGym(!hasFitnessGym)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
+                          hasFitnessGym ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                        }`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          hasFitnessGym ? 'translate-x-4.5' : 'translate-x-1'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* 8. Commercial Laundry with Dryer */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <span>🧺</span> Commercial Laundry with Heat Dryer
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Automatic washing machines with instant heat tumbling dryers.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setHasCommercialDryerLaundry(!hasCommercialDryerLaundry)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
+                          hasCommercialDryerLaundry ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                        }`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          hasCommercialDryerLaundry ? 'translate-x-4.5' : 'translate-x-1'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* 9. EV Scooter Charging */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <span>⚡🛵</span> Dedicated EV Scooter Charging Point
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Dedicated 16A plug points in parking lot for 2-wheeler EVs.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setHasEvChargingPoint(!hasEvChargingPoint)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
+                          hasEvChargingPoint ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                        }`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          hasEvChargingPoint ? 'translate-x-4.5' : 'translate-x-1'
+                        }`} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
