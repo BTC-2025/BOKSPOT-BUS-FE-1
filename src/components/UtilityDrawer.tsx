@@ -396,16 +396,17 @@ export function UtilityDrawer({
           className="fixed right-0 top-16 bottom-0 z-[10000] flex flex-row overflow-hidden shadow-2xl pointer-events-auto bg-white dark:bg-[#0a0f1d] overscroll-contain"
         >
           {/* Slide-out Left Content Panel (320px) */}
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             {activeTab && (
               <motion.div
-                key={activeTab}
+                key="utility-content-panel"
                 initial={{ opacity: 0, width: 0 }}
                 animate={{ opacity: 1, width: activeTab === 'beta' ? 340 : 320 }}
                 exit={{ opacity: 0, width: 0 }}
                 transition={{ type: 'spring', damping: 28, stiffness: 240 }}
                 className="h-full bg-white dark:bg-[#0b0e14] border-l border-slate-200/80 dark:border-white/10 flex flex-col overflow-hidden select-none shrink-0 overscroll-contain"
               >
+                <div key={activeTab} className="h-full w-full flex flex-col overflow-hidden animate-fade-in">
                 {/* 1. CALENDAR TAB POPUP */}
                 {activeTab === 'calendar' && (
                   <div className="h-full flex flex-col overflow-y-auto custom-scrollbar text-slate-800 dark:text-slate-200 font-sans bg-[#fbfcfd] dark:bg-[#0b0e14]">
@@ -1757,6 +1758,7 @@ export function UtilityDrawer({
                     </div>
                   </div>
                 )}
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
