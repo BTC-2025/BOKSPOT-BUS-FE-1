@@ -36,7 +36,31 @@ export default function ListingEditorPage() {
   const [tokenAdvanceAmount, setTokenAdvanceAmount] = useState('');
   const [foodFacilityProvided, setFoodFacilityProvided] = useState(true);
   const [foodDeductionAmount, setFoodDeductionAmount] = useState('');
-  const [addons, setAddons] = useState<{ name: string, price: number }[]>([]);
+
+  // Tenure Discount Packages for Long-Stay (PG / Hostel Monthly Offers)
+  const [tenureDiscounts, setTenureDiscounts] = useState<{
+    mo3Pct: string;   // % off for 3 months
+    mo3Price: string; // Direct Monthly Rent for 3 months (₹)
+    mo6Pct: string;   // % off for 6 months
+    mo6Price: string; // Direct Monthly Rent for 6 months (₹)
+    mo11Pct: string;  // % off for 11 months
+    mo11Price: string;// Direct Monthly Rent for 11 months (₹)
+  }>({
+    mo3Pct: '5',
+    mo3Price: '',
+    mo6Pct: '10',
+    mo6Price: '',
+    mo11Pct: '15',
+    mo11Price: '',
+  });
+
+  const [addons, setAddons] = useState<{ 
+    name: string; 
+    price: number; 
+    stockType?: 'REUSABLE' | 'CONSUMABLE' | 'UNLIMITED';
+    maxStock?: number;
+    currentStock?: number;
+  }[]>([]);
   const [equipmentAddons, setEquipmentAddons] = useState('');
 
   // GST Tax State for this Listing
@@ -97,6 +121,21 @@ export default function ListingEditorPage() {
           setFoodFacilityProvided(list.metadata?.foodFacilityProvided ?? (list as any).foodFacilityProvided ?? true);
           const existingFoodDed = list.metadata?.foodDeductionAmount ?? (list as any).foodDeductionAmount;
           setFoodDeductionAmount(existingFoodDed !== undefined && existingFoodDed !== null ? existingFoodDed.toString() : '');
+          if (list.metadata?.tenureDiscounts || (list as any).tenureDiscounts) {
+            const td = list.metadata?.tenureDiscounts || (list as any).tenureDiscounts;
+            const bPrice = Number(list.price) || 0;
+            const pct3 = td.mo3Pct ?? td.mo3 ?? 5;
+            const pct6 = td.mo6Pct ?? td.mo6 ?? 10;
+            const pct11 = td.mo11Pct ?? td.mo11 ?? 15;
+            setTenureDiscounts({
+              mo3Pct: pct3.toString(),
+              mo3Price: td.mo3Price ? td.mo3Price.toString() : (bPrice > 0 ? Math.round(bPrice * (1 - Number(pct3) / 100)).toString() : ''),
+              mo6Pct: pct6.toString(),
+              mo6Price: td.mo6Price ? td.mo6Price.toString() : (bPrice > 0 ? Math.round(bPrice * (1 - Number(pct6) / 100)).toString() : ''),
+              mo11Pct: pct11.toString(),
+              mo11Price: td.mo11Price ? td.mo11Price.toString() : (bPrice > 0 ? Math.round(bPrice * (1 - Number(pct11) / 100)).toString() : ''),
+            });
+          }
           setMetadata(list.metadata || {});
           setAddons(list.metadata?.addons || []);
           setEquipmentAddons(list.metadata?.equipmentAddons || '');
@@ -184,6 +223,18 @@ export default function ListingEditorPage() {
       return;
     }
 
+    const parsedTenureDiscounts = {
+      mo3: tenureDiscounts.mo3Pct !== '' ? Number(tenureDiscounts.mo3Pct) : 0,
+      mo3Pct: tenureDiscounts.mo3Pct !== '' ? Number(tenureDiscounts.mo3Pct) : 0,
+      mo3Price: tenureDiscounts.mo3Price !== '' ? Number(tenureDiscounts.mo3Price) : undefined,
+      mo6: tenureDiscounts.mo6Pct !== '' ? Number(tenureDiscounts.mo6Pct) : 0,
+      mo6Pct: tenureDiscounts.mo6Pct !== '' ? Number(tenureDiscounts.mo6Pct) : 0,
+      mo6Price: tenureDiscounts.mo6Price !== '' ? Number(tenureDiscounts.mo6Price) : undefined,
+      mo11: tenureDiscounts.mo11Pct !== '' ? Number(tenureDiscounts.mo11Pct) : 0,
+      mo11Pct: tenureDiscounts.mo11Pct !== '' ? Number(tenureDiscounts.mo11Pct) : 0,
+      mo11Price: tenureDiscounts.mo11Price !== '' ? Number(tenureDiscounts.mo11Price) : undefined,
+    };
+
     const updatedListing: CatalogListing = {
       id: isCreating ? `list-${Date.now()}` : listingId,
       name: serviceName.trim(),
@@ -202,6 +253,7 @@ export default function ListingEditorPage() {
       tokenAdvanceAmount: tokenAdvanceAmount ? parseFloat(tokenAdvanceAmount) : undefined,
       foodFacilityProvided,
       foodDeductionAmount: foodDeductionAmount ? parseFloat(foodDeductionAmount) : undefined,
+      tenureDiscounts: parsedTenureDiscounts,
       duration: 30, // Default duration
       metadata: {
         ...metadata,
@@ -218,6 +270,7 @@ export default function ListingEditorPage() {
         tokenAdvanceAmount: tokenAdvanceAmount ? parseFloat(tokenAdvanceAmount) : undefined,
         foodFacilityProvided,
         foodDeductionAmount: foodDeductionAmount ? parseFloat(foodDeductionAmount) : undefined,
+        tenureDiscounts: parsedTenureDiscounts,
         gstEnabled,
         gstPercentage: gstEnabled ? gstPercentage : 0,
         gstNumber: gstEnabled ? gstNumber : undefined
@@ -588,6 +641,213 @@ export default function ListingEditorPage() {
                           </div>
                           <div className="p-3 rounded-xl bg-white dark:bg-[#162033] border border-orange-200/60 dark:border-[#ff6325]/20 text-xs text-slate-600 dark:text-slate-300">
                             Resident pays <strong className="text-[#ff6325]">₹{tokenAdvanceAmount ? Number(tokenAdvanceAmount).toLocaleString() : '0'}</strong> immediately to book. Remaining rent & deposit collected on check-in day.
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 5. Stay Duration & Monthly Tenure Offers (Tenure Discount Packages) */}
+                    <div className="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-900/40 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">🎁</span>
+                          <div>
+                            <span className="text-xs font-black text-amber-950 dark:text-amber-200 uppercase tracking-wider block">
+                              Stay Duration &amp; Tenure Discount Packages
+                            </span>
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                              Incentivize long-term residents with special monthly agreement discounts.
+                            </span>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-200/60 dark:bg-amber-900/60 text-amber-900 dark:text-amber-300">
+                          Live on User App
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5 pt-2 border-t border-amber-200/50 dark:border-amber-900/30">
+                        {/* 1 Month (Flexi Stay) */}
+                        <div className="p-3 rounded-2xl bg-white dark:bg-[#162033] border border-amber-200/60 dark:border-white/10 text-center flex flex-col justify-between">
+                          <div>
+                            <span className="text-xs font-black text-slate-900 dark:text-white block">1 Month</span>
+                            <span className="text-[10px] text-slate-400 block mt-0.5">Flexi Plan (Standard)</span>
+                          </div>
+                          <div className="mt-2 py-1.5 px-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-[11px] font-black text-slate-700 dark:text-slate-300">
+                            ₹{basePrice ? Number(basePrice).toLocaleString() : '6,000'}/mo
+                          </div>
+                        </div>
+
+                        {/* 3 Months Offer */}
+                        <div className="p-3 rounded-2xl bg-white dark:bg-[#162033] border border-amber-200/60 dark:border-white/10 text-center flex flex-col justify-between space-y-2">
+                          <div>
+                            <span className="text-xs font-black text-slate-900 dark:text-white block">3 Months</span>
+                            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold block mt-0.5">🔥 Most Popular</span>
+                          </div>
+                          
+                          {/* Monthly Rent Input (₹) */}
+                          <div>
+                            <label className="text-[9px] font-bold text-slate-400 uppercase block mb-1">Monthly Rent</label>
+                            <div className="relative">
+                              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">₹</span>
+                              <input
+                                type="number"
+                                placeholder={basePrice ? String(Math.round(Number(basePrice) * 0.95)) : '5700'}
+                                value={tenureDiscounts.mo3Price}
+                                onChange={(e) => {
+                                  const pr = e.target.value.replace(/^0+(?=\d)/, '');
+                                  const bp = Number(basePrice) || 0;
+                                  let calcPct = tenureDiscounts.mo3Pct;
+                                  if (bp > 0 && pr && Number(pr) <= bp) {
+                                    calcPct = Math.round(((bp - Number(pr)) / bp) * 100).toString();
+                                  }
+                                  setTenureDiscounts({ ...tenureDiscounts, mo3Price: pr, mo3Pct: calcPct });
+                                }}
+                                className="w-full h-8 pl-6 pr-2 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50/40 dark:bg-amber-950/30 text-xs font-black text-slate-900 dark:text-white outline-none"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Discount % OFF */}
+                          <div className="flex items-center justify-center gap-1 text-[11px]">
+                            <input
+                              type="number"
+                              min="0"
+                              max="50"
+                              value={tenureDiscounts.mo3Pct}
+                              onChange={(e) => {
+                                const pct = e.target.value.replace(/^0+(?=\d)/, '');
+                                const bp = Number(basePrice) || 0;
+                                const calcPrice = (bp > 0 && pct) ? Math.round(bp * (1 - Number(pct) / 100)).toString() : '';
+                                setTenureDiscounts({ ...tenureDiscounts, mo3Pct: pct, mo3Price: calcPrice });
+                              }}
+                              className="w-12 h-6 text-center rounded-lg border border-slate-200 dark:border-white/10 text-xs font-black text-[#ff6325] outline-none"
+                            />
+                            <span className="font-bold text-slate-400">% OFF</span>
+                          </div>
+                        </div>
+
+                        {/* 6 Months Offer */}
+                        <div className="p-3 rounded-2xl bg-white dark:bg-[#162033] border border-amber-200/60 dark:border-white/10 text-center flex flex-col justify-between space-y-2">
+                          <div>
+                            <span className="text-xs font-black text-slate-900 dark:text-white block">6 Months</span>
+                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold block mt-0.5">⭐ Best Value</span>
+                          </div>
+
+                          {/* Monthly Rent Input (₹) */}
+                          <div>
+                            <label className="text-[9px] font-bold text-slate-400 uppercase block mb-1">Monthly Rent</label>
+                            <div className="relative">
+                              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">₹</span>
+                              <input
+                                type="number"
+                                placeholder={basePrice ? String(Math.round(Number(basePrice) * 0.90)) : '5400'}
+                                value={tenureDiscounts.mo6Price}
+                                onChange={(e) => {
+                                  const pr = e.target.value.replace(/^0+(?=\d)/, '');
+                                  const bp = Number(basePrice) || 0;
+                                  let calcPct = tenureDiscounts.mo6Pct;
+                                  if (bp > 0 && pr && Number(pr) <= bp) {
+                                    calcPct = Math.round(((bp - Number(pr)) / bp) * 100).toString();
+                                  }
+                                  setTenureDiscounts({ ...tenureDiscounts, mo6Price: pr, mo6Pct: calcPct });
+                                }}
+                                className="w-full h-8 pl-6 pr-2 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50/40 dark:bg-amber-950/30 text-xs font-black text-slate-900 dark:text-white outline-none"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Discount % OFF */}
+                          <div className="flex items-center justify-center gap-1 text-[11px]">
+                            <input
+                              type="number"
+                              min="0"
+                              max="50"
+                              value={tenureDiscounts.mo6Pct}
+                              onChange={(e) => {
+                                const pct = e.target.value.replace(/^0+(?=\d)/, '');
+                                const bp = Number(basePrice) || 0;
+                                const calcPrice = (bp > 0 && pct) ? Math.round(bp * (1 - Number(pct) / 100)).toString() : '';
+                                setTenureDiscounts({ ...tenureDiscounts, mo6Pct: pct, mo6Price: calcPrice });
+                              }}
+                              className="w-12 h-6 text-center rounded-lg border border-slate-200 dark:border-white/10 text-xs font-black text-[#ff6325] outline-none"
+                            />
+                            <span className="font-bold text-slate-400">% OFF</span>
+                          </div>
+                        </div>
+
+                        {/* 11 Months Offer */}
+                        <div className="p-3 rounded-2xl bg-white dark:bg-[#162033] border border-amber-200/60 dark:border-white/10 text-center flex flex-col justify-between space-y-2">
+                          <div>
+                            <span className="text-xs font-black text-slate-900 dark:text-white block">11 Months</span>
+                            <span className="text-[10px] text-purple-600 dark:text-purple-400 font-bold block mt-0.5">🏆 Annual Contract</span>
+                          </div>
+
+                          {/* Monthly Rent Input (₹) */}
+                          <div>
+                            <label className="text-[9px] font-bold text-slate-400 uppercase block mb-1">Monthly Rent</label>
+                            <div className="relative">
+                              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">₹</span>
+                              <input
+                                type="number"
+                                placeholder={basePrice ? String(Math.round(Number(basePrice) * 0.85)) : '5100'}
+                                value={tenureDiscounts.mo11Price}
+                                onChange={(e) => {
+                                  const pr = e.target.value.replace(/^0+(?=\d)/, '');
+                                  const bp = Number(basePrice) || 0;
+                                  let calcPct = tenureDiscounts.mo11Pct;
+                                  if (bp > 0 && pr && Number(pr) <= bp) {
+                                    calcPct = Math.round(((bp - Number(pr)) / bp) * 100).toString();
+                                  }
+                                  setTenureDiscounts({ ...tenureDiscounts, mo11Price: pr, mo11Pct: calcPct });
+                                }}
+                                className="w-full h-8 pl-6 pr-2 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50/40 dark:bg-amber-950/30 text-xs font-black text-slate-900 dark:text-white outline-none"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Discount % OFF */}
+                          <div className="flex items-center justify-center gap-1 text-[11px]">
+                            <input
+                              type="number"
+                              min="0"
+                              max="50"
+                              value={tenureDiscounts.mo11Pct}
+                              onChange={(e) => {
+                                const pct = e.target.value.replace(/^0+(?=\d)/, '');
+                                const bp = Number(basePrice) || 0;
+                                const calcPrice = (bp > 0 && pct) ? Math.round(bp * (1 - Number(pct) / 100)).toString() : '';
+                                setTenureDiscounts({ ...tenureDiscounts, mo11Pct: pct, mo11Price: calcPrice });
+                              }}
+                              className="w-12 h-6 text-center rounded-lg border border-slate-200 dark:border-white/10 text-xs font-black text-[#ff6325] outline-none"
+                            />
+                            <span className="font-bold text-slate-400">% OFF</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Customer Price Calculation Preview */}
+                      {basePrice && Number(basePrice) > 0 && (
+                        <div className="p-3 rounded-2xl bg-white/80 dark:bg-[#162033]/80 border border-amber-200/50 dark:border-white/5 space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
+                          <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">
+                            Resident Total Contract Value Breakdown:
+                          </span>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+                            <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800">
+                              <span className="text-slate-400 block text-[10px]">1 Mo Flexi:</span>
+                              <strong className="text-slate-900 dark:text-white">₹{Number(basePrice).toLocaleString()}</strong>
+                            </div>
+                            <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800">
+                              <span className="text-slate-400 block text-[10px]">3 Mo (3 × ₹{tenureDiscounts.mo3Price || Math.round(Number(basePrice) * (1 - (Number(tenureDiscounts.mo3Pct) || 0) / 100))}):</span>
+                              <strong className="text-amber-600">₹{(3 * (Number(tenureDiscounts.mo3Price) || Math.round(Number(basePrice) * (1 - (Number(tenureDiscounts.mo3Pct) || 0) / 100)))).toLocaleString()}</strong>
+                            </div>
+                            <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800">
+                              <span className="text-slate-400 block text-[10px]">6 Mo (6 × ₹{tenureDiscounts.mo6Price || Math.round(Number(basePrice) * (1 - (Number(tenureDiscounts.mo6Pct) || 0) / 100))}):</span>
+                              <strong className="text-emerald-600">₹{(6 * (Number(tenureDiscounts.mo6Price) || Math.round(Number(basePrice) * (1 - (Number(tenureDiscounts.mo6Pct) || 0) / 100)))).toLocaleString()}</strong>
+                            </div>
+                            <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800">
+                              <span className="text-slate-400 block text-[10px]">11 Mo (11 × ₹{tenureDiscounts.mo11Price || Math.round(Number(basePrice) * (1 - (Number(tenureDiscounts.mo11Pct) || 0) / 100))}):</span>
+                              <strong className="text-purple-600">₹{(11 * (Number(tenureDiscounts.mo11Price) || Math.round(Number(basePrice) * (1 - (Number(tenureDiscounts.mo11Pct) || 0) / 100)))).toLocaleString()}</strong>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -1210,49 +1470,162 @@ export default function ListingEditorPage() {
                 </div>
 
                 {addons.length > 0 ? (
-                  <div className="space-y-2.5">
-                    {addons.map((addon, idx) => (
-                      <div key={idx} className="flex items-center gap-2.5">
-                        <input
-                          type="text"
-                          placeholder={
-                            isTurfCategory
-                              ? "Add-on item (e.g. Match Referee / Video Recording / Energy Drinks)"
-                              : archetype === 'APPOINTMENT'
-                                ? "Add-on service (e.g. Blood Sugar Test / ECG / Diet Plan)"
-                                : "Add-on item (e.g. Extra Bed / Candlelight Dinner / Airport Pickup)"
-                          }
-                          value={addon.name}
-                          onChange={(e) => {
-                            const next = [...addons];
-                            next[idx].name = e.target.value;
-                            setAddons(next);
-                          }}
-                          className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-xs font-medium outline-none text-slate-900 dark:text-white"
-                        />
-                        <div className="relative w-32">
-                          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">₹</span>
-                          <input
-                            type="number"
-                            placeholder="Price"
-                            value={addon.price || ''}
-                            onChange={(e) => {
-                              const next = [...addons];
-                              next[idx].price = Number(e.target.value);
-                              setAddons(next);
-                            }}
-                            className="w-full pl-8 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-xs font-bold outline-none text-slate-900 dark:text-white"
-                          />
+                  <div className="space-y-3">
+                    {addons.map((addon, idx) => {
+                      const stockType = addon.stockType || 'REUSABLE';
+                      const maxStock = addon.maxStock ?? 5;
+                      const currentStock = addon.currentStock ?? maxStock;
+
+                      return (
+                        <div key={idx} className="p-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-[#162033]/60 space-y-3">
+                          <div className="flex items-center gap-2.5">
+                            <input
+                              type="text"
+                              placeholder={
+                                isTurfCategory
+                                  ? "Add-on item (e.g. Match Referee / Video Recording / Energy Drinks)"
+                                  : archetype === 'APPOINTMENT'
+                                    ? "Add-on service (e.g. Blood Sugar Test / ECG / Diet Plan)"
+                                    : "Add-on item (e.g. Extra Bed / Candlelight Dinner / Airport Pickup)"
+                              }
+                              value={addon.name}
+                              onChange={(e) => {
+                                const next = [...addons];
+                                next[idx].name = e.target.value;
+                                setAddons(next);
+                              }}
+                              className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111927] text-xs font-semibold outline-none text-slate-900 dark:text-white shadow-2xs"
+                            />
+                            <div className="relative w-28">
+                              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">₹</span>
+                              <input
+                                type="number"
+                                placeholder="Price"
+                                value={addon.price || ''}
+                                onChange={(e) => {
+                                  const next = [...addons];
+                                  next[idx].price = Number(e.target.value);
+                                  setAddons(next);
+                                }}
+                                className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111927] text-xs font-black outline-none text-slate-900 dark:text-white shadow-2xs"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setAddons(prev => prev.filter((_, i) => i !== idx))}
+                              className="h-9 w-9 rounded-xl bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                              title="Remove Add-on"
+                            >
+                              <X size={15} />
+                            </button>
+                          </div>
+
+                          {/* Inventory Control & Refill Engine */}
+                          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-200/60 dark:border-white/5 text-[11px]">
+                            {/* Stock Type Selector */}
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px]">
+                                Stock Mode:
+                              </span>
+                              <div className="inline-flex rounded-xl p-0.5 bg-slate-200/70 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const next = [...addons];
+                                    next[idx].stockType = 'REUSABLE';
+                                    setAddons(next);
+                                  }}
+                                  className={`px-2.5 py-1 rounded-lg font-extrabold text-[10px] transition-all ${
+                                    stockType === 'REUSABLE'
+                                      ? 'bg-white dark:bg-[#0f1624] text-blue-600 dark:text-blue-400 shadow-2xs'
+                                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                                  }`}
+                                  title="Auto-refills when slot/day finishes (Extra Bed, Sports Kit, Helmet)"
+                                >
+                                  🔄 Reusable (Slot Lock)
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const next = [...addons];
+                                    next[idx].stockType = 'CONSUMABLE';
+                                    setAddons(next);
+                                  }}
+                                  className={`px-2.5 py-1 rounded-lg font-extrabold text-[10px] transition-all ${
+                                    stockType === 'CONSUMABLE'
+                                      ? 'bg-white dark:bg-[#0f1624] text-amber-600 dark:text-amber-400 shadow-2xs'
+                                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                                  }`}
+                                  title="Physical stock consumed per order (Carton, Toiletries, Firewood)"
+                                >
+                                  📦 Consumable (Stock)
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const next = [...addons];
+                                    next[idx].stockType = 'UNLIMITED';
+                                    setAddons(next);
+                                  }}
+                                  className={`px-2.5 py-1 rounded-lg font-extrabold text-[10px] transition-all ${
+                                    stockType === 'UNLIMITED'
+                                      ? 'bg-white dark:bg-[#0f1624] text-emerald-600 dark:text-emerald-400 shadow-2xs'
+                                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                                  }`}
+                                  title="No inventory limit"
+                                >
+                                  ♾️ Unlimited
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Stock Limits & Refill Controls */}
+                            {stockType !== 'UNLIMITED' && (
+                              <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-1.5 bg-white dark:bg-[#111927] px-2.5 py-1 rounded-xl border border-slate-200 dark:border-white/10">
+                                  <span className="text-slate-400 font-bold">Max Limit:</span>
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    max="999"
+                                    value={maxStock}
+                                    onChange={(e) => {
+                                      const next = [...addons];
+                                      const val = Math.max(1, Number(e.target.value) || 1);
+                                      next[idx].maxStock = val;
+                                      if ((next[idx].currentStock ?? val) > val) next[idx].currentStock = val;
+                                      setAddons(next);
+                                    }}
+                                    className="w-12 text-center font-black text-slate-900 dark:text-white outline-none"
+                                  />
+                                  <span className="text-slate-400 text-[10px]">units</span>
+                                </div>
+
+                                {stockType === 'CONSUMABLE' && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-bold text-amber-700 dark:text-amber-400">
+                                      Remaining: <strong className="font-black">{currentStock}</strong>
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const next = [...addons];
+                                        next[idx].currentStock = maxStock;
+                                        setAddons(next);
+                                      }}
+                                      className="px-2 py-0.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 hover:text-white font-extrabold text-[10px] transition-all cursor-pointer border border-emerald-500/20"
+                                      title="Refill stock to max limit"
+                                    >
+                                      ⚡ Refill Stock
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => setAddons(prev => prev.filter((_, i) => i !== idx))}
-                          className="h-9 w-9 rounded-xl bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
-                        >
-                          <X size={15} />
-                        </button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <p className="text-xs text-slate-400 italic">No add-ons added yet. Click &quot;Add Add-on&quot; to configure optional upsells.</p>

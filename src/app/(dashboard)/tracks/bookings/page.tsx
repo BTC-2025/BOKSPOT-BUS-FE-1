@@ -20,6 +20,30 @@ export default function BookingsPage() {
   const [matchNotesInput, setMatchNotesInput] = useState('');
   const [liveBookings, setLiveBookings] = useState<any[]>([]);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
+  const [newBookingAlert, setNewBookingAlert] = useState<{ id: string; name: string; type: string } | null>(null);
+
+  // Audio Chime notification helper for new incoming bookings/visits
+  const playNotificationSound = () => {
+    try {
+      if (typeof window !== 'undefined') {
+        const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioContext) {
+          const ctx = new AudioContext();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+          osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15); // A5
+          gain.gain.setValueAtTime(0.2, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.35);
+        }
+      }
+    } catch (e) {}
+  };
 
   const presetMatch = PRESET_MERCHANTS.find(m => m.id === currentMerchant?.id || m.username.toLowerCase() === currentMerchant?.username?.toLowerCase());
   const effectiveBranches = (currentMerchant?.branches && currentMerchant.branches.length > 0)
@@ -108,7 +132,24 @@ export default function BookingsPage() {
           const raw = await res.json();
           const items = Array.isArray(raw?.data) ? raw.data : (Array.isArray(raw) ? raw : []);
           const merchantOnlyLive = items.filter(isMatch);
-          setLiveBookings(merchantOnlyLive);
+          
+          // Check for brand new incoming booking/visit
+          setLiveBookings(prev => {
+            if (prev.length > 0 && merchantOnlyLive.length > prev.length) {
+              const prevIds = new Set(prev.map(p => p.id || p.ref));
+              const newlyAdded = merchantOnlyLive.find((m: any) => !prevIds.has(m.id || m.ref));
+              if (newlyAdded) {
+                playNotificationSound();
+                setNewBookingAlert({
+                  id: newlyAdded.id || newlyAdded.ref,
+                  name: newlyAdded.customerName || newlyAdded.teamName || 'Guest User',
+                  type: newlyAdded.bookingType === 'PROPERTY_VISIT' ? 'Free Property Visit' : (newlyAdded.serviceName || 'Booking')
+                });
+                setTimeout(() => setNewBookingAlert(null), 6000);
+              }
+            }
+            return merchantOnlyLive;
+          });
         }
       } catch (e) {
         try {
@@ -253,6 +294,34 @@ export default function BookingsPage() {
 
   return (
     <div className="relative min-h-full pb-12 animate-fade-in font-sans">
+
+      {/* Floating Incoming Notification Toast Banner with Chime */}
+      {newBookingAlert && (
+        <div className="fixed top-18 right-6 z-[100] max-w-sm p-4 rounded-2xl bg-white dark:bg-slate-900 border-2 border-[#ff6325] shadow-2xl animate-in slide-in-from-top-4 duration-300 flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[#ff6325]/15 text-[#ff6325] flex items-center justify-center font-black text-lg shrink-0">
+            🔔
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#ff6325]">
+                New Incoming Request!
+              </span>
+              <button
+                onClick={() => setNewBookingAlert(null)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                <X size={14} />
+              </button>
+            </div>
+            <h4 className="text-xs font-black text-slate-900 dark:text-white mt-0.5 truncate">
+              {newBookingAlert.name}
+            </h4>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+              {newBookingAlert.type}
+            </p>
+          </div>
+        </div>
+      )}
       
       {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 mb-8 border-b border-border-brand/40 pb-8">
@@ -344,7 +413,14 @@ export default function BookingsPage() {
 
                 {/* Column 3: Service */}
                 <div className="col-span-1 md:col-span-3">
-                  <p className="text-xs font-bold text-text-primary line-clamp-1">{b.serviceName}</p>
+                  <div className="flex items-center gap-1.5">
+                    {(b.bookingType === 'PROPERTY_VISIT' || b.metadata?.isPropertyVisit) && (
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 shrink-0">
+                        Visit Pass
+                      </span>
+                    )}
+                    <p className="text-xs font-bold text-text-primary line-clamp-1">{b.serviceName}</p>
+                  </div>
                   <p className="text-[10px] font-semibold text-text-secondary">{b.category || currentMerchant.category}</p>
                 </div>
 
@@ -664,6 +740,119 @@ export default function BookingsPage() {
                   </div>
                 )}
               </div>
+
+              {/* 0. HOSTEL & PG SCHEDULED IN-PERSON INSPECTION / LIVE VIDEO TOUR TAB */}
+              {(selectedBooking.bookingType === 'PROPERTY_VISIT' || selectedBooking.metadata?.isPropertyVisit || selectedBooking.serviceName?.includes('Inspection') || selectedBooking.serviceName?.includes('Video Tour')) && (
+                <div className={`p-5 rounded-2xl border space-y-4 ${
+                  (selectedBooking.metadata?.visitMode === 'LIVE_VIDEO' || selectedBooking.serviceName?.includes('Video'))
+                    ? 'bg-blue-500/10 border-blue-500/30'
+                    : 'bg-emerald-500/10 border-emerald-500/30'
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 font-extrabold text-sm text-text-primary">
+                      <span className="text-xl">
+                        {(selectedBooking.metadata?.visitMode === 'LIVE_VIDEO' || selectedBooking.serviceName?.includes('Video')) ? '📹' : '🏢'}
+                      </span>
+                      <span>
+                        {(selectedBooking.metadata?.visitMode === 'LIVE_VIDEO' || selectedBooking.serviceName?.includes('Video'))
+                          ? 'Scheduled Live Video Tour'
+                          : 'Scheduled In-Person Property Visit'}
+                      </span>
+                    </div>
+                    <span className={`px-2.5 py-0.5 rounded-full font-black text-[10px] border ${
+                      (selectedBooking.metadata?.visitMode === 'LIVE_VIDEO' || selectedBooking.serviceName?.includes('Video'))
+                        ? 'bg-blue-500/20 text-blue-400 border-blue-500/40'
+                        : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                    }`}>
+                      100% Free Inspection Pass
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand/60 space-y-1">
+                      <span className="text-[10px] font-bold text-text-muted uppercase block">Visitor Contact:</span>
+                      <p className="text-text-primary font-black text-sm">{selectedBooking.customerName}</p>
+                      <p className="text-[#ff6325] font-bold flex items-center gap-1.5 mt-0.5">
+                        <Phone size={12} /> {selectedBooking.customerPhone || 'Phone provided'}
+                      </p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand/60 space-y-1">
+                      <span className="text-[10px] font-bold text-text-muted uppercase block">Visit Slot & Mode:</span>
+                      <p className="text-text-primary font-bold">{selectedBooking.date}</p>
+                      <p className="text-text-secondary text-[11px] font-semibold">{selectedBooking.time}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <a
+                      href={`tel:${selectedBooking.customerPhone}`}
+                      className="flex-1 py-2.5 px-3 rounded-xl bg-[#ff6325] hover:bg-[#e04e13] text-white font-black text-xs uppercase tracking-wider text-center flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer"
+                    >
+                      <Phone size={14} /> Call
+                    </a>
+
+                    <a
+                      href={`https://wa.me/${String(selectedBooking.customerPhone || '').replace(/\D/g, '')}?text=${encodeURIComponent(`Hello ${selectedBooking.customerName || 'Guest'}, this is from ${currentMerchant?.merchantName || 'BokSpot PG'}. Confirming your scheduled ${selectedBooking.metadata?.visitMode === 'LIVE_VIDEO' ? 'Live Video Tour' : 'Property Visit'} on ${selectedBooking.date} at ${selectedBooking.time}. Please let us know if you need assistance!`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider text-center flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer"
+                    >
+                      <span>💬 WhatsApp</span>
+                    </a>
+
+                    {selectedBooking.status !== 'COMPLETED' ? (
+                      <button
+                        onClick={async () => {
+                          completeBooking(selectedBooking.id);
+                          const updated = { ...selectedBooking, status: 'COMPLETED' };
+                          setLiveBookings(prev => prev.map(item => item.id === selectedBooking.id ? updated : item));
+                          try {
+                            await fetch('/api/v1/bookings/sync', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify(updated),
+                            });
+                          } catch (e) {}
+                          alert(`Visit with ${selectedBooking.customerName} marked as completed!`);
+                        }}
+                        className="py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+                      >
+                        ✓ Visited
+                      </button>
+                    ) : (
+                      <span className="py-2.5 px-4 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold text-xs">
+                        ✓ Completed
+                      </span>
+                    )}
+
+                    {selectedBooking.status !== 'CANCELLED' && selectedBooking.status !== 'COMPLETED' && (
+                      <button
+                        onClick={async () => {
+                          if (confirm(`Decline / Cancel scheduled visit for ${selectedBooking.customerName}?`)) {
+                            const updated = { ...selectedBooking, status: 'CANCELLED' };
+                            setLiveBookings(prev => prev.map(item => item.id === selectedBooking.id ? updated : item));
+                            useVendorStore.setState(state => ({
+                              bookings: state.bookings.map(item => item.id === selectedBooking.id ? updated : item)
+                            }));
+                            try {
+                              await fetch('/api/v1/bookings/sync', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(updated),
+                              });
+                            } catch (e) {}
+                          }
+                        }}
+                        className="py-2.5 px-3 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/30 font-bold text-xs transition-colors cursor-pointer"
+                        title="Decline Visit"
+                      >
+                        Decline
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* 1. DOCTOR / HEALTHCARE OPD QUEUE & EMR TAB */}
               {(currentMerchant.category?.toLowerCase().includes('doctor') || currentMerchant.archetype === 'Healthcare' || selectedBooking.metadata?.appointmentBooking) && (

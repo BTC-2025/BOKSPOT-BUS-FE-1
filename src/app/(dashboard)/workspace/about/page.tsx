@@ -135,7 +135,58 @@ export default function VenueProfilePage() {
         if (stored) return Number(stored);
       } catch {}
     }
-    return currentMerchant?.luggageHourlyRate ?? currentMerchant?.metadata?.luggageHourlyRate ?? 150;
+    return currentMerchant?.luggageHourlyRate ?? currentMerchant?.metadata?.luggageHourlyRate ?? 49;
+  });
+
+  // Dedicated rates for each item category (set by Business Owner)
+  const [rateHandbag, setRateHandbag] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(`hotel_luggage_rate_handbag_${currentMerchant?.id || 'default'}`);
+        if (stored) return Number(stored);
+      } catch {}
+    }
+    return currentMerchant?.metadata?.rateHandbag ?? 25;
+  });
+
+  const [rateBackpack, setRateBackpack] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(`hotel_luggage_rate_backpack_${currentMerchant?.id || 'default'}`);
+        if (stored) return Number(stored);
+      } catch {}
+    }
+    return currentMerchant?.metadata?.rateBackpack ?? 39;
+  });
+
+  const [rateTrolley, setRateTrolley] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(`hotel_luggage_rate_trolley_${currentMerchant?.id || 'default'}`);
+        if (stored) return Number(stored);
+      } catch {}
+    }
+    return currentMerchant?.metadata?.rateTrolley ?? 49;
+  });
+
+  const [rateBox, setRateBox] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(`hotel_luggage_rate_box_${currentMerchant?.id || 'default'}`);
+        if (stored) return Number(stored);
+      } catch {}
+    }
+    return currentMerchant?.metadata?.rateBox ?? 59;
+  });
+
+  const [rateBulky, setRateBulky] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(`hotel_luggage_rate_bulky_${currentMerchant?.id || 'default'}`);
+        if (stored) return Number(stored);
+      } catch {}
+    }
+    return currentMerchant?.metadata?.rateBulky ?? 79;
   });
 
   const [luggageDayPassRate, setLuggageDayPassRate] = useState<number>(() => {
@@ -146,6 +197,16 @@ export default function VenueProfilePage() {
       } catch {}
     }
     return currentMerchant?.metadata?.luggageDayPassRate ?? 500;
+  });
+
+  const [luggageMaxCapacity, setLuggageMaxCapacity] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(`hotel_luggage_capacity_${currentMerchant?.id || 'default'}`);
+        if (stored) return Number(stored);
+      } catch {}
+    }
+    return currentMerchant?.metadata?.luggageMaxCapacity ?? 10;
   });
 
   // Amenities
@@ -283,6 +344,9 @@ export default function VenueProfilePage() {
       if (currentMerchant.metadata?.luggageDayPassRate) {
         setLuggageDayPassRate(Number(currentMerchant.metadata.luggageDayPassRate));
       }
+      if (currentMerchant.metadata?.luggageMaxCapacity) {
+        setLuggageMaxCapacity(Number(currentMerchant.metadata.luggageMaxCapacity));
+      }
 
       // Fetch fresh DB data
       const fetchProfile = async () => {
@@ -318,6 +382,9 @@ export default function VenueProfilePage() {
             }
             if (data.metadata?.luggageHourlyRate) {
               setLuggageHourlyRate(Number(data.metadata.luggageHourlyRate));
+            }
+            if (data.metadata?.luggageMaxCapacity) {
+              setLuggageMaxCapacity(Number(data.metadata.luggageMaxCapacity));
             }
             if (data.metadata?.luggageDayPassRate) {
               setLuggageDayPassRate(Number(data.metadata.luggageDayPassRate));
@@ -503,8 +570,14 @@ export default function VenueProfilePage() {
       metadata: {
         ...(currentMerchant.metadata || {}),
         isLuggageStorageEnabled,
-        luggageHourlyRate,
+        luggageHourlyRate: rateTrolley || luggageHourlyRate,
+        rateHandbag,
+        rateBackpack,
+        rateTrolley,
+        rateBox,
+        rateBulky,
         luggageDayPassRate,
+        luggageMaxCapacity,
         isPetFriendly,
         isMysteryModeOptIn,
         checkInTime,
@@ -553,13 +626,36 @@ export default function VenueProfilePage() {
         localStorage.setItem('hotel_luggage_enabled_H101', valStr);
         localStorage.setItem('hotel_luggage_enabled_default', valStr);
 
-        localStorage.setItem(`hotel_luggage_rate_${id}`, String(luggageHourlyRate));
-        if (uname) localStorage.setItem(`hotel_luggage_rate_${uname}`, String(luggageHourlyRate));
-        localStorage.setItem('hotel_luggage_rate_default', String(luggageHourlyRate));
+        localStorage.setItem(`hotel_luggage_rate_${id}`, String(rateTrolley || luggageHourlyRate));
+        if (uname) localStorage.setItem(`hotel_luggage_rate_${uname}`, String(rateTrolley || luggageHourlyRate));
+        localStorage.setItem('hotel_luggage_rate_default', String(rateTrolley || luggageHourlyRate));
+
+        // Category specific rates sync
+        localStorage.setItem(`hotel_luggage_rate_handbag_${id}`, String(rateHandbag));
+        localStorage.setItem(`hotel_luggage_rate_backpack_${id}`, String(rateBackpack));
+        localStorage.setItem(`hotel_luggage_rate_trolley_${id}`, String(rateTrolley));
+        localStorage.setItem(`hotel_luggage_rate_box_${id}`, String(rateBox));
+        localStorage.setItem(`hotel_luggage_rate_bulky_${id}`, String(rateBulky));
+        if (uname) {
+          localStorage.setItem(`hotel_luggage_rate_handbag_${uname}`, String(rateHandbag));
+          localStorage.setItem(`hotel_luggage_rate_backpack_${uname}`, String(rateBackpack));
+          localStorage.setItem(`hotel_luggage_rate_trolley_${uname}`, String(rateTrolley));
+          localStorage.setItem(`hotel_luggage_rate_box_${uname}`, String(rateBox));
+          localStorage.setItem(`hotel_luggage_rate_bulky_${uname}`, String(rateBulky));
+        }
+        localStorage.setItem('hotel_luggage_rate_handbag_default', String(rateHandbag));
+        localStorage.setItem('hotel_luggage_rate_backpack_default', String(rateBackpack));
+        localStorage.setItem('hotel_luggage_rate_trolley_default', String(rateTrolley));
+        localStorage.setItem('hotel_luggage_rate_box_default', String(rateBox));
+        localStorage.setItem('hotel_luggage_rate_bulky_default', String(rateBulky));
 
         localStorage.setItem(`hotel_luggage_daypass_${id}`, String(luggageDayPassRate));
         if (uname) localStorage.setItem(`hotel_luggage_daypass_${uname}`, String(luggageDayPassRate));
         localStorage.setItem('hotel_luggage_daypass_default', String(luggageDayPassRate));
+
+        localStorage.setItem(`hotel_luggage_capacity_${id}`, String(luggageMaxCapacity));
+        if (uname) localStorage.setItem(`hotel_luggage_capacity_${uname}`, String(luggageMaxCapacity));
+        localStorage.setItem('hotel_luggage_capacity_default', String(luggageMaxCapacity));
 
         // Venue photo gallery sync to localStorage for instant customer preview (capped to avoid 5MB quota overflow)
         try {
@@ -912,8 +1008,10 @@ export default function VenueProfilePage() {
                 
                 // Direct fast fetch to Backend API
                 try {
+                  const isProd = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+                  const baseUrl = process.env.NEXT_PUBLIC_API_URL || (isProd ? 'https://bokspot-be.onrender.com/api/v1' : 'http://localhost:9000/api/v1');
                   const targetId = currentMerchant?.id || '8fb83f4b-62aa-3a5b-3e42-074005378435';
-                  await fetch(`http://localhost:9000/api/v1/merchants/${targetId}`, {
+                  await fetch(`${baseUrl}/merchants/${targetId}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -969,36 +1067,118 @@ export default function VenueProfilePage() {
           </div>
 
           {isLuggageStorageEnabled ? (
-            <div className="space-y-4 pt-4">
-              <div className="grid sm:grid-cols-2 gap-4">
-                {/* Hourly Rate per Bag */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase font-bold tracking-wider text-slate-600 dark:text-slate-300 flex items-center justify-between">
-                    <span>Hourly Tariff (Per Bag)</span>
-                    <span className="text-amber-500 font-black">Active Hourly Rate</span>
+            <div className="space-y-5 pt-4">
+              {/* Category-Specific Item Tariff Matrix */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] uppercase font-black tracking-wider text-slate-700 dark:text-slate-300">
+                    Custom Hourly Rates by Luggage Category (Set by Business Owner)
                   </label>
-                  <div className="flex items-center gap-2 bg-slate-50 dark:bg-[#162033] border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 focus-within:border-amber-500">
-                    <span className="font-bold text-amber-500 text-sm">₹</span>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={luggageHourlyRate === 0 ? '' : luggageHourlyRate}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, '');
-                        setLuggageHourlyRate(val === '' ? 0 : Number(val));
-                      }}
-                      placeholder="e.g. 150"
-                      className="w-full bg-transparent font-black text-slate-900 dark:text-white outline-none text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    />
-                    <span className="text-xs text-slate-400 whitespace-nowrap">/ bag / hr</span>
-                  </div>
+                  <span className="text-[10px] text-amber-500 font-extrabold uppercase">
+                    Live Rates Active
+                  </span>
                 </div>
 
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                  {/* 1. Small Handbag */}
+                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200 dark:border-white/10 space-y-1">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block truncate">
+                      👛 Handbag / Purse
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className="font-bold text-amber-500 text-xs">₹</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={rateHandbag === 0 ? '' : rateHandbag}
+                        onChange={(e) => setRateHandbag(Number(e.target.value.replace(/\D/g, '')) || 0)}
+                        className="w-full bg-transparent font-black text-slate-900 dark:text-white outline-none text-xs"
+                      />
+                      <span className="text-[10px] text-slate-400">/hr</span>
+                    </div>
+                  </div>
+
+                  {/* 2. Backpack */}
+                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200 dark:border-white/10 space-y-1">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block truncate">
+                      🎒 Backpack / Kit
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className="font-bold text-amber-500 text-xs">₹</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={rateBackpack === 0 ? '' : rateBackpack}
+                        onChange={(e) => setRateBackpack(Number(e.target.value.replace(/\D/g, '')) || 0)}
+                        className="w-full bg-transparent font-black text-slate-900 dark:text-white outline-none text-xs"
+                      />
+                      <span className="text-[10px] text-slate-400">/hr</span>
+                    </div>
+                  </div>
+
+                  {/* 3. Trolley Suitcase */}
+                  <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-1">
+                    <span className="text-[10px] font-black text-amber-600 dark:text-amber-400 block truncate">
+                      🧳 Trolley Suitcase
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className="font-bold text-amber-500 text-xs">₹</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={rateTrolley === 0 ? '' : rateTrolley}
+                        onChange={(e) => setRateTrolley(Number(e.target.value.replace(/\D/g, '')) || 0)}
+                        className="w-full bg-transparent font-black text-slate-900 dark:text-white outline-none text-xs"
+                      />
+                      <span className="text-[10px] text-slate-400">/hr</span>
+                    </div>
+                  </div>
+
+                  {/* 4. Carton / Box */}
+                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200 dark:border-white/10 space-y-1">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block truncate">
+                      📦 Carton / Box
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className="font-bold text-amber-500 text-xs">₹</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={rateBox === 0 ? '' : rateBox}
+                        onChange={(e) => setRateBox(Number(e.target.value.replace(/\D/g, '')) || 0)}
+                        className="w-full bg-transparent font-black text-slate-900 dark:text-white outline-none text-xs"
+                      />
+                      <span className="text-[10px] text-slate-400">/hr</span>
+                    </div>
+                  </div>
+
+                  {/* 5. Bulky Gear */}
+                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-[#162033] border border-slate-200 dark:border-white/10 space-y-1">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block truncate">
+                      🚲 Bulky / Large
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className="font-bold text-amber-500 text-xs">₹</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={rateBulky === 0 ? '' : rateBulky}
+                        onChange={(e) => setRateBulky(Number(e.target.value.replace(/\D/g, '')) || 0)}
+                        className="w-full bg-transparent font-black text-slate-900 dark:text-white outline-none text-xs"
+                      />
+                      <span className="text-[10px] text-slate-400">/hr</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Day Pass and Max Capacity */}
+              <div className="grid sm:grid-cols-2 gap-4">
                 {/* Full Day Cap Pass */}
                 <div className="space-y-1.5">
                   <label className="text-[10px] uppercase font-bold tracking-wider text-slate-600 dark:text-slate-300 flex items-center justify-between">
-                    <span>Full Day Cap Pass (24 hrs)</span>
-                    <span className="text-indigo-400 font-black">Layover Tariff</span>
+                    <span>Full Day Cap Pass</span>
+                    <span className="text-indigo-400 font-black">24 hrs Tariff</span>
                   </label>
                   <div className="flex items-center gap-2 bg-slate-50 dark:bg-[#162033] border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 focus-within:border-indigo-500">
                     <span className="font-bold text-indigo-400 text-sm">₹</span>
@@ -1013,13 +1193,36 @@ export default function VenueProfilePage() {
                       placeholder="e.g. 500"
                       className="w-full bg-transparent font-black text-slate-900 dark:text-white outline-none text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
-                    <span className="text-xs text-slate-400 whitespace-nowrap">/ 24 hrs layover</span>
+                    <span className="text-xs text-slate-400 whitespace-nowrap">/ 24 hrs</span>
+                  </div>
+                </div>
+
+                {/* Maximum Total Storage Capacity */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] uppercase font-bold tracking-wider text-slate-600 dark:text-slate-300 flex items-center justify-between">
+                    <span>Cloakroom Max Capacity</span>
+                    <span className="text-emerald-500 font-black">Slot Limit</span>
+                  </label>
+                  <div className="flex items-center gap-2 bg-slate-50 dark:bg-[#162033] border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 focus-within:border-emerald-500">
+                    <span className="font-bold text-emerald-500 text-sm">🎒</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={luggageMaxCapacity === 0 ? '' : luggageMaxCapacity}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '');
+                        setLuggageMaxCapacity(val === '' ? 1 : Math.max(1, Number(val)));
+                      }}
+                      placeholder="e.g. 10"
+                      className="w-full bg-transparent font-black text-slate-900 dark:text-white outline-none text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <span className="text-xs text-slate-400 whitespace-nowrap">Slots / Units</span>
                   </div>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-300 font-semibold">
-                <span>✓ <strong>Live Guest Booking:</strong> The <strong>&quot;Bag Locker&quot;</strong> tab and drop banner are active for customers on your hotel booking page at ₹{luggageHourlyRate}/bag/hr.</span>
+                <span>✓ <strong>Live Guest Booking:</strong> The <strong>&quot;Bag Locker&quot;</strong> tab is active with your custom rates: 👛 ₹{rateHandbag}/h, 🎒 ₹{rateBackpack}/h, 🧳 ₹{rateTrolley}/h, 📦 ₹{rateBox}/h, 🚲 ₹{rateBulky}/h.</span>
               </div>
             </div>
           ) : (

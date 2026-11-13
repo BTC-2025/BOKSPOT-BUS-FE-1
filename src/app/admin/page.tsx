@@ -17,21 +17,21 @@ export default function AdminOverviewPage() {
   const resolvedTickets = supportTickets.filter(t => t.status === 'resolved').length;
 
   return (
-    <div className="space-y-4 animate-fade-in text-text-primary">
+    <div className="space-y-3.5 animate-fade-in text-text-primary">
       
-      {/* Platform Status Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-bg-secondary border border-border-brand/60 shadow-xs">
+      {/* Platform Status Banner - Apple-grade Sleek Pill Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 px-4 py-2.5 rounded-2xl bg-bg-secondary border border-border-brand/60 shadow-xs">
         <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-[#ff6325] to-[#ff7b47] flex items-center justify-center text-white font-black text-xs shadow-xs">
+          <div className="h-7 w-7 rounded-xl bg-gradient-to-br from-[#ff6325] to-[#ff7b47] flex items-center justify-center text-white font-black text-xs shadow-xs shrink-0">
             B
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="text-xs font-black text-text-primary uppercase tracking-wider">BOKSPOT Operations Control Center</h2>
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] font-bold text-emerald-500">Live Services Active</span>
+              <h2 className="text-xs font-black text-text-primary tracking-tight">BOKSPOT Operations Control Center</h2>
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              <span className="text-[10px] font-bold text-emerald-500 hidden sm:inline">Live Services Active</span>
             </div>
-            <p className="text-[10px] text-text-muted mt-0.5">Monitoring all merchant bookings, dispute resolution queues &amp; branch activities.</p>
+            <p className="text-[10px] text-text-muted leading-tight truncate">Monitoring merchant bookings, dispute resolution queues &amp; branch activities.</p>
           </div>
         </div>
 
@@ -40,57 +40,57 @@ export default function AdminOverviewPage() {
             href="/admin/tickets"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#ff6325] hover:bg-[#ff7b47] text-white text-xs font-bold transition-all shadow-xs active:scale-95"
           >
-            <Ticket size={13} />
+            <Ticket size={12} />
             <span>Manage All Tickets</span>
           </a>
         </div>
       </div>
 
       {/* KPI Stats (High-Density 4-Column Grid) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-bg-secondary p-3.5 rounded-2xl shadow-xs border border-border-brand/60 flex items-center justify-between hover:border-indigo-500/40 transition-colors group">
-          <div className="space-y-0.5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+        <div className="bg-bg-secondary p-3 rounded-2xl shadow-xs border border-border-brand/60 flex items-center justify-between hover:border-indigo-500/40 transition-colors group">
+          <div className="space-y-0.5 min-w-0">
             <p className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Total Tickets</p>
             <h3 className="text-xl font-black text-text-primary tracking-tight">{totalTickets}</h3>
-            <p className="text-[9px] text-text-muted">Inquiries &amp; Disputes</p>
+            <p className="text-[9px] text-text-muted truncate">Inquiries &amp; Disputes</p>
           </div>
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white flex items-center justify-center shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform shrink-0">
-            <Ticket size={19} className="stroke-[2.5]" />
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white flex items-center justify-center shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform shrink-0">
+            <Ticket size={16} className="stroke-[2.5]" />
           </div>
         </div>
 
-        <div className="bg-bg-secondary p-3.5 rounded-2xl shadow-xs border border-border-brand/60 flex items-center justify-between hover:border-amber-500/40 transition-colors group">
-          <div className="space-y-0.5">
+        <div className="bg-bg-secondary p-3 rounded-2xl shadow-xs border border-border-brand/60 flex items-center justify-between hover:border-amber-500/40 transition-colors group">
+          <div className="space-y-0.5 min-w-0">
             <p className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Open Inquiries</p>
             <h3 className="text-xl font-black text-amber-500 tracking-tight">{openTickets}</h3>
-            <p className="text-[9px] text-text-muted">Requires action</p>
+            <p className="text-[9px] text-text-muted truncate">Requires action</p>
           </div>
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-white flex items-center justify-center shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform shrink-0">
-            <Clock size={19} className="stroke-[2.5]" />
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-white flex items-center justify-center shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform shrink-0">
+            <Clock size={16} className="stroke-[2.5]" />
           </div>
         </div>
 
-        <div className="bg-bg-secondary p-3.5 rounded-2xl shadow-xs border border-border-brand/60 flex items-center justify-between hover:border-emerald-500/40 transition-colors group">
-          <div className="space-y-0.5">
+        <div className="bg-bg-secondary p-3 rounded-2xl shadow-xs border border-border-brand/60 flex items-center justify-between hover:border-emerald-500/40 transition-colors group">
+          <div className="space-y-0.5 min-w-0">
             <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Resolved</p>
             <h3 className="text-xl font-black text-emerald-500 tracking-tight">{resolvedTickets}</h3>
-            <p className="text-[9px] text-text-muted">Closed successfully</p>
+            <p className="text-[9px] text-text-muted truncate">Closed successfully</p>
           </div>
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform shrink-0">
-            <CheckCircle2 size={19} className="stroke-[2.5]" />
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform shrink-0">
+            <CheckCircle2 size={16} className="stroke-[2.5]" />
           </div>
         </div>
 
-        <div className="bg-bg-secondary p-3.5 rounded-2xl shadow-xs border border-border-brand/60 flex items-center justify-between hover:border-sky-500/40 transition-colors group">
-          <div className="space-y-0.5">
+        <div className="bg-bg-secondary p-3 rounded-2xl shadow-xs border border-border-brand/60 flex items-center justify-between hover:border-sky-500/40 transition-colors group">
+          <div className="space-y-0.5 min-w-0">
             <p className="text-[10px] font-bold text-sky-500 uppercase tracking-wider">Active Merchants</p>
             <h3 className="text-xl font-black text-text-primary tracking-tight">
               {PRESET_MERCHANTS.length + Object.keys(customMerchants).length}
             </h3>
-            <p className="text-[9px] text-text-muted">Multi-vertical units</p>
+            <p className="text-[9px] text-text-muted truncate">Multi-vertical units</p>
           </div>
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-sky-500 to-sky-700 text-white flex items-center justify-center shadow-md shadow-sky-500/20 group-hover:scale-105 transition-transform shrink-0">
-            <ShieldAlert size={19} className="stroke-[2.5]" />
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-sky-500 to-sky-700 text-white flex items-center justify-center shadow-md shadow-sky-500/20 group-hover:scale-105 transition-transform shrink-0">
+            <ShieldAlert size={16} className="stroke-[2.5]" />
           </div>
         </div>
       </div>

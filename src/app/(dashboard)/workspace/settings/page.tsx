@@ -83,6 +83,27 @@ export default function SettingsPage() {
     setIsLuggageStorageEnabled(newState);
     if (!currentMerchant) return;
 
+    // Direct fast fetch to Backend API to persist permanently
+    try {
+      const isProd = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || (isProd ? 'https://bokspot-be.onrender.com/api/v1' : 'http://localhost:9000/api/v1');
+      const targetId = currentMerchant.id;
+      await fetch(`${baseUrl}/merchants/${targetId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          metadata: {
+            ...(currentMerchant.metadata || {}),
+            isLuggageStorageEnabled: newState,
+            luggageHourlyRate: luggageRate || 100,
+            luggageDayPassRate: luggageDayPassRate || 500
+          }
+        })
+      });
+    } catch (e) {
+      console.warn('Backend API merchant patch error:', e);
+    }
+
     // Save directly to localStorage across all keys
     if (typeof window !== 'undefined') {
       try {

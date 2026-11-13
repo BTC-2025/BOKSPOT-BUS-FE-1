@@ -149,7 +149,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-7 relative custom-scrollbar">
+      <main className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 py-4 relative custom-scrollbar">
         {/* Subtle Background Gradients */}
         <div className="absolute top-[-30%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[#0a3161]/8 blur-[100px] pointer-events-none" />
         <div className="absolute bottom-[-30%] right-[-10%] w-[500px] h-[500px] rounded-full bg-[#ff6325]/5 blur-[100px] pointer-events-none" />
@@ -157,7 +157,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Clean Grid Overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.005)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.005)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none opacity-[0.02]" />
         
-        <div className="relative z-10 max-w-7xl mx-auto">
+        <div className="relative z-10 w-full">
           {children}
         </div>
       </main>

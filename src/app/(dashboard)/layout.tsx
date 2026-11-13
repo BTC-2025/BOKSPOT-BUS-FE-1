@@ -8,7 +8,7 @@ import {
   Package, Menu, X, Bell, LogOut, Stethoscope, Dumbbell, Bed, 
   Scissors, Utensils, ShieldAlert, Check, Trash2, Info,
   ChevronDown, Building, Building2, Film, Sparkles, LogOut as LogOutIcon, Laptop, User, Tent,
-  Sun, Moon, Users, Mail, Search, UserCog, UserPlus, MapPin, Clock, ShieldCheck, MessageSquare, Calculator, Ticket, CheckCircle, Headset, Camera, Sliders
+  Sun, Moon, Users, Mail, Search, UserCog, UserPlus, MapPin, Clock, ShieldCheck, MessageSquare, Calculator, Ticket, CheckCircle, Headset, Camera, Sliders, Luggage
 } from 'lucide-react';
 import { UtilityDrawer } from '@/components/UtilityDrawer';
 import { useState, useEffect, useRef } from 'react';
@@ -477,6 +477,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       const isHostel = currentArch === 'hostel' || catLower.includes('hostel') || catLower.includes('dorm');
       const isHotel = currentArch === 'hotel' || currentArch === 'accommodation' || catLower.includes('hotel') || catLower.includes('resort') || catLower.includes('villa') || catLower.includes('homestay') || catLower.includes('room');
 
+      // Check if Luggage Cloakroom is enabled across any of the 54 categories
+      const isLuggageEnabled = (() => {
+        if (typeof window !== 'undefined') {
+          try {
+            const id = currentMerchant?.id;
+            const uname = currentMerchant?.username;
+            const keys = [
+              id ? `hotel_luggage_enabled_${id}` : null,
+              uname ? `hotel_luggage_enabled_${uname}` : null,
+              'hotel_luggage_enabled_H101',
+              'hotel_luggage_enabled_default'
+            ].filter(Boolean) as string[];
+            for (const k of keys) {
+              const val = localStorage.getItem(k);
+              if (val !== null) return val === 'true';
+            }
+          } catch {}
+        }
+        return currentMerchant?.metadata?.isLuggageStorageEnabled ?? true;
+      })();
+
       const items = [
         { href: '/workspace/my-services', icon: Package, label: 'My Services' }
       ];
@@ -498,6 +519,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           href: '/workspace/hotel-room-matrix', 
           icon: Building2, 
           label: archetypeConfig.gridNavLabel || 'Room Grid' 
+        });
+      } else if (isLuggageEnabled) {
+        // Universal Luggage Cloakroom Hub for any of the 54 business categories (Turfs, Gyms, Coworking, Salons, etc.)
+        items.push({ 
+          href: '/workspace/hotel-room-matrix', 
+          icon: Luggage, 
+          label: 'Smart Locker & Luggage Hub' 
         });
       }
 
@@ -1020,7 +1048,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               ? (activeUtilityTab === 'beta' ? '412px' : '392px') 
               : '72px'
         }}
-        className="bg-white/85 dark:bg-[#0c121e]/90 backdrop-blur-2xl flex items-center px-6 py-1 h-10 shrink-0 shadow-[0_1px_8px_rgba(0,0,0,0.03)] border-b border-black/[0.04] dark:border-white/[0.06] relative z-40 transition-[padding-right] duration-200 ease-out"
+        className="bg-white/85 dark:bg-[#0c121e]/90 backdrop-blur-2xl flex items-center px-6 py-0 h-10 shrink-0 shadow-[0_1px_8px_rgba(0,0,0,0.03)] border-b border-[#dbe3eb] dark:border-white/10 relative z-40 transition-[padding-right] duration-200 ease-out"
       >
         {/* Left side empty space to keep subnav tabs centered */}
         <div className="flex-1 hidden md:flex items-center justify-start pl-2" />

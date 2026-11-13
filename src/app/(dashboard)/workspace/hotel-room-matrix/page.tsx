@@ -133,12 +133,40 @@ export default function HotelRoomMatrixPage() {
 
   const [miniSpaceEnabled, setMiniSpaceEnabled] = useState<boolean>(checkMiniSpaceEnabled);
   const [miniSpaceSlots, setMiniSpaceSlots] = useState([
-    { slotId: 'MS-01', status: 'OCCUPIED', token: 'MNI-K92X', guest: 'Priya Sundaram', bags: 2, dropTime: '10:30 AM', pickupEst: '04:30 PM', phone: '+91 98401 22334', amount: 196 },
-    { slotId: 'MS-02', status: 'OCCUPIED', token: 'MNI-7B8A', guest: 'Rohan Sharma', bags: 1, dropTime: '11:15 AM', pickupEst: '03:15 PM', phone: '+91 98840 55667', amount: 98 },
-    { slotId: 'MS-03', status: 'AVAILABLE', token: '', guest: '', bags: 0, dropTime: '', pickupEst: '', phone: '', amount: 0 },
-    { slotId: 'MS-04', status: 'AVAILABLE', token: '', guest: '', bags: 0, dropTime: '', pickupEst: '', phone: '', amount: 0 },
-    { slotId: 'MS-05', status: 'AVAILABLE', token: '', guest: '', bags: 0, dropTime: '', pickupEst: '', phone: '', amount: 0 },
-    { slotId: 'MS-06', status: 'AVAILABLE', token: '', guest: '', bags: 0, dropTime: '', pickupEst: '', phone: '', amount: 0 },
+    { 
+      slotId: 'MS-01', 
+      status: 'OCCUPIED', 
+      token: 'MNI-K92X', 
+      guest: 'Priya Sundaram', 
+      bags: 2, 
+      breakdown: '1x Trolley, 1x Backpack', 
+      dropTime: '10:30 AM', 
+      pickupEst: '01:30 PM', // Overdue demonstration
+      phone: '+91 98401 22334', 
+      amount: 196,
+      hourlyRatePerBag: 49,
+      overdueHours: 1, // 1 hour delayed
+      penaltyPaid: false
+    },
+    { 
+      slotId: 'MS-02', 
+      status: 'OCCUPIED', 
+      token: 'MNI-7B8A', 
+      guest: 'Rohan Sharma', 
+      bags: 3, 
+      breakdown: '1x Trolley, 2x Backpack', 
+      dropTime: '11:15 AM', 
+      pickupEst: '03:15 PM', 
+      phone: '+91 98840 55667', 
+      amount: 185,
+      hourlyRatePerBag: 45,
+      overdueHours: 0,
+      penaltyPaid: false
+    },
+    { slotId: 'MS-03', status: 'AVAILABLE', token: '', guest: '', bags: 0, breakdown: '', dropTime: '', pickupEst: '', phone: '', amount: 0, hourlyRatePerBag: 49, overdueHours: 0, penaltyPaid: false },
+    { slotId: 'MS-04', status: 'AVAILABLE', token: '', guest: '', bags: 0, breakdown: '', dropTime: '', pickupEst: '', phone: '', amount: 0, hourlyRatePerBag: 49, overdueHours: 0, penaltyPaid: false },
+    { slotId: 'MS-05', status: 'AVAILABLE', token: '', guest: '', bags: 0, breakdown: '', dropTime: '', pickupEst: '', phone: '', amount: 0, hourlyRatePerBag: 49, overdueHours: 0, penaltyPaid: false },
+    { slotId: 'MS-06', status: 'AVAILABLE', token: '', guest: '', bags: 0, breakdown: '', dropTime: '', pickupEst: '', phone: '', amount: 0, hourlyRatePerBag: 49, overdueHours: 0, penaltyPaid: false },
   ]);
   const [selectedLuggageSlot, setSelectedLuggageSlot] = useState<any | null>(null);
   const [hourlyPrice, setHourlyPrice] = useState(() => {
@@ -814,7 +842,7 @@ export default function HotelRoomMatrixPage() {
                     const newSlotNum = miniSpaceSlots.length + 1;
                     setMiniSpaceSlots(prev => [
                       ...prev,
-                      { slotId: `MS-0${newSlotNum}`, status: 'AVAILABLE', token: '', guest: '', bags: 0, dropTime: '', pickupEst: '', phone: '', amount: 0 }
+                      { slotId: `MS-0${newSlotNum}`, status: 'AVAILABLE', token: '', guest: '', bags: 0, breakdown: '', dropTime: '', pickupEst: '', phone: '', amount: 0, hourlyRatePerBag: 49, overdueHours: 0, penaltyPaid: false }
                     ]);
                   }}
                   className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 active:scale-95 text-slate-950 rounded-2xl text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-lg shadow-amber-500/25"
@@ -1037,8 +1065,15 @@ export default function HotelRoomMatrixPage() {
                             <span className="font-bold text-slate-800 dark:text-slate-200">{selectedLuggageSlot.phone}</span>
                           </div>
                           <div>
-                            <span className="text-[10px] text-slate-400 block">Baggage:</span>
-                            <span className="font-black text-slate-800 dark:text-slate-200">🎒 {selectedLuggageSlot.bags} Bags</span>
+                            <span className="text-[10px] text-slate-400 block">Baggage / Items:</span>
+                            <span className="font-black text-slate-800 dark:text-slate-200 block">
+                              🧳 {selectedLuggageSlot.bags} {selectedLuggageSlot.bags > 1 ? 'Items' : 'Item'}
+                            </span>
+                            {selectedLuggageSlot.breakdown && (
+                              <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold block mt-0.5">
+                                {selectedLuggageSlot.breakdown}
+                              </span>
+                            )}
                           </div>
                           <div>
                             <span className="text-[10px] text-slate-400 block">Drop Time:</span>
@@ -1050,29 +1085,81 @@ export default function HotelRoomMatrixPage() {
                           </div>
                         </div>
 
-                        <div className="pt-2 border-t border-slate-200/60 dark:border-white/10 flex items-center justify-between text-xs">
-                          <span className="font-bold text-slate-500">Amount Paid:</span>
-                          <span className="font-black text-sm text-emerald-600 dark:text-emerald-400">₹{selectedLuggageSlot.amount}</span>
-                        </div>
+                        {/* Overdue Delay Detection Banner */}
+                        {(() => {
+                          const isOverdue = selectedLuggageSlot.overdueHours > 0 && !selectedLuggageSlot.penaltyPaid;
+                          const overtimeCharge = selectedLuggageSlot.overdueHours * (selectedLuggageSlot.hourlyRatePerBag || 49) * selectedLuggageSlot.bags;
+
+                          return (
+                            <>
+                              {isOverdue && (
+                                <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-xs space-y-2">
+                                  <div className="flex items-center justify-between text-rose-500 font-black">
+                                    <span className="flex items-center gap-1.5">
+                                      <span>⚠️</span> Delayed Collection (+{selectedLuggageSlot.overdueHours}h Overdue)
+                                    </span>
+                                    <span>Due: +₹{overtimeCharge}</span>
+                                  </div>
+                                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                                    Guest scheduled pickup was {selectedLuggageSlot.pickupEst}. Auto-calculated {selectedLuggageSlot.overdueHours}h extra storage charges for {selectedLuggageSlot.bags} bags.
+                                  </p>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setMiniSpaceSlots(prev => prev.map(s => {
+                                        if (s.slotId === selectedLuggageSlot.slotId) {
+                                          return { ...s, penaltyPaid: true, amount: s.amount + overtimeCharge };
+                                        }
+                                        return s;
+                                      }));
+                                      setSelectedLuggageSlot((prev: any) => ({ ...prev, penaltyPaid: true, amount: prev.amount + overtimeCharge }));
+                                    }}
+                                    className="w-full py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-sm transition-all"
+                                  >
+                                    <span>Collect Extra ₹{overtimeCharge} (Cash / UPI) & Settle</span>
+                                  </button>
+                                </div>
+                              )}
+
+                              <div className="pt-2 border-t border-slate-200/60 dark:border-white/10 flex items-center justify-between text-xs">
+                                <span className="font-bold text-slate-500">Amount Paid:</span>
+                                <span className="font-black text-sm text-emerald-600 dark:text-emerald-400">₹{selectedLuggageSlot.amount}</span>
+                              </div>
+                            </>
+                          );
+                        })()}
                       </div>
 
                       {/* Action Button */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setMiniSpaceSlots(prev => prev.map(s => {
-                            if (s.slotId === selectedLuggageSlot.slotId) {
-                              return { ...s, status: 'AVAILABLE', token: '', guest: '', bags: 0, dropTime: '', pickupEst: '', phone: '', amount: 0 };
-                            }
-                            return s;
-                          }));
-                          setSelectedLuggageSlot((prev: any) => ({ ...prev, status: 'AVAILABLE', token: '', guest: '', bags: 0, amount: 0 }));
-                        }}
-                        className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white font-black rounded-2xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-600/25 transition-all"
-                      >
-                        <CheckCircle2 size={15} />
-                        <span>Verify Token & Handover Luggage</span>
-                      </button>
+                      {(() => {
+                        const isOverdue = selectedLuggageSlot.overdueHours > 0 && !selectedLuggageSlot.penaltyPaid;
+
+                        return (
+                          <button
+                            type="button"
+                            disabled={isOverdue}
+                            onClick={() => {
+                              setMiniSpaceSlots(prev => prev.map(s => {
+                                if (s.slotId === selectedLuggageSlot.slotId) {
+                                  return { ...s, status: 'AVAILABLE', token: '', guest: '', bags: 0, breakdown: '', dropTime: '', pickupEst: '', phone: '', amount: 0, overdueHours: 0, penaltyPaid: false };
+                                }
+                                return s;
+                              }));
+                              setSelectedLuggageSlot((prev: any) => ({ ...prev, status: 'AVAILABLE', token: '', guest: '', bags: 0, amount: 0, overdueHours: 0, penaltyPaid: false }));
+                            }}
+                            className={`w-full py-3 text-white font-black rounded-2xl text-xs flex items-center justify-center gap-2 transition-all ${
+                              isOverdue
+                                ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed'
+                                : 'bg-emerald-600 hover:bg-emerald-500 active:scale-98 cursor-pointer shadow-lg shadow-emerald-600/25'
+                            }`}
+                          >
+                            <CheckCircle2 size={15} />
+                            <span>
+                              {isOverdue ? 'Settle Overdue Fee to Handover & Release' : 'Verify Token & Handover Luggage (Release Slot)'}
+                            </span>
+                          </button>
+                        );
+                      })()}
                     </div>
                   ) : (
                     <div className="py-8 text-center space-y-2">
