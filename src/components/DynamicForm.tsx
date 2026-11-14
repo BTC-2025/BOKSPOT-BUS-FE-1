@@ -30,6 +30,13 @@ export default function DynamicForm({
   const baseSchema = ARCHETYPE_SCHEMAS[archetype];
   const [formData, setFormData] = useState<any>(initialData || {});
 
+  // Sync internal formData when initialData changes asynchronously
+  React.useEffect(() => {
+    if (initialData && Object.keys(initialData).length > 0) {
+      setFormData((prev: any) => ({ ...initialData, ...prev }));
+    }
+  }, [initialData]);
+
   if (!baseSchema) {
     return <div className="p-4 text-red-500 bg-red-50 rounded-xl">Invalid Archetype Configured</div>;
   }

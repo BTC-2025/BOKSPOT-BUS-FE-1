@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import axios from 'axios';
 import { getArchetypeFromCategory } from './archetypes';
+import { getSportCategoryConfig } from './sportsData';
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1';
 
 export interface MedicalReport {
@@ -280,6 +281,7 @@ export interface BranchInfo {
   offeringsSummary?: string; // e.g. "Deluxe Rooms, Suite Stays" or "7v7 Astro Turf, Cricket Pitch"
   isMainBranch?: boolean;
   assignedStaffIds?: string[]; // Staff / Sub-IDs with access to this branch
+  gallery?: string[];  // Dedicated photos for this specific branch
 }
 
 export interface BusinessVertical {
@@ -523,6 +525,12 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     gstStatus: 'WITH_GST',
     gstNumber: '33AAAAA0000A1Z5',
     activeBranchId: 'branch-resort-stay',
+    gallery: [
+      'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&auto=format&fit=crop&q=80'
+    ],
+    coverImage: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&auto=format&fit=crop&q=80',
     branches: [
       {
         id: 'branch-resort-stay',
@@ -534,12 +542,16 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
         gstStatus: 'WITH_GST',
         gstNumber: '33AAAAA0000A1Z5', // Inherits Primary Business GST
         offeringsSummary: 'Deluxe Suites, Pool Cottages',
+        gallery: [
+          'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop&q=80'
+        ],
         isMainBranch: true,
         assignedStaffIds: ['staff-reception-1']
       },
       {
         id: 'branch-resort-turf',
-        name: 'Sports Turf',
+        name: 'Sunstone Arena',
         city: 'Chennai',
         category: 'Football Turf',
         businessType: 'Sports Facility',
@@ -547,6 +559,10 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
         gstStatus: 'WITH_GST',
         gstNumber: '33AAAAA0000A1Z5', // Same Primary Business GST as instructed by TL
         offeringsSummary: '7v7 FIFA Astro Turf, Floodlit Ground',
+        gallery: [
+          'https://images.unsplash.com/photo-1529900245534-47fbf82a4fbe?w=1200&q=80',
+          'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&q=80'
+        ],
         isMainBranch: false,
         assignedStaffIds: ['staff-turfboy-1']
       }
@@ -684,10 +700,42 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     merchantName: 'Arena 5 Turf',
     category: 'Football Turf',
     logoLetter: 'A',
-    aboutText: 'Welcome to Arena 5 Turf. We provide professional Football Turf services.',
+    aboutText: 'Welcome to Arena 5 Turf. FIFA Approved Monofilament Astro Turf with 200W Floodlight Array.',
     vendorId: '20260005',
     email: 't102@bnxmail.com',
-    archetype: 'Sports'
+    archetype: 'Sports',
+    gstStatus: 'WITH_GST',
+    gstNumber: '33AAAAA0000A1Z5',
+    city: 'Chennai',
+    activeBranchId: 'branch-arena5-main',
+    branches: [
+      {
+        id: 'branch-arena5-main',
+        name: 'Arena 5 Turf — Kolathur Main',
+        city: 'Chennai',
+        category: 'Football Turf',
+        businessType: 'Sports Facility',
+        address: '200 Feet Road, Kolathur, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: '5v5 Astro Turf Pitch A, 7v7 Championship Pitch',
+        isMainBranch: true,
+        assignedStaffIds: ['staff-t102-1']
+      },
+      {
+        id: 'branch-arena5-vadapalani',
+        name: 'Arena 5 Turf — Vadapalani Hub',
+        city: 'Chennai',
+        category: 'Football Turf',
+        businessType: 'Sports Facility',
+        address: '100 Feet Road, Vadapalani, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'Floodlit 5s Turf & Dugout Seating',
+        isMainBranch: false,
+        assignedStaffIds: ['staff-t102-2']
+      }
+    ]
   },
   {
     id: '5a8fe3b6-9787-e911-bd92-12be14cde4e6',
@@ -695,10 +743,42 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     merchantName: 'Pitch Perfect Grounds',
     category: 'Cricket Ground',
     logoLetter: 'P',
-    aboutText: 'Welcome to Pitch Perfect Grounds. We provide professional Cricket Ground services.',
+    aboutText: 'Welcome to Pitch Perfect Grounds. Standard 22-yard turf pitch & floodlit box cricket nets.',
     vendorId: '20260006',
     email: 't103@bnxmail.com',
-    archetype: 'Sports'
+    archetype: 'Sports',
+    gstStatus: 'WITH_GST',
+    gstNumber: '33AAAAA0000A1Z5',
+    city: 'Chennai',
+    activeBranchId: 'branch-pitchperfect-main',
+    branches: [
+      {
+        id: 'branch-pitchperfect-main',
+        name: 'Pitch Perfect Grounds — Madhavaram',
+        city: 'Chennai',
+        category: 'Cricket Ground',
+        businessType: 'Sports Facility',
+        address: 'Grand Northern Trunk Road, Madhavaram, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'Covered Box Cricket Arena, Main 55m Turf Cricket Ground',
+        isMainBranch: true,
+        assignedStaffIds: ['staff-t103-1']
+      },
+      {
+        id: 'branch-pitchperfect-porur',
+        name: 'Pitch Perfect Grounds — Porur Link',
+        city: 'Chennai',
+        category: 'Cricket Ground',
+        businessType: 'Sports Facility',
+        address: 'Mount Poonamallee Road, Porur, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'Floodlit Cricket Practice Nets & Bowling Machine',
+        isMainBranch: false,
+        assignedStaffIds: ['staff-t103-2']
+      }
+    ]
   },
   {
     id: 'de764dbc-2b2b-6079-d829-4633f41fd826',
@@ -706,10 +786,42 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     merchantName: 'Smash Academy',
     category: 'Badminton Court',
     logoLetter: 'S',
-    aboutText: 'Welcome to Smash Academy. We provide professional Badminton Court services.',
+    aboutText: 'Welcome to Smash Academy. BWF Approved Yonex synthetic mat and seasoned teak wood badminton courts.',
     vendorId: '20260007',
     email: 't104@bnxmail.com',
-    archetype: 'Sports'
+    archetype: 'Sports',
+    gstStatus: 'WITH_GST',
+    gstNumber: '33AAAAA0000A1Z5',
+    city: 'Chennai',
+    activeBranchId: 'branch-smash-main',
+    branches: [
+      {
+        id: 'branch-smash-main',
+        name: 'Smash Academy — Mogappair West',
+        city: 'Chennai',
+        category: 'Badminton Court',
+        businessType: 'Sports Facility',
+        address: 'Park Road, Mogappair West, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'Court 1 Yonex Mat, Court 2 Teak Wood, Court 3 Cushioned Vinyl',
+        isMainBranch: true,
+        assignedStaffIds: ['staff-t104-1']
+      },
+      {
+        id: 'branch-smash-annanagar',
+        name: 'Smash Academy — Anna Nagar West',
+        city: 'Chennai',
+        category: 'Badminton Court',
+        businessType: 'Sports Facility',
+        address: '18th Main Road, Anna Nagar West, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'Tournament Yonex Mat Courts with Air Cooling',
+        isMainBranch: false,
+        assignedStaffIds: ['staff-t104-2']
+      }
+    ]
   },
   {
     id: '1ededc46-c2c0-1e09-a0be-30c4b441bbae',
@@ -717,10 +829,42 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     merchantName: 'Grand Slam Club',
     category: 'Tennis Court',
     logoLetter: 'G',
-    aboutText: 'Welcome to Grand Slam Club. We provide professional Tennis Court services.',
+    aboutText: 'Welcome to Grand Slam Club. Premier ITF approved clay and acrylic tennis courts with professional lighting.',
     vendorId: '20260008',
     email: 't105@bnxmail.com',
-    archetype: 'Sports'
+    archetype: 'Sports',
+    gstStatus: 'WITH_GST',
+    gstNumber: '33AAAAA0000A1Z5',
+    city: 'Chennai',
+    activeBranchId: 'branch-grandslam-main',
+    branches: [
+      {
+        id: 'branch-grandslam-main',
+        name: 'Grand Slam Club — Nungambakkam',
+        city: 'Chennai',
+        category: 'Tennis Court',
+        businessType: 'Sports Facility',
+        address: 'Tennis Stadium Road, Nungambakkam, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'Rolled Red Clay Courts, US Open DecoTurf Acrylic Courts',
+        isMainBranch: true,
+        assignedStaffIds: ['staff-t105-1']
+      },
+      {
+        id: 'branch-grandslam-ecr',
+        name: 'Grand Slam Club — ECR Coastal Arena',
+        city: 'Chennai',
+        category: 'Tennis Court',
+        businessType: 'Sports Facility',
+        address: '42 East Coast Road, Akkarai, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'Floodlit Championship Clay Courts',
+        isMainBranch: false,
+        assignedStaffIds: ['staff-t105-2']
+      }
+    ]
   },
   {
     id: 'ad72ab0e-4361-aed4-d236-117c907068e9',
@@ -728,10 +872,42 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     merchantName: 'Hoop Kings Arena',
     category: 'Basketball Court',
     logoLetter: 'H',
-    aboutText: 'Welcome to Hoop Kings Arena. We provide professional Basketball Court services.',
+    aboutText: 'Welcome to Hoop Kings Arena. FIBA Certified hardwood maple indoor courts with 24-sec shot clocks.',
     vendorId: '20260009',
     email: 't106@bnxmail.com',
-    archetype: 'Sports'
+    archetype: 'Sports',
+    gstStatus: 'WITH_GST',
+    gstNumber: '33AAAAA0000A1Z5',
+    city: 'Chennai',
+    activeBranchId: 'branch-hoopkings-main',
+    branches: [
+      {
+        id: 'branch-hoopkings-main',
+        name: 'Hoop Kings Arena — Velachery',
+        city: 'Chennai',
+        category: 'Basketball Court',
+        businessType: 'Sports Facility',
+        address: '15 Bypass Road, Velachery, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'Full Court Maple Hardwood Arena, 3x3 Streetball Cage',
+        isMainBranch: true,
+        assignedStaffIds: ['staff-t106-1']
+      },
+      {
+        id: 'branch-hoopkings-omr',
+        name: 'Hoop Kings Arena — OMR IT Hub',
+        city: 'Chennai',
+        category: 'Basketball Court',
+        businessType: 'Sports Facility',
+        address: 'Rajiv Gandhi Salai, Thoraipakkam, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'Air-Conditioned Indoor Wooden Court',
+        isMainBranch: false,
+        assignedStaffIds: ['staff-t106-2']
+      }
+    ]
   },
   {
     id: '10af45e9-939e-0b14-5bd6-c4b21fb3fe8a',
@@ -739,10 +915,42 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     merchantName: 'Blue Wave Pool',
     category: 'Swimming Pool Slots',
     logoLetter: 'B',
-    aboutText: 'Welcome to Blue Wave Pool. We provide professional Swimming Pool Slots services.',
+    aboutText: 'Welcome to Blue Wave Pool. Olympic-spec 25m heated ozonated swimming pool with certified lifeguards.',
     vendorId: '20260010',
     email: 't107@bnxmail.com',
-    archetype: 'Sports'
+    archetype: 'Sports',
+    gstStatus: 'WITH_GST',
+    gstNumber: '33AAAAA0000A1Z5',
+    city: 'Chennai',
+    activeBranchId: 'branch-bluewave-main',
+    branches: [
+      {
+        id: 'branch-bluewave-main',
+        name: 'Blue Wave Aquatic Center — Anna Nagar',
+        city: 'Chennai',
+        category: 'Swimming Pool Slots',
+        businessType: 'Sports Facility',
+        address: '6th Avenue, Anna Nagar East, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: '25m Lap Swimming Lanes, Heated Shallow Family Pool',
+        isMainBranch: true,
+        assignedStaffIds: ['staff-t107-1']
+      },
+      {
+        id: 'branch-bluewave-adyar',
+        name: 'Blue Wave Aquatic Center — Adyar',
+        city: 'Chennai',
+        category: 'Swimming Pool Slots',
+        businessType: 'Sports Facility',
+        address: 'Gandhi Nagar 2nd Main Road, Adyar, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'Ozonated Lap Training Pool, RFID Lockers & Showers',
+        isMainBranch: false,
+        assignedStaffIds: ['staff-t107-2']
+      }
+    ]
   },
   {
     id: '5ef7ac5b-f41e-d1bd-8741-498129d65866',
@@ -750,10 +958,29 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     merchantName: 'Cyber Core Cafe',
     category: 'Gaming Arena Booking',
     logoLetter: 'C',
-    aboutText: 'Welcome to Cyber Core Cafe. We provide professional Gaming Arena Booking services.',
+    aboutText: 'Welcome to Cyber Core Cafe. High-FPS RTX 4090 gaming rigs, PS5 VIP lounges & sim racing.',
     vendorId: '20260011',
     email: 'g101@bnxmail.com',
-    archetype: 'Sports'
+    archetype: 'Sports',
+    gstStatus: 'WITH_GST',
+    gstNumber: '33AAAAA0000A1Z5',
+    city: 'Chennai',
+    activeBranchId: 'branch-cybercore-main',
+    branches: [
+      {
+        id: 'branch-cybercore-main',
+        name: 'Cyber Core Cafe — Nungambakkam',
+        city: 'Chennai',
+        category: 'Gaming Arena Booking',
+        businessType: 'Sports Facility',
+        address: 'Sterling Road, Nungambakkam, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: '240Hz Esports Booths, PS5 4K Private Lounges',
+        isMainBranch: true,
+        assignedStaffIds: ['staff-g101-1']
+      }
+    ]
   },
   {
     id: 'bdb9deee-6122-12de-c16b-26fad5fb0028',
@@ -761,10 +988,42 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     merchantName: 'JumpZone Park',
     category: 'Indoor Play Arena',
     logoLetter: 'J',
-    aboutText: 'Welcome to JumpZone Park. We provide professional Indoor Play Arena services.',
+    aboutText: 'Welcome to JumpZone Park. Freestyle trampoline arena, ninja course, dodgeball & foam pits.',
     vendorId: '20260012',
     email: 'g102@bnxmail.com',
-    archetype: 'Sports'
+    archetype: 'Sports',
+    gstStatus: 'WITH_GST',
+    gstNumber: '33AAAAA0000A1Z5',
+    city: 'Chennai',
+    activeBranchId: 'branch-jumpzone-main',
+    branches: [
+      {
+        id: 'branch-jumpzone-main',
+        name: 'JumpZone Trampoline Park — Velachery',
+        city: 'Chennai',
+        category: 'Indoor Play Arena',
+        businessType: 'Sports Facility',
+        address: 'Phoenix Marketcity Annex, Velachery, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'Full Arena 1-Hour Jump Pass, 2-Hour Mega Session Pass',
+        isMainBranch: true,
+        assignedStaffIds: ['staff-g102-1']
+      },
+      {
+        id: 'branch-jumpzone-omr',
+        name: 'JumpZone Park — OMR Marina Mall',
+        city: 'Chennai',
+        category: 'Indoor Play Arena',
+        businessType: 'Sports Facility',
+        address: 'Marina Mall 3rd Floor, Egattur, OMR, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'Interconnected Trampoline Arena & Arcade Hub',
+        isMainBranch: false,
+        assignedStaffIds: ['staff-g102-2']
+      }
+    ]
   },
   {
     id: 'b23bbd1f-3c8d-56dd-7143-e34153dec1fd',
@@ -1452,19 +1711,16 @@ export const useVendorStore = create<VendorStoreState>()(
     // If branch has a specific category, auto-align active category and archetype
     let updatedCategory = state.currentMerchant.category;
     let updatedArchetype = state.currentMerchant.archetype;
-    let updatedMerchantName = state.currentMerchant.merchantName;
+    let updatedMerchantName = targetBranch?.name || state.currentMerchant.merchantName;
 
     if (targetBranch) {
       if (targetBranch.category) {
         updatedCategory = targetBranch.category;
         updatedArchetype = getArchetypeFromCategory(targetBranch.category) as any;
       }
-      // Derive clean business name for this branch
-      const isTurf = targetBranch.category?.toLowerCase().includes('turf') || targetBranch.name?.toLowerCase().includes('turf');
-      if (isTurf && !updatedMerchantName.toLowerCase().includes('arena') && !updatedMerchantName.toLowerCase().includes('turf')) {
-        updatedMerchantName = updatedMerchantName.replace(/Resort|Hotel|Villa/gi, 'Arena').trim();
-      } else if (!isTurf && updatedMerchantName.toLowerCase().includes('arena')) {
-        updatedMerchantName = updatedMerchantName.replace(/Arena/gi, 'Resort').trim();
+      // Derive clean business name for this branch if branch has specific name
+      if (targetBranch.name) {
+        updatedMerchantName = targetBranch.name;
       }
     }
 
@@ -2030,7 +2286,52 @@ export const useVendorStore = create<VendorStoreState>()(
             };
             
             // If backend returned services for activeMerchantId, use them directly
-            const finalDataToMap = servicesData.length > 0 ? servicesData : [];
+            let finalDataToMap = servicesData.length > 0 ? servicesData : [];
+
+            // If backend has no services for this merchant yet, seed from sports/service master archetype
+            if (finalDataToMap.length === 0 && currentMerchant) {
+              const catSlug = (currentMerchant.category || '').toLowerCase().replace(/\s+/g, '-');
+              const sportCfg = getSportCategoryConfig(catSlug);
+              if (sportCfg) {
+                finalDataToMap = [
+                  {
+                    id: `svc-${sportCfg.slug}-${sportCfg.username.toLowerCase()}`,
+                    name: `${sportCfg.categoryName} Master Units`,
+                    basePrice: sportCfg.defaultPrice,
+                    durationMinutes: 60,
+                    isActive: true,
+                    images: [sportCfg.heroImage, ...sportCfg.galleryImages],
+                    description: `Professional ${sportCfg.categoryName} court and unit management. Configure court surfaces, hourly tariffs, and equipment add-ons.`,
+                    metadata: {
+                      isFacility: true,
+                      merchantName: currentMerchant.merchantName || sportCfg.merchantName,
+                      originalCategory: sportCfg.categoryName,
+                      amenities: sportCfg.amenities,
+                      mandatoryRule: sportCfg.mandatoryRule,
+                      supervisorTitle: sportCfg.supervisorTitle,
+                      includedGear: sportCfg.includedGear,
+                      listings: sportCfg.units.map(u => ({
+                        id: u.id,
+                        name: u.name,
+                        price: u.price,
+                        imageUrl: u.imageUrl,
+                        description: u.description,
+                        images: [u.imageUrl],
+                        metadata: {
+                          imageUrl: u.imageUrl,
+                          surface: u.surface,
+                          badge: u.badge,
+                          addons: sportCfg.addons,
+                          mandatoryRule: sportCfg.mandatoryRule,
+                          equipmentAddons: sportCfg.includedGear,
+                          refereeOrManager: sportCfg.supervisorTitle
+                        }
+                      }))
+                    }
+                  }
+                ];
+              }
+            }
 
             const mapped = finalDataToMap.map((s: any) => {
               let fetchedMerchantName = s.metadata?.merchantName || s.merchant?.name || currentMerchantName || 'Grand Hotel';

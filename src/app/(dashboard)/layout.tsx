@@ -89,10 +89,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               matches = true;
             }
           }
-          if (!matches && (curName.includes('sunstone') || curName.includes('resort') || curName.includes('arena'))) {
-            if (bName.includes('sunstone') || bName.includes('arena 5') || bName.includes('arena')) {
-              matches = true;
-            }
+          if (!matches && (curName.includes('sunstone') && (bName.includes('sunstone') || bName.includes('arena 5')))) {
+            matches = true;
           }
           if (!matches) return false;
 
@@ -102,7 +100,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           if (curArch === 'ACCOMMODATION' || ['homestay / villa', 'homestay-villa', 'villas', 'hotels', 'resorts'].includes((merchant.category || '').toLowerCase().trim())) {
             if (bArch === 'TRANSPORT' || ['buses', 'trains', 'flights', 'cabs'].includes(bCategory)) return false;
+            if (bArch === 'RENTAL' || bArch === 'FACILITY_HOURLY' || /turf|court|ground|pitch/i.test(bServiceName)) return false;
             if (/bus|train|flight|shatabdi|volvo/i.test(bServiceName)) return false;
+          }
+          if (curArch === 'RENTAL' || curArch === 'FACILITY_HOURLY') {
+            if (bArch === 'ACCOMMODATION' || /hotel|resort|villa|room|suite|stay/i.test(bServiceName) || /hotel|resort|villa/i.test(bCategory)) return false;
           }
           if (curArch && bArch && curArch !== bArch) return false;
           return true;
@@ -166,10 +168,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         const bId = String(b.merchantId || '').trim();
         const bName = (b.merchantName || '').toLowerCase().trim();
         let matches = (curId && bId && curId === bId) || (curName && bName && (curName === bName || bName.includes(curName) || curName.includes(bName)));
-        if (!matches && (curName.includes('sunstone') || curName.includes('resort') || curName.includes('arena'))) {
-          if (bName.includes('sunstone') || bName.includes('arena 5') || bName.includes('arena')) {
-            matches = true;
-          }
+        if (!matches && (curName.includes('sunstone') && (bName.includes('sunstone') || bName.includes('arena 5')))) {
+          matches = true;
         }
         if (!matches) return false;
 
@@ -179,7 +179,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         if (curArch === 'ACCOMMODATION' || ['homestay / villa', 'homestay-villa', 'villas', 'hotels', 'resorts'].includes((currentMerchant.category || '').toLowerCase().trim())) {
           if (bArch === 'TRANSPORT' || ['buses', 'trains', 'flights', 'cabs'].includes(bCategory)) return false;
+          if (bArch === 'RENTAL' || bArch === 'FACILITY_HOURLY' || /turf|court|ground|pitch/i.test(bServiceName)) return false;
           if (/bus|train|flight|shatabdi|volvo/i.test(bServiceName)) return false;
+        }
+        if (curArch === 'RENTAL' || curArch === 'FACILITY_HOURLY') {
+          if (bArch === 'ACCOMMODATION' || /hotel|resort|villa|room|suite|stay/i.test(bServiceName) || /hotel|resort|villa/i.test(bCategory)) return false;
         }
         if (curArch && bArch && curArch !== bArch) return false;
         return true;
@@ -519,13 +523,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           href: '/workspace/hotel-room-matrix', 
           icon: Building2, 
           label: archetypeConfig.gridNavLabel || 'Room Grid' 
-        });
-      } else if (isLuggageEnabled) {
-        // Universal Luggage Cloakroom Hub for any of the 54 business categories (Turfs, Gyms, Coworking, Salons, etc.)
-        items.push({ 
-          href: '/workspace/hotel-room-matrix', 
-          icon: Luggage, 
-          label: 'Smart Locker & Luggage Hub' 
         });
       }
 

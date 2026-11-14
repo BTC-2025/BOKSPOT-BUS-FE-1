@@ -86,13 +86,26 @@ export default function DashboardPage() {
       ];
 
   const activeBranch = effectiveBranches.find(b => b.id === (currentMerchant.activeBranchId || effectiveBranches[0].id)) || effectiveBranches[0];
-  const isTurfBranch = (activeBranch.category?.toLowerCase().includes('turf') || activeBranch.name?.toLowerCase().includes('turf'));
+
+  // Comprehensive check for Sports / Turf across active branch and merchant profile
+  const isTurfBranch = (() => {
+    const bCat = (activeBranch.category || '').toLowerCase();
+    const bName = (activeBranch.name || '').toLowerCase();
+    const bType = (activeBranch.businessType || '').toLowerCase();
+    const mCat = (currentMerchant.category || '').toLowerCase();
+    const mArch = (currentMerchant.archetype || '').toLowerCase();
+
+    const sportsKeywords = ['turf', 'pitch', 'court', 'ground', 'arena', 'football', 'cricket', 'badminton', 'tennis', 'basketball', 'swimming', 'play-arena', 'sport'];
+    return sportsKeywords.some(kw => bCat.includes(kw) || bName.includes(kw) || bType.includes(kw)) ||
+      (mArch === 'sports' || mArch === 'sportsfacility' || mArch === 'facilityhourly' || mArch === 'resourcebooking') ||
+      sportsKeywords.some(kw => mCat.includes(kw));
+  })();
 
   // Active Category & Archetype aligned with active branch
   const activeBranchCategory = activeBranch.category || (isTurfBranch ? 'Football Turf' : (currentMerchant.category || 'Resort Booking'));
-  const curArch = (getArchetypeFromCategory(activeBranchCategory) || 'ACCOMMODATION');
+  const curArch = isTurfBranch ? 'RENTAL' : (getArchetypeFromCategory(activeBranchCategory) || 'ACCOMMODATION');
 
-  const baseConfig = getArchetypeConfig(activeBranchCategory || currentMerchant?.archetype || 'Service');
+  const baseConfig = getArchetypeConfig(isTurfBranch ? 'FacilityHourly' : (activeBranchCategory || currentMerchant?.archetype || 'Service'));
   const archetypeConfig = { ...baseConfig, ...(currentMerchant?.customDictionary || {}) };
 
   const isValidForMerchant = (b: any) => {
@@ -403,7 +416,7 @@ export default function DashboardPage() {
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2.5 mb-1.5">
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#0a3161] dark:text-white truncate">
-                  {currentMerchant.merchantName || activeBranch.name || 'Merchant Dashboard'}
+                  {activeBranch.name || currentMerchant.merchantName || 'Merchant Dashboard'}
                 </h1>
 
                 {/* GST Badge */}
@@ -827,10 +840,14 @@ export default function DashboardPage() {
                 </div>
               )) : (
                 <div className="p-6 text-center rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-dashed border-slate-200 dark:border-white/10">
-                  <p className="text-xs font-bold text-slate-600 dark:text-slate-300">No active inventory units yet</p>
-                  <p className="text-[11px] text-slate-400 mt-1">Add your catalog services or room units in My Services</p>
+                  <p className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                    {isTurfBranch ? 'No active pitch or court units yet' : 'No active inventory units yet'}
+                  </p>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    {isTurfBranch ? 'Add your court units or pitch slots in My Services' : 'Add your catalog services or room units in My Services'}
+                  </p>
                   <button onClick={() => router.push('/workspace/my-services')} className="mt-3 px-3 py-1.5 rounded-xl bg-[#ff6325] hover:bg-[#e04e13] text-white text-[11px] font-bold shadow-sm transition-all cursor-pointer">
-                    + Add First Service / Unit
+                    {isTurfBranch ? '+ Add Pitch / Court Unit' : '+ Add First Service / Unit'}
                   </button>
                 </div>
               )}

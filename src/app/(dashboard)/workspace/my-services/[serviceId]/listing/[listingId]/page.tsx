@@ -3,7 +3,7 @@
 import { useVendorStore, CatalogListing } from '@/lib/store';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Clock, Package, AlertTriangle, Tag, Users, CheckSquare, Info, X, Save, Bed, Image as ImageIcon, Activity, Heart, Car, Ticket, Briefcase, Zap, CheckCircle2, Plus } from 'lucide-react';
+import { ArrowLeft, Clock, Package, AlertTriangle, Tag, Users, CheckSquare, Info, X, Save, Bed, Image as ImageIcon, Activity, Heart, Car, Ticket, Briefcase, Zap, CheckCircle2, Plus, Calendar } from 'lucide-react';
 import DynamicForm from '@/components/DynamicForm';
 import { getArchetypeFromCategory, Archetype } from '@/lib/archetypes';
 import { compressImage } from '@/lib/imageUtils';
@@ -92,10 +92,10 @@ export default function ListingEditorPage() {
           const disc = list.metadata?.discountPercentage || (list as any).discountPercentage;
           const currentBase = list.price !== undefined && list.price !== null ? Number(list.price) : 0;
 
-          if (orig && Number(orig) > currentBase) {
+          if (orig && Number(orig) > 0) {
             setOriginalPrice(orig.toString());
-          } else if (disc && Number(disc) > 0 && currentBase > 0) {
-            setOriginalPrice(Math.round(currentBase / (1 - Number(disc) / 100)).toString());
+          } else if (currentBase > 0) {
+            setOriginalPrice(currentBase.toString());
           } else {
             setOriginalPrice('');
           }
@@ -136,9 +136,33 @@ export default function ListingEditorPage() {
               mo11Price: td.mo11Price ? td.mo11Price.toString() : (bPrice > 0 ? Math.round(bPrice * (1 - Number(pct11) / 100)).toString() : ''),
             });
           }
-          setMetadata(list.metadata || {});
-          setAddons(list.metadata?.addons || []);
-          setEquipmentAddons(list.metadata?.equipmentAddons || '');
+          // Extract existing unit add-ons & gear
+          const existingAddons = list.metadata?.addons || (list as any).addons || category.metadata?.addons || [];
+          const normalizedAddons = Array.isArray(existingAddons)
+            ? existingAddons.map((a: any) => ({
+                name: a.name || a.title || '',
+                price: Number(a.price) || 0,
+                stockType: a.stockType || 'REUSABLE',
+                maxStock: a.maxStock ?? 5,
+                currentStock: a.currentStock ?? a.maxStock ?? 5
+              }))
+            : [];
+          setAddons(normalizedAddons);
+
+          const existingGear = list.metadata?.equipmentAddons || (list as any).equipmentAddons || category.metadata?.includedGear || '';
+          setEquipmentAddons(existingGear);
+
+          // Build complete initial metadata dynamically from the listing or category metadata (no category-specific hardcoding)
+          const resolvedMetadata = {
+            surfaceType: list.metadata?.surface || list.metadata?.surfaceType || '',
+            turfSize: list.metadata?.turfSize || list.metadata?.dimensions || '',
+            facilityName: list.name || '',
+            refereeOrManager: list.metadata?.refereeOrManager || category.metadata?.supervisorTitle || '',
+            totalUnits: list.metadata?.totalUnits || 1,
+            hourlyRate: Number(list.price) || 0,
+            ...(list.metadata || {})
+          };
+          setMetadata(resolvedMetadata);
           setGstEnabled(list.metadata?.gstEnabled ?? (category.gstType === 'WITH_GST' || currentMerchant.gstStatus === 'WITH_GST'));
           setGstPercentage(list.metadata?.gstPercentage ?? 18);
           setGstNumber(list.metadata?.gstNumber || currentMerchant.gstNumber || '');
@@ -339,6 +363,17 @@ export default function ListingEditorPage() {
         </div>
 
         <div className="flex items-center gap-2.5">
+          {!isCreating && (
+            <button
+              type="button"
+              onClick={() => router.push(`/workspace/my-services/${serviceId}/listing/${listingId}/slots`)}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-800 dark:text-white font-bold text-xs transition-colors cursor-pointer border border-slate-200/80 dark:border-white/10 shadow-xs"
+              title="Configure hourly booking slots & pricing"
+            >
+              <Calendar size={14} className="text-[#ff6325]" />
+              <span>Manage Slots</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={() => router.push(`/workspace/my-services/${serviceId}`)}

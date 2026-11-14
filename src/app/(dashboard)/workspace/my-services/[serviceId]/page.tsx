@@ -118,12 +118,27 @@ export default function ServiceListingsPage() {
           {listings.map(list => {
             const isTurfListing = (category.name || '').toLowerCase().includes('turf') ||
               (category.name || '').toLowerCase().includes('football') ||
-              (list.name || '').toLowerCase().includes('turf') ||
-              (list.name || '').toLowerCase().includes('pitch');
-            const listImg = list.imageUrl && list.imageUrl.startsWith('http') && !list.imageUrl.includes('ui-avatars')
-              ? list.imageUrl
-              : (isTurfListing
-                ? 'https://images.unsplash.com/photo-1574629810360-7efbb49fec90?w=800&auto=format&fit=crop&q=80'
+              (category.name || '').toLowerCase().includes('cricket') ||
+              (category.name || '').toLowerCase().includes('badminton') ||
+              (category.name || '').toLowerCase().includes('tennis') ||
+              (category.name || '').toLowerCase().includes('basketball') ||
+              (category.name || '').toLowerCase().includes('swimming') ||
+              (category.name || '').toLowerCase().includes('court') ||
+              (category.name || '').toLowerCase().includes('arena') ||
+              (category.category || '').toLowerCase().includes('sports') ||
+              (category.category || '').toLowerCase().includes('turf') ||
+              (category.category || '').toLowerCase().includes('badminton') ||
+              (list.name || '').toLowerCase().includes('court') ||
+              (list.name || '').toLowerCase().includes('pitch') ||
+              (list.name || '').toLowerCase().includes('turf');
+            const listImg = 
+              (list.imageUrl && list.imageUrl.startsWith('http') && !list.imageUrl.includes('ui-avatars') ? list.imageUrl : null) ||
+              ((list as any).images && Array.isArray((list as any).images) && (list as any).images[0]?.startsWith('http') ? (list as any).images[0] : null) ||
+              (list.metadata?.imageUrl?.startsWith('http') ? list.metadata.imageUrl : null) ||
+              (list.metadata?.gallery && Array.isArray(list.metadata.gallery) && list.metadata.gallery[0]?.startsWith('http') ? list.metadata.gallery[0] : null) ||
+              (category.imageUrl && category.imageUrl.startsWith('http') ? category.imageUrl : null) ||
+              (isTurfListing
+                ? 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&q=80'
                 : 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop&q=80');
 
             return (
@@ -219,17 +234,18 @@ export default function ServiceListingsPage() {
                   </div>
 
                   <div className="pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs">
-                    {/* Hourly Slots for Sports/Arenas only */}
+                    {/* Hourly Slots for Sports/Arenas/Courts */}
                     {isTurfListing ? (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           router.push(`/workspace/my-services/${serviceId}/listing/${list.id}/slots`);
                         }}
-                        className="flex items-center gap-1 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-800 dark:text-white text-[11px] font-bold rounded-lg transition-all border border-slate-200 dark:border-white/10 shadow-sm"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer shadow-xs border bg-orange-500 hover:bg-orange-600 text-white border-orange-600 dark:bg-[#ff6325] dark:hover:bg-[#e04e13]"
+                        title="Manage Hourly Slot Timings & Pricing"
                       >
-                        <Calendar size={12} className="text-[#ff6325]" />
-                        <span>Slots</span>
+                        <Calendar size={13} className="shrink-0" />
+                        <span className="whitespace-nowrap">Manage Slots</span>
                       </button>
                     ) : (
                       <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
@@ -239,7 +255,7 @@ export default function ServiceListingsPage() {
                     )}
 
                     <span className="font-bold text-slate-500 dark:text-slate-400 group-hover:text-[#ff6325] transition-colors text-xs flex items-center gap-1 ml-auto">
-                      Edit Info &rarr;
+                      Edit Unit &rarr;
                     </span>
                   </div>
                 </div>

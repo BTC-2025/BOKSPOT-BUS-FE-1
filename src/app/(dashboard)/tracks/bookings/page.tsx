@@ -89,16 +89,29 @@ export default function BookingsPage() {
     }
     
     // Also match if booking has merchantName starting with Sunstone / Arena or matching active branch
-    if (!matchesMerchant && (curName.includes('sunstone') || curName.includes('resort') || curName.includes('arena'))) {
-      if (bName.includes('sunstone') || bName.includes('arena 5') || bName.includes('arena')) {
-        matchesMerchant = true;
-      }
+    if (!matchesMerchant && (curName.includes('sunstone') && (bName.includes('sunstone') || bName.includes('arena 5')))) {
+      matchesMerchant = true;
     }
 
     if (!matchesMerchant) return false;
 
     const bCategory = (b.category || '').toLowerCase().trim();
     const bServiceName = (b.serviceName || '').toLowerCase();
+    const bArch = getArchetypeFromCategory(bCategory) || '';
+    const curArch = getArchetypeFromCategory(activeBranchCategory || currentMerchant?.archetype || currentMerchant?.category || '') || '';
+
+    // Strict Archetype Isolation: Never let resort/hotel accommodation bookings leak into sports/turf, and vice versa
+    if (curArch === 'RENTAL' || curArch === 'FACILITY_HOURLY' || String(curArch) === 'SPORTS') {
+      if (bArch === 'ACCOMMODATION' || bCategory.includes('hotel') || bCategory.includes('resort') || bCategory.includes('villa') || bServiceName.includes('room') || bServiceName.includes('suite') || bServiceName.includes('stay')) {
+        return false;
+      }
+    }
+    if (curArch === 'ACCOMMODATION') {
+      if (bArch === 'RENTAL' || bArch === 'FACILITY_HOURLY' || bCategory.includes('turf') || bCategory.includes('ground') || bCategory.includes('court') || bServiceName.includes('turf') || bServiceName.includes('pitch')) {
+        return false;
+      }
+    }
+
     const isBookingTurf = bCategory.includes('turf') || bCategory.includes('football') || bCategory.includes('cricket') || bCategory.includes('pitch') || bCategory.includes('sport') ||
       bServiceName.includes('turf') || bServiceName.includes('football') || bServiceName.includes('pitch');
 
