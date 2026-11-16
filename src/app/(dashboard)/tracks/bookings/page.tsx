@@ -988,32 +988,101 @@ export default function BookingsPage() {
                 </div>
               )}
 
-              {/* 4. TURNSTILE PASS SCANNER (EVENTS & MOVIES) */}
-              {(currentMerchant.category?.toLowerCase().includes('movie') || currentMerchant.category?.toLowerCase().includes('concert') || currentMerchant.category?.toLowerCase().includes('event') || selectedBooking.metadata?.passBooking) && (
-                <div className="p-5 rounded-2xl bg-purple-500/5 border border-purple-500/20 space-y-3">
+              {/* 4. TURNSTILE PASS SCANNER (CINEMA SCREENINGS & EVENTS) */}
+              {(currentMerchant.category?.toLowerCase().includes('movie') || currentMerchant.category?.toLowerCase().includes('cinema') || currentMerchant.category?.toLowerCase().includes('concert') || currentMerchant.category?.toLowerCase().includes('event') || selectedBooking.metadata?.isEntertainmentBooking || selectedBooking.metadata?.entertainmentBooking || selectedBooking.metadata?.passBooking) && (
+                <div className="p-5 rounded-2xl bg-purple-500/10 border border-purple-500/25 space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-purple-400 font-extrabold text-sm">
                       <Tag size={16} />
-                      <span>Turnstile Gate Entry Verification</span>
+                      <span>Turnstile Gate Entry Verification & Seat Check</span>
                     </div>
-                    <span className="px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-400 font-black text-[10px] border border-purple-500/20">
-                      {selectedBooking.metadata?.passBooking?.tier || 'General Pass'} ({selectedBooking.metadata?.passBooking?.passCount || 1} Pax)
+                    <span className="px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-black text-[10px] border border-purple-500/30">
+                      {selectedBooking.metadata?.screenFormat || selectedBooking.metadata?.entertainmentBooking?.format || 'IMAX 3D'} • {selectedBooking.metadata?.audiScreen || selectedBooking.metadata?.entertainmentBooking?.audiScreen || 'Audi 1'}
                     </span>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand flex items-center justify-between text-xs">
-                    <span className="text-text-secondary font-medium">Turnstile Gate Scan Status:</span>
-                    <span className="font-black text-emerald-400">QR Valid • Ready for Entry</span>
+                  {/* Seat Allocation & Screening Details Card */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand">
+                      <span className="text-[10px] font-bold text-text-muted uppercase block">Allocated Seats:</span>
+                      <span className="text-sm font-black text-[#ff6325] block mt-0.5">
+                        {Array.isArray(selectedBooking.metadata?.seatsSelected) 
+                          ? selectedBooking.metadata.seatsSelected.join(', ')
+                          : (Array.isArray(selectedBooking.metadata?.entertainmentBooking?.seats) 
+                              ? selectedBooking.metadata.entertainmentBooking.seats.join(', ') 
+                              : (selectedBooking.metadata?.seats || 'C7, C8'))}
+                      </span>
+                      <span className="text-[10px] text-text-secondary block mt-0.5">
+                        Tier: {selectedBooking.metadata?.seatZone || selectedBooking.metadata?.entertainmentBooking?.seatZone || 'Prime Circle'}
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand">
+                      <span className="text-[10px] font-bold text-text-muted uppercase block">Screening Timing:</span>
+                      <span className="text-xs font-black text-text-primary block mt-0.5">
+                        {selectedBooking.date} • {selectedBooking.time}
+                      </span>
+                      <span className="text-[10px] text-purple-400 font-bold block mt-0.5">
+                        {selectedBooking.metadata?.audiScreen || 'Audi 1 (IMAX)'}
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand sm:col-span-1 col-span-2">
+                      <span className="text-[10px] font-bold text-text-muted uppercase block">Turnstile Gate Status:</span>
+                      <span className={`text-xs font-black block mt-0.5 ${selectedBooking.status === 'CHECKED_IN' ? 'text-emerald-400' : 'text-blue-400'}`}>
+                        {selectedBooking.status === 'CHECKED_IN' ? '✓ Checked In / Turnstile Cleared' : '● QR Valid • Awaiting Punch'}
+                      </span>
+                      <span className="text-[10px] text-text-muted block mt-0.5">
+                        Ref: {selectedBooking.ref}
+                      </span>
+                    </div>
                   </div>
 
-                  <button
-                    onClick={() => {
-                      checkInBooking(selectedBooking.id);
-                    }}
-                    className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer"
-                  >
-                    ⚡ Punch Turnstile Entry Gate
-                  </button>
+                  {/* Pre-ordered Gourmet Concessions Delivery Slip */}
+                  {(selectedBooking.metadata?.hasPopcorn || selectedBooking.metadata?.hasNachos || selectedBooking.metadata?.hasDrink || selectedBooking.metadata?.entertainmentBooking?.fnbAddons) && (
+                    <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-1.5">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 block">
+                        🍿 In-Seat Concessions Order Slip:
+                      </span>
+                      <div className="flex flex-wrap gap-2 text-xs">
+                        {(selectedBooking.metadata?.hasPopcorn || selectedBooking.metadata?.entertainmentBooking?.fnbAddons?.popcorn) && (
+                          <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-bold">1x Tub Popcorn + Coke</span>
+                        )}
+                        {(selectedBooking.metadata?.hasNachos || selectedBooking.metadata?.entertainmentBooking?.fnbAddons?.nachos) && (
+                          <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-bold">1x Warm Cheesy Nachos</span>
+                        )}
+                        {(selectedBooking.metadata?.hasDrink || selectedBooking.metadata?.entertainmentBooking?.fnbAddons?.beverage) && (
+                          <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-bold">1x Cold Coffee / Iced Tea</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={async () => {
+                        checkInBooking(selectedBooking.id);
+                        const updated = { ...selectedBooking, status: 'CHECKED_IN', checkedInAt: new Date().toISOString() };
+                        setLiveBookings(prev => prev.map(item => item.id === selectedBooking.id ? updated : item));
+                        try {
+                          await fetch('/api/v1/bookings/sync', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(updated),
+                          });
+                        } catch (e) {}
+                        alert(`Turnstile QR Verified! Guest admitted to ${selectedBooking.metadata?.audiScreen || 'Audi 1'}. Seats: ${Array.isArray(selectedBooking.metadata?.seatsSelected) ? selectedBooking.metadata.seatsSelected.join(', ') : 'Reserved'}`);
+                      }}
+                      className="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      ⚡ Validate Turnstile QR & Punch Entry Gate
+                    </button>
+                    {selectedBooking.status === 'CHECKED_IN' && (
+                      <span className="px-3 py-2 rounded-xl bg-emerald-500/20 text-emerald-400 font-black text-xs border border-emerald-500/30">
+                        ✓ Inside Audi
+                      </span>
+                    )}
+                  </div>
                 </div>
               )}
 

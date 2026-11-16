@@ -57,7 +57,7 @@ export default function SettingsPage() {
     currentMerchant?.isPetFriendly ?? (currentMerchant?.metadata?.isPetFriendly || false)
   );
 
-  // Bag Locker / Mini Space Luggage Storage Settings
+  // BAG LOCKER / Mini Space Luggage Storage Settings
   const [isLuggageStorageEnabled, setIsLuggageStorageEnabled] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -78,6 +78,112 @@ export default function SettingsPage() {
     }
     return currentMerchant?.metadata?.isLuggageStorageEnabled ?? true;
   });
+
+  // ── Universal Payment Controls for Customers (All 54 Categories) ──
+  const [allowFullPayment, setAllowFullPayment] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const val = localStorage.getItem(`vendor_pay_full_${currentMerchant?.id || 'default'}`);
+      if (val !== null) return val === 'true';
+    }
+    return currentMerchant?.metadata?.paymentPolicy?.allowFullPayment ?? true;
+  });
+
+  const [allowPartialAdvance, setAllowPartialAdvance] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const val = localStorage.getItem(`vendor_pay_advance_${currentMerchant?.id || 'default'}`);
+      if (val !== null) return val === 'true';
+    }
+    return currentMerchant?.metadata?.paymentPolicy?.allowPartialAdvance ?? true;
+  });
+
+  const [advancePercent, setAdvancePercent] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const val = localStorage.getItem(`vendor_advance_pct_${currentMerchant?.id || 'default'}`);
+      if (val !== null) return Number(val);
+    }
+    return currentMerchant?.metadata?.paymentPolicy?.advancePercent ?? 30;
+  });
+
+  const [allowPayAtVenue, setAllowPayAtVenue] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const val = localStorage.getItem(`vendor_pay_venue_${currentMerchant?.id || 'default'}`);
+      if (val !== null) return val === 'true';
+    }
+    return currentMerchant?.metadata?.paymentPolicy?.allowPayAtVenue ?? true;
+  });
+
+  const [allowGroupSplit, setAllowGroupSplit] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const val = localStorage.getItem(`vendor_pay_split_${currentMerchant?.id || 'default'}`);
+      if (val !== null) return val === 'true';
+    }
+    return currentMerchant?.metadata?.paymentPolicy?.allowGroupSplit ?? true;
+  });
+
+  const handleUpdatePaymentPolicy = async (updates: Partial<{
+    allowFullPayment: boolean;
+    allowPartialAdvance: boolean;
+    advancePercent: number;
+    allowPayAtVenue: boolean;
+    allowGroupSplit: boolean;
+  }>) => {
+    if (updates.allowFullPayment !== undefined) setAllowFullPayment(updates.allowFullPayment);
+    if (updates.allowPartialAdvance !== undefined) setAllowPartialAdvance(updates.allowPartialAdvance);
+    if (updates.advancePercent !== undefined) setAdvancePercent(updates.advancePercent);
+    if (updates.allowPayAtVenue !== undefined) setAllowPayAtVenue(updates.allowPayAtVenue);
+    if (updates.allowGroupSplit !== undefined) setAllowGroupSplit(updates.allowGroupSplit);
+
+    const targetId = currentMerchant?.id || 'default';
+    const targetUname = currentMerchant?.username || 'default';
+
+    if (typeof window !== 'undefined') {
+      try {
+        if (updates.allowFullPayment !== undefined) {
+          localStorage.setItem(`vendor_pay_full_${targetId}`, String(updates.allowFullPayment));
+          localStorage.setItem(`vendor_pay_full_${targetUname}`, String(updates.allowFullPayment));
+          localStorage.setItem(`vendor_pay_full_default`, String(updates.allowFullPayment));
+        }
+        if (updates.allowPartialAdvance !== undefined) {
+          localStorage.setItem(`vendor_pay_advance_${targetId}`, String(updates.allowPartialAdvance));
+          localStorage.setItem(`vendor_pay_advance_${targetUname}`, String(updates.allowPartialAdvance));
+          localStorage.setItem(`vendor_pay_advance_default`, String(updates.allowPartialAdvance));
+        }
+        if (updates.advancePercent !== undefined) {
+          localStorage.setItem(`vendor_advance_pct_${targetId}`, String(updates.advancePercent));
+          localStorage.setItem(`vendor_advance_pct_${targetUname}`, String(updates.advancePercent));
+          localStorage.setItem(`vendor_advance_pct_default`, String(updates.advancePercent));
+        }
+        if (updates.allowPayAtVenue !== undefined) {
+          localStorage.setItem(`vendor_pay_venue_${targetId}`, String(updates.allowPayAtVenue));
+          localStorage.setItem(`vendor_pay_venue_${targetUname}`, String(updates.allowPayAtVenue));
+          localStorage.setItem(`vendor_pay_venue_default`, String(updates.allowPayAtVenue));
+        }
+        if (updates.allowGroupSplit !== undefined) {
+          localStorage.setItem(`vendor_pay_split_${targetId}`, String(updates.allowGroupSplit));
+          localStorage.setItem(`vendor_pay_split_${targetUname}`, String(updates.allowGroupSplit));
+          localStorage.setItem(`vendor_pay_split_default`, String(updates.allowGroupSplit));
+        }
+
+        window.dispatchEvent(new CustomEvent('vendor_payment_policy_updated', { detail: { merchantId: targetId } }));
+        window.dispatchEvent(new Event('storage'));
+      } catch (err) {}
+    }
+
+    if (currentMerchant) {
+      await updateMerchantProfile(currentMerchant.id, {
+        metadata: {
+          ...(currentMerchant.metadata || {}),
+          paymentPolicy: {
+            allowFullPayment: updates.allowFullPayment ?? allowFullPayment,
+            allowPartialAdvance: updates.allowPartialAdvance ?? allowPartialAdvance,
+            advancePercent: updates.advancePercent ?? advancePercent,
+            allowPayAtVenue: updates.allowPayAtVenue ?? allowPayAtVenue,
+            allowGroupSplit: updates.allowGroupSplit ?? allowGroupSplit,
+          }
+        }
+      } as any);
+    }
+  };
 
   const handleToggleLuggageStorage = async (newState: boolean) => {
     setIsLuggageStorageEnabled(newState);
@@ -509,6 +615,147 @@ export default function SettingsPage() {
                 </div>
               </div>
 
+
+              {/* ── Universal Customer Payment & Deposit Policy Controls (For All 54 Categories) ── */}
+              <div className="p-6 rounded-3xl bg-bg-tertiary border border-border-brand/70 space-y-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border-brand/40">
+                  <div>
+                    <h3 className="text-base font-black text-text-primary flex items-center gap-2">
+                      <span>💳</span> Customer Payment Modes & Deposit Controls
+                    </h3>
+                    <p className="text-xs text-text-secondary mt-0.5">
+                      Enable or disable payment options visible to customers during booking checkout.
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#ff6325]/10 text-[#ff6325] border border-[#ff6325]/20">
+                    Live Checkout Sync
+                  </span>
+                </div>
+
+                <div className="space-y-3.5">
+                  {/* Option 1: 100% Full Online Payment */}
+                  <div className="flex items-center justify-between p-4 rounded-2xl bg-bg-secondary border border-border-brand/60">
+                    <div className="space-y-0.5 max-w-lg">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-black text-text-primary">100% Full Online Payment</span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400">Recommended</span>
+                      </div>
+                      <p className="text-xs text-text-secondary">
+                        Customers pay the full booking amount upfront via UPI, Credit/Debit Card or Netbanking.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleUpdatePaymentPolicy({ allowFullPayment: !allowFullPayment })}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        allowFullPayment ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                      }`}
+                    >
+                      <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                        allowFullPayment ? 'translate-x-5' : 'translate-x-0.5'
+                      }`} />
+                    </button>
+                  </div>
+
+                  {/* Option 2: Partial Advance Deposit (e.g. 30%) */}
+                  <div className="p-4 rounded-2xl bg-bg-secondary border border-border-brand/60 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5 max-w-lg">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-black text-text-primary">Advance Deposit to Hold Slot</span>
+                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-500">
+                            {advancePercent}% Online • {100 - advancePercent}% At Venue
+                          </span>
+                        </div>
+                        <p className="text-xs text-text-secondary">
+                          Customers lock in their slot by paying a partial deposit online, settling balance on arrival.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleUpdatePaymentPolicy({ allowPartialAdvance: !allowPartialAdvance })}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          allowPartialAdvance ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-700'
+                        }`}
+                      >
+                        <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                          allowPartialAdvance ? 'translate-x-5' : 'translate-x-0.5'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {allowPartialAdvance && (
+                      <div className="flex items-center justify-between pt-2 border-t border-border-brand/30">
+                        <span className="text-xs font-bold text-text-secondary">Advance Deposit Percentage:</span>
+                        <div className="flex items-center gap-2">
+                          {[20, 30, 40, 50].map(pct => (
+                            <button
+                              key={pct}
+                              type="button"
+                              onClick={() => handleUpdatePaymentPolicy({ advancePercent: pct })}
+                              className={`px-3 py-1 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                                advancePercent === pct
+                                  ? 'bg-[#ff6325] text-white shadow-xs'
+                                  : 'bg-bg-tertiary border border-border-brand text-text-secondary hover:text-text-primary'
+                              }`}
+                            >
+                              {pct}%
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Option 3: 100% Pay at Venue (Zero Upfront) */}
+                  <div className="flex items-center justify-between p-4 rounded-2xl bg-bg-secondary border border-border-brand/60">
+                    <div className="space-y-0.5 max-w-lg">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-black text-text-primary">100% Pay at Venue (Zero Advance)</span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400">Counter Pay</span>
+                      </div>
+                      <p className="text-xs text-text-secondary">
+                        Hold booking with ₹0 upfront payment. Customer pays total bill directly at your reception counter.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleUpdatePaymentPolicy({ allowPayAtVenue: !allowPayAtVenue })}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        allowPayAtVenue ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'
+                      }`}
+                    >
+                      <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                        allowPayAtVenue ? 'translate-x-5' : 'translate-x-0.5'
+                      }`} />
+                    </button>
+                  </div>
+
+                  {/* Option 4: BokSpot Group Split Billing */}
+                  <div className="flex items-center justify-between p-4 rounded-2xl bg-bg-secondary border border-border-brand/60">
+                    <div className="space-y-0.5 max-w-lg">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-black text-text-primary">Group Bill Split (Split Pay with Friends)</span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-400">Social Split</span>
+                      </div>
+                      <p className="text-xs text-text-secondary">
+                        Allow groups to split turf slots, room bookings, or party bills with individual payment links.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleUpdatePaymentPolicy({ allowGroupSplit: !allowGroupSplit })}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        allowGroupSplit ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-700'
+                      }`}
+                    >
+                      <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                        allowGroupSplit ? 'translate-x-5' : 'translate-x-0.5'
+                      }`} />
+                    </button>
+                  </div>
+                </div>
+              </div>
 
               {/* Venue & Property Configuration Redirection Card */}
               <div className="p-6 rounded-3xl bg-gradient-to-br from-[#ff6325]/10 via-bg-tertiary to-[#ff6325]/5 border border-[#ff6325]/30 space-y-4">

@@ -392,6 +392,12 @@ export default function VenueProfilePage() {
             if (data.metadata?.isPetFriendly !== undefined) {
               setIsPetFriendly(Boolean(data.metadata.isPetFriendly));
             }
+            if (data.metadata?.isLuxeVerified !== undefined) {
+              setIsLuxeVerified(Boolean(data.metadata.isLuxeVerified));
+            }
+            if (data.metadata?.isMysteryModeOptIn !== undefined) {
+              setIsMysteryModeOptIn(Boolean(data.metadata.isMysteryModeOptIn));
+            }
             if (data.metadata?.isPgProperty !== undefined) {
               setIsPgProperty(Boolean(data.metadata.isPgProperty));
             }
@@ -1375,9 +1381,35 @@ export default function VenueProfilePage() {
                     <button
                       type="button"
                       disabled={!isEligibleByRating}
-                      onClick={() => {
+                      onClick={async () => {
                         if (!isEligibleByRating) return;
-                        setIsMysteryModeOptIn(!isMysteryModeOptIn);
+                        const nextVal = !isMysteryModeOptIn;
+                        setIsMysteryModeOptIn(nextVal);
+                        if (typeof window !== 'undefined') {
+                          try {
+                            const id = currentMerchant?.id;
+                            const uname = currentMerchant?.username;
+                            const valStr = String(nextVal);
+                            if (id) localStorage.setItem(`hotel_mystery_optin_${id}`, valStr);
+                            if (uname) localStorage.setItem(`hotel_mystery_optin_${uname}`, valStr);
+                            localStorage.setItem('hotel_mystery_optin_H101', valStr);
+                            localStorage.setItem('hotel_mystery_optin_default', valStr);
+                            window.dispatchEvent(new CustomEvent('hotel_mystery_toggle', { detail: { enabled: nextVal } }));
+                            window.dispatchEvent(new Event('storage'));
+                          } catch {}
+                        }
+                        // Instantly update vendor store and backend metadata
+                        try {
+                          if (currentMerchant?.id) {
+                            await updateMerchantProfile(currentMerchant.id, {
+                              isMysteryModeOptIn: nextVal,
+                              metadata: {
+                                ...(currentMerchant.metadata || {}),
+                                isMysteryModeOptIn: nextVal
+                              }
+                            } as any);
+                          }
+                        } catch (e) {}
                       }}
                       className={`relative inline-flex h-6 w-12 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                         !isEligibleByRating 

@@ -3,11 +3,12 @@
 import { useVendorStore, CatalogService, BranchInfo, PRESET_MERCHANTS } from '@/lib/store';
 import { getArchetypeConfig } from '@/lib/businessDictionary';
 import { compressImage } from '@/lib/imageUtils';
+import { getEntertainmentCategoryConfig, NOW_SHOWING_MOVIES, MovieListingItem } from '@/lib/entertainmentData';
 import {
   Plus, Trash2, Edit, X, Package, List, Building2, MapPin,
   Check, ChevronDown, Sparkles, Activity, Layers, Search,
   SlidersHorizontal, CheckCircle2, ShieldCheck, ArrowRight, ExternalLink,
-  Store, UserCheck, Phone, Mail
+  Store, UserCheck, Phone, Mail, Film, Clapperboard, Video
 } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -38,11 +39,20 @@ export default function WorkspacePage() {
   useEffect(() => {
     setMounted(true);
     fetchServices();
-  }, []);
+  }, [currentMerchant?.id, currentMerchant?.activeBranchId]);
 
   // Modals state
   const [showBookingTypeModal, setShowBookingTypeModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showScreeningModal, setShowScreeningModal] = useState(false);
+
+  // Entertainment / Screening Form State
+  const [movieTitle, setMovieTitle] = useState('');
+  const [movieFormat, setMovieFormat] = useState('IMAX Laser 3D');
+  const [movieScreen, setMovieScreen] = useState('Audi 1 (IMAX)');
+  const [movieShowtime, setMovieShowtime] = useState('10:30 AM');
+  const [movieTierPrice, setMovieTierPrice] = useState('190');
+  const [moviePoster, setMoviePoster] = useState('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1200&q=80');
 
   // Navigation State
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
@@ -73,11 +83,20 @@ export default function WorkspacePage() {
     ],
     "Workspaces, Studios & Events": [
       "Co-working Space", "Meeting Room", "Podcast Studio", "Conference Hall", "Studio Booking"
+    ],
+    "Cinema & Live Entertainment": [
+      "Cinema / Movie Tickets", "Theatre Shows", "Concert Tickets", "Events & Festivals", "Exhibition Entry", "Workshops / Classes"
     ]
   };
 
   const ALL_PRESET_CATEGORIES = useMemo(() => {
     return [
+      "Cinema / Movie Tickets",
+      "Theatre Shows",
+      "Concert Tickets",
+      "Events & Festivals",
+      "Exhibition Entry",
+      "Workshops / Classes",
       "Hotel Booking",
       "Hostel Booking",
       "PG & Co-Living Stays",
@@ -143,25 +162,99 @@ export default function WorkspacePage() {
   const activeBranch = effectiveBranches.find(b => b.id === (currentMerchant.activeBranchId || effectiveBranches[0].id)) || effectiveBranches[0];
   const isTurfBranch = (activeBranch.category?.toLowerCase().includes('turf') || activeBranch.name?.toLowerCase().includes('turf'));
   const isStayBranch = (activeBranch.category?.toLowerCase().includes('resort') || activeBranch.category?.toLowerCase().includes('hotel') || activeBranch.category?.toLowerCase().includes('villa') || activeBranch.category?.toLowerCase().includes('stay') || activeBranch.name?.toLowerCase().includes('stay') || activeBranch.name?.toLowerCase().includes('suite'));
+  const isEntBranch = (activeBranch.category?.toLowerCase().includes('movie') || activeBranch.category?.toLowerCase().includes('cinema') || activeBranch.category?.toLowerCase().includes('theatre') || activeBranch.category?.toLowerCase().includes('concert') || activeBranch.category?.toLowerCase().includes('multiplex') || activeBranch.name?.toLowerCase().includes('multiplex') || activeBranch.name?.toLowerCase().includes('cinema'));
 
   // Filter services strictly by Active Branch and category isolation
-  const merchantServices = services.filter(s => {
-    // If explicitly tagged with branchId
-    if (s.branchId && s.branchId !== activeBranch.id) return false;
+  let merchantServices = services.filter(s => {
+    // If explicitly tagged with branchId and doesn't match active branch, but allow generic merchant services without strict branchId
+    if (s.branchId && activeBranch?.id && s.branchId !== activeBranch.id) {
+      // If service is category-level for current merchant without branch-specific overrides, let it display
+      if (!s.metadata?.branchId && s.category === activeBranch.category) {
+        // allow
+      } else {
+        return false;
+      }
+    }
 
     // Strict Category / Offering isolation between branches
     const sCat = (s.category || '').toLowerCase();
     const sName = (s.name || '').toLowerCase();
     const isServiceTurf = sCat.includes('turf') || sCat.includes('football') || sCat.includes('cricket') || sCat.includes('pitch') || sCat.includes('sport') ||
       sName.includes('turf') || sName.includes('football') || sName.includes('pitch');
+    const isServiceEnt = sCat.includes('movie') || sCat.includes('cinema') || sCat.includes('theatre') || sCat.includes('concert') || sCat.includes('entertainment') ||
+      sName.includes('movie') || sName.includes('cinema') || sName.includes('screen');
 
     if (isTurfBranch) {
       return isServiceTurf;
     } else if (isStayBranch) {
-      return !isServiceTurf;
+      return !isServiceTurf && !isServiceEnt;
+    } else if (isEntBranch) {
+      return isServiceEnt || (!isServiceTurf && !sCat.includes('resort') && !sCat.includes('hotel'));
     }
     return true;
   });
+
+  // Dynamic Auto-Fallback for Entertainment / Multiplex Branches if local services are empty
+  if (merchantServices.length === 0 && isEntBranch) {
+    const entCfg = getEntertainmentCategoryConfig((activeBranch.category || currentMerchant.category || 'movies').toLowerCase());
+    if (entCfg) {
+      const branchOfferings = activeBranch.offeringsSummary || `${entCfg.categoryName} Auditoriums`;
+      const fallbackEntService: CatalogService = {
+        id: `svc-${entCfg.slug}-${activeBranch.id}`,
+        name: `${entCfg.categoryName} Passes & Screenings`,
+        merchant: activeBranch.name || currentMerchant.merchantName || entCfg.merchantName,
+        price: entCfg.defaultPrice,
+        duration: 120,
+        category: entCfg.categoryName,
+        active: true,
+        branchId: activeBranch.id,
+        rating: 4.9,
+        bookingsCount: 420,
+        imageUrl: entCfg.heroImage,
+        description: `Premier ${entCfg.categoryName} hall, screen formats (${branchOfferings}), tier pricing and concession add-on controls.`,
+        city: activeBranch.city || currentMerchant.city || 'Chennai',
+        metadata: {
+          isEntertainment: true,
+          branchId: activeBranch.id,
+          branchName: activeBranch.name,
+          merchantName: activeBranch.name || currentMerchant.merchantName || entCfg.merchantName,
+          originalCategory: entCfg.categoryName,
+          amenities: entCfg.amenities,
+          venueRules: entCfg.venueRules,
+          formats: entCfg.formats,
+          languages: entCfg.languages,
+          showtimes: entCfg.showtimes,
+          seatTiers: entCfg.seatTiers,
+          snackAddons: entCfg.snackAddons,
+          listings: entCfg.seatTiers.map(tier => ({
+            id: tier.id,
+            name: tier.name,
+            price: tier.price,
+            imageUrl: entCfg.heroImage,
+            description: tier.desc,
+            images: [entCfg.heroImage],
+            metadata: {
+              badge: tier.badge,
+              icon: tier.icon,
+              formats: entCfg.formats,
+              showtimes: entCfg.showtimes,
+              snackAddons: entCfg.snackAddons
+            }
+          }))
+        },
+        listings: entCfg.seatTiers.map(tier => ({
+          id: tier.id,
+          name: tier.name,
+          price: tier.price,
+          imageUrl: entCfg.heroImage,
+          description: tier.desc,
+          images: [entCfg.heroImage],
+          active: true
+        }))
+      };
+      merchantServices = [fallbackEntService];
+    }
+  }
 
   const getSmartCover = (catName: string, explicitImg?: string | null) => {
     const lower = (catName || '').toLowerCase();
@@ -422,6 +515,23 @@ export default function WorkspacePage() {
             <span>Venue Profile</span>
           </button>
 
+          {isEntBranch && (
+            <button
+              onClick={() => {
+                setMovieTitle('');
+                setMovieFormat('IMAX Laser 3D');
+                setMovieScreen('Audi 1 (IMAX Laser)');
+                setMovieShowtime('10:30 AM');
+                setMovieTierPrice('190');
+                setShowScreeningModal(true);
+              }}
+              className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer shrink-0"
+              title="Post Movie Screening, Formats, Audi & Showtime"
+            >
+              <Clapperboard size={14} /> + Post Screening
+            </button>
+          )}
+
           {!selectedGroup ? (
             <button
               onClick={() => {
@@ -466,6 +576,7 @@ export default function WorkspacePage() {
             {categoryEntries.map(([cat, info]: any) => {
               const coverImg = getSmartCover(cat, info.mainImage);
               const isTurf = cat.toLowerCase().includes('turf') || cat.toLowerCase().includes('football') || cat.toLowerCase().includes('ground');
+              const isEnt = cat.toLowerCase().includes('movie') || cat.toLowerCase().includes('cinema') || cat.toLowerCase().includes('theatre') || cat.toLowerCase().includes('concert') || cat.toLowerCase().includes('ticket');
 
               const categoryServices = merchantServices.filter(s => s.category === cat && s.name !== '__BOKSPOT_GROUP__');
               const hasMultipleTypes = categoryServices.length > 1;
@@ -523,10 +634,10 @@ export default function WorkspacePage() {
                         style={{ backgroundColor: 'rgba(0, 0, 0, 0.75)', color: '#ffffff' }}
                       >
                         <span>
-                          {isTurf ? '⚽' : (cat.toLowerCase().includes('resort') ? '🌴' : (cat.toLowerCase().includes('villa') ? '🏡' : '🏨'))}
+                          {isTurf ? '⚽' : (isEnt ? '🎬' : (cat.toLowerCase().includes('resort') ? '🌴' : (cat.toLowerCase().includes('villa') ? '🏡' : '🏨')))}
                         </span>
                         <span style={{ color: '#ffffff' }} className="font-black !text-white text-xs">
-                          {isTurf ? 'Sports Arena' : (cat.toLowerCase().includes('resort') ? 'Resort Stay' : (cat.toLowerCase().includes('villa') ? 'Villa Stay' : (cat.toLowerCase().includes('hotel') ? 'Hotel Stay' : (activeBranch.category || 'Hotel Stay'))))}
+                          {isTurf ? 'Sports Arena' : (isEnt ? 'Cinema & Entertainment' : (cat.toLowerCase().includes('resort') ? 'Resort Stay' : (cat.toLowerCase().includes('villa') ? 'Villa Stay' : (cat.toLowerCase().includes('hotel') ? 'Hotel Stay' : (activeBranch.category || 'Standard Service')))))}
                         </span>
                       </span>
                       <div className="flex items-center gap-1.5">
@@ -889,6 +1000,215 @@ export default function WorkspacePage() {
             <div className="p-5 border-t border-slate-100 dark:border-white/[0.08] flex justify-end gap-3">
               <button type="button" onClick={() => setShowCategoryModal(false)} className="px-5 py-2 rounded-xl text-slate-500 font-bold text-xs">Cancel</button>
               <button type="submit" form="categoryListingForm" className="px-6 py-2.5 rounded-xl bg-[#ff6325] text-white font-black text-xs uppercase tracking-wider shadow-md">Save Type</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* LEVEL 3 MODAL: POST MOVIE / SCREENING (Multiplex Partner Flow) */}
+      {showScreeningModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="bg-white dark:bg-[#0f1624] border border-slate-200 dark:border-white/10 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-white/[0.08] bg-slate-50/50 dark:bg-white/[0.02]">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2.5 rounded-xl bg-purple-500/10 text-purple-500 border border-purple-500/20">
+                  <Film size={20} />
+                </span>
+                <div>
+                  <h2 className="text-lg font-black text-slate-900 dark:text-white">Post Movie Screening</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Add movie title, audi, format & showtimes for {activeBranch.name}</p>
+                </div>
+              </div>
+              <button onClick={() => setShowScreeningModal(false)} className="h-8 w-8 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 hover:text-white">
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto flex-1 space-y-4">
+              {/* Quick Select from Master Catalog */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                  Select from Central Movie Catalog or Enter Custom
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
+                  {NOW_SHOWING_MOVIES.map((catalogMovie) => (
+                    <button
+                      key={catalogMovie.id}
+                      type="button"
+                      onClick={() => {
+                        setMovieTitle(catalogMovie.title);
+                        setMoviePoster(catalogMovie.posterUrl);
+                        if (catalogMovie.formats?.[0]) setMovieFormat(catalogMovie.formats[0]);
+                      }}
+                      className={`p-2 rounded-xl border text-left flex items-center gap-2 transition-all cursor-pointer ${
+                        movieTitle === catalogMovie.title
+                          ? 'border-purple-500 bg-purple-500/10 ring-2 ring-purple-500/30'
+                          : 'border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 bg-slate-50 dark:bg-white/5'
+                      }`}
+                    >
+                      <img src={catalogMovie.posterUrl} alt={catalogMovie.title} className="w-8 h-12 rounded object-cover shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-black text-slate-900 dark:text-white truncate">{catalogMovie.title}</p>
+                        <p className="text-[9px] text-slate-400 font-semibold">{catalogMovie.certificate} • {catalogMovie.runtime}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">Movie Title / Event Name</label>
+                <input
+                  type="text"
+                  value={movieTitle}
+                  onChange={(e) => setMovieTitle(e.target.value)}
+                  placeholder="e.g. Leo (IMAX Experience), Avatar: Fire & Ash, Master..."
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white text-xs font-semibold focus:border-purple-500 outline-none"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Experience Format</label>
+                  <select
+                    value={movieFormat}
+                    onChange={(e) => setMovieFormat(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white text-xs font-bold outline-none"
+                  >
+                    <option value="IMAX Laser 3D">IMAX Laser 3D</option>
+                    <option value="Dolby Atmos 7.1">Dolby Atmos 7.1</option>
+                    <option value="4DX Motion & Scent">4DX Motion & Scent</option>
+                    <option value="RealD 3D / 2D Standard">RealD 3D / 2D Standard</option>
+                    <option value="VIP Recliner Gold Class">VIP Recliner Gold Class</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Screen / Audi</label>
+                  <input
+                    type="text"
+                    value={movieScreen}
+                    onChange={(e) => setMovieScreen(e.target.value)}
+                    placeholder="e.g. Audi 1 (IMAX), Screen 3..."
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white text-xs font-semibold outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Showtime Slot</label>
+                  <select
+                    value={movieShowtime}
+                    onChange={(e) => setMovieShowtime(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white text-xs font-bold outline-none"
+                  >
+                    <option value="10:30 AM">10:30 AM (Morning)</option>
+                    <option value="02:15 PM">02:15 PM (Matinee)</option>
+                    <option value="06:45 PM">06:45 PM (Prime Evening)</option>
+                    <option value="10:00 PM">10:00 PM (Night Show)</option>
+                    <option value="11:45 PM">11:45 PM (Late Night / Premiere)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Base Ticket Price (₹)</label>
+                  <input
+                    type="number"
+                    value={movieTierPrice}
+                    onChange={(e) => setMovieTierPrice(e.target.value)}
+                    placeholder="190"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white text-xs font-bold outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Movie Poster URL (Optional)</label>
+                <input
+                  type="text"
+                  value={moviePoster}
+                  onChange={(e) => setMoviePoster(e.target.value)}
+                  placeholder="https://images.unsplash.com/photo-..."
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white text-xs font-mono outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="p-5 border-t border-slate-100 dark:border-white/[0.08] flex justify-end gap-3 bg-slate-50/50 dark:bg-white/[0.02]">
+              <button type="button" onClick={() => setShowScreeningModal(false)} className="px-5 py-2 rounded-xl text-slate-500 font-bold text-xs">Cancel</button>
+              <button
+                type="button"
+                onClick={() => {
+                  const finalTitle = movieTitle.trim() || 'Blockbuster Movie Screening';
+                  const newScreeningService: CatalogService = {
+                    id: `ent-screen-${Date.now()}`,
+                    name: `${finalTitle} (${movieFormat})`,
+                    merchant: activeBranch.name || currentMerchant.merchantName,
+                    price: Number(movieTierPrice) || 190,
+                    duration: 150,
+                    category: 'Cinema / Movie Tickets',
+                    active: true,
+                    branchId: activeBranch.id,
+                    city: activeBranch.city || currentMerchant.city || 'Chennai',
+                    rating: 4.9,
+                    bookingsCount: 0,
+                    imageUrl: moviePoster || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1200&q=80',
+                    description: `${finalTitle} in ${movieFormat} at ${movieScreen}. Screened at ${activeBranch.name}.`,
+                    metadata: {
+                      isEntertainment: true,
+                      movieTitle: finalTitle,
+                      branchId: activeBranch.id,
+                      branchName: activeBranch.name,
+                      formats: [movieFormat, 'Dolby Atmos 7.1', 'RealD 3D / 2D'],
+                      showtimes: [
+                        { time: movieShowtime, screen: movieScreen, status: 'Available' },
+                        { time: '02:15 PM', screen: movieScreen, status: 'Available' },
+                        { time: '06:45 PM', screen: movieScreen, status: 'Fast Filling', fillingFast: true }
+                      ],
+                      seatTiers: [
+                        { id: 'recliner', name: 'Royal Recliner (Lounge)', price: Math.round(Number(movieTierPrice) * 1.8), icon: '👑', badge: 'VIP Lounger', desc: '180° Motorized Recliner + In-Seat Dining' },
+                        { id: 'prime', name: 'Prime Circle', price: Math.round(Number(movieTierPrice) * 1.3), icon: '🌟', badge: 'Popular', desc: 'Optimum Eye-Level Center Rows' },
+                        { id: 'classic', name: 'Classic Executive', price: Number(movieTierPrice), icon: '🎟️', desc: 'Standard High-Back Ergonomic Cinema Seating' }
+                      ],
+                      snackAddons: [
+                        { id: 'popcorn', name: 'Tub Popcorn + Coke Combo', price: 240, icon: '🍿', desc: 'Large Salted/Caramel Popcorn with 500ml Chilled Coke' },
+                        { id: 'nachos', name: 'Warm Cheesy Nachos', price: 180, icon: '🌮', desc: 'Crispy Tortilla Chips with Warm Jalapeño Cheese Dip' },
+                        { id: 'coffee', name: 'Cold Coffee / Iced Tea', price: 120, icon: '🥤', desc: 'Chilled Refreshing Beverage Delivered to your Seat' }
+                      ]
+                    },
+                    listings: [
+                      {
+                        id: `tier-recliner-${Date.now()}`,
+                        name: 'Royal Recliner (Lounge)',
+                        price: Math.round(Number(movieTierPrice) * 1.8),
+                        imageUrl: moviePoster,
+                        description: '180° Motorized Recliner + In-Seat Dining',
+                        active: true
+                      },
+                      {
+                        id: `tier-prime-${Date.now()}`,
+                        name: 'Prime Circle',
+                        price: Math.round(Number(movieTierPrice) * 1.3),
+                        imageUrl: moviePoster,
+                        description: 'Optimum Eye-Level Center Rows',
+                        active: true
+                      },
+                      {
+                        id: `tier-classic-${Date.now()}`,
+                        name: 'Classic Executive',
+                        price: Number(movieTierPrice),
+                        imageUrl: moviePoster,
+                        description: 'Standard High-Back Ergonomic Cinema Seating',
+                        active: true
+                      }
+                    ]
+                  };
+                  addService(newScreeningService);
+                  setShowScreeningModal(false);
+                  setMovieTitle('');
+                }}
+                className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider shadow-md"
+              >
+                Publish Screening
+              </button>
             </div>
           </div>
         </div>

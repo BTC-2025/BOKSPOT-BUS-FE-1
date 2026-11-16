@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import axios from 'axios';
 import { getArchetypeFromCategory } from './archetypes';
 import { getSportCategoryConfig } from './sportsData';
+import { getEntertainmentCategoryConfig } from './entertainmentData';
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1';
 
 export interface MedicalReport {
@@ -525,6 +526,10 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     gstStatus: 'WITH_GST',
     gstNumber: '33AAAAA0000A1Z5',
     activeBranchId: 'branch-resort-stay',
+    isLuxeVerified: true,
+    starRating: 5,
+    tier: 'LUXURY',
+    isMysteryModeOptIn: true,
     gallery: [
       'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&auto=format&fit=crop&q=80',
       'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop&q=80',
@@ -1383,10 +1388,68 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     merchantName: 'CineMax Multiplex',
     category: 'Cinema / Movie Tickets',
     logoLetter: 'C',
-    aboutText: 'Welcome to CineMax Multiplex. We provide professional Cinema / Movie Tickets services.',
+    aboutText: 'Welcome to CineMax Multiplex. State-of-the-art IMAX Laser 3D, Dolby Atmos 7.1, 4DX motion auditoriums with VIP loungers.',
     vendorId: '20260015',
     email: 'm101@bnxmail.com',
-    archetype: 'PassEntry'
+    archetype: 'PassEntry',
+    gstStatus: 'WITH_GST',
+    gstNumber: '33AAAAA0000A1Z5',
+    city: 'Chennai',
+    activeBranchId: 'branch-cinemax-omr',
+    branches: [
+      {
+        id: 'branch-cinemax-omr',
+        name: 'CineMax Multiplex — OMR Marina Mall',
+        city: 'Chennai',
+        category: 'Cinema / Movie Tickets',
+        businessType: 'Cinema & Multiplex',
+        address: 'Marina Mall, 4th Floor, Egatoor, OMR, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'IMAX Laser 3D, Dolby Atmos Screen 2 & 3, VIP Recliner Lounge',
+        isMainBranch: true,
+        assignedStaffIds: ['staff-m101-1']
+      },
+      {
+        id: 'branch-cinemax-vadapalani',
+        name: 'CineMax Multiplex — Nexus Forum Vadapalani',
+        city: 'Chennai',
+        category: 'Cinema / Movie Tickets',
+        businessType: 'Cinema & Multiplex',
+        address: 'Nexus Forum Mall, 3rd Floor, Vadapalani, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: '4DX Motion Cinema, Dolby Atmos 7.1, 8 Screens Multiplex',
+        isMainBranch: false,
+        assignedStaffIds: ['staff-m101-2']
+      },
+      {
+        id: 'branch-cinemax-hyderabad',
+        name: 'CineMax Multiplex — Inorbit Mall Cyberabad',
+        city: 'Hyderabad',
+        category: 'Cinema / Movie Tickets',
+        businessType: 'Cinema & Multiplex',
+        address: 'Inorbit Mall, Madhapur, Hitec City, Hyderabad',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'IMAX Laser Experience, 4K RGB Laser, Gourmet Concessions',
+        isMainBranch: false,
+        assignedStaffIds: ['staff-m101-3']
+      },
+      {
+        id: 'branch-cinemax-bangalore',
+        name: 'CineMax Multiplex — Koramangala Forum',
+        city: 'Bangalore',
+        category: 'Cinema / Movie Tickets',
+        businessType: 'Cinema & Multiplex',
+        address: 'Hosur Road, Koramangala, Bangalore',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'Dolby Atmos 64-Channel, Gold Class Recliner Lounge',
+        isMainBranch: false,
+        assignedStaffIds: ['staff-m101-4']
+      }
+    ]
   },
   {
     id: 'e4a69557-1b75-5404-9257-01419210fba0',
@@ -1394,10 +1457,42 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     merchantName: 'Nataka Kala Rangam',
     category: 'Theatre Shows',
     logoLetter: 'N',
-    aboutText: 'Welcome to Nataka Kala Rangam. We provide professional Theatre Shows services.',
+    aboutText: 'Welcome to Nataka Kala Rangam. Heritage theatrical auditorium for drama, musical plays, and acoustic live arts.',
     vendorId: '20260016',
     email: 'm102@bnxmail.com',
-    archetype: 'PassEntry'
+    archetype: 'PassEntry',
+    gstStatus: 'WITH_GST',
+    gstNumber: '33AAAAA0000A1Z5',
+    city: 'Chennai',
+    activeBranchId: 'branch-nataka-chennai',
+    branches: [
+      {
+        id: 'branch-nataka-chennai',
+        name: 'Nataka Kala Rangam — Mylapore',
+        city: 'Chennai',
+        category: 'Theatre Shows',
+        businessType: 'Auditorium & Theatre',
+        address: 'Luz Church Road, Mylapore, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: '700-Seat Proscenium Theatre, Heritage Stage & Green Rooms',
+        isMainBranch: true,
+        assignedStaffIds: ['staff-m102-1']
+      },
+      {
+        id: 'branch-nataka-hyderabad',
+        name: 'Nataka Kala Rangam — Ravindra Bharati Hub',
+        city: 'Hyderabad',
+        category: 'Theatre Shows',
+        businessType: 'Auditorium & Theatre',
+        address: 'Saifabad, Near Assembly, Hyderabad',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'Classical Stage Plays, Dance Drama & Folk Festivals',
+        isMainBranch: false,
+        assignedStaffIds: ['staff-m102-2']
+      }
+    ]
   },
   {
     id: '6043fd64-f325-5583-8946-e0bbb75f26ce',
@@ -1405,10 +1500,55 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     merchantName: 'VibeNation Live Events',
     category: 'Concert Tickets',
     logoLetter: 'V',
-    aboutText: 'Welcome to VibeNation Live Events. We provide professional Concert Tickets services.',
+    aboutText: 'Welcome to VibeNation Live Events. Global stadium concerts, indie music festivals & open-air acoustic stages.',
     vendorId: '20260017',
     email: 'm103@bnxmail.com',
-    archetype: 'PassEntry'
+    archetype: 'PassEntry',
+    gstStatus: 'WITH_GST',
+    gstNumber: '33AAAAA0000A1Z5',
+    city: 'Chennai',
+    activeBranchId: 'branch-vibenation-chennai',
+    branches: [
+      {
+        id: 'branch-vibenation-chennai',
+        name: 'VibeNation Arena — YMCA Grounds Nandanam',
+        city: 'Chennai',
+        category: 'Concert Tickets',
+        businessType: 'Live Events & Arena',
+        address: 'YMCA Grounds, Anna Salai, Nandanam, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: '15,000 Capacity Concert Grounds, VIP Fan-Pit, Food Court',
+        isMainBranch: true,
+        assignedStaffIds: ['staff-m103-1']
+      },
+      {
+        id: 'branch-vibenation-hyderabad',
+        name: 'VibeNation Arena — Gachibowli Stadium Grounds',
+        city: 'Hyderabad',
+        category: 'Concert Tickets',
+        businessType: 'Live Events & Arena',
+        address: 'Old Mumbai Highway, Gachibowli, Hyderabad',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'International Tours, EDM Festivals & Mega Music Concerts',
+        isMainBranch: false,
+        assignedStaffIds: ['staff-m103-2']
+      },
+      {
+        id: 'branch-vibenation-bangalore',
+        name: 'VibeNation Arena — Manpho Convention Grounds',
+        city: 'Bangalore',
+        category: 'Concert Tickets',
+        businessType: 'Live Events & Arena',
+        address: 'Near Manyata Tech Park, Nagavara, Bangalore',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'Festival Arena, Twin Sound Stages & Artisan Flea',
+        isMainBranch: false,
+        assignedStaffIds: ['staff-m103-3']
+      }
+    ]
   },
   {
     id: '992e0ecc-caa7-52c5-9cb8-eb151d8048bd',
@@ -1416,10 +1556,42 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     merchantName: 'Grand Fiesta Carnival',
     category: 'Events & Festivals',
     logoLetter: 'G',
-    aboutText: 'Welcome to Grand Fiesta Carnival. We provide professional Events & Festivals services.',
+    aboutText: 'Welcome to Grand Fiesta Carnival. Experiential outdoor food & entertainment festivals, stand-up comedy & family carnivals.',
     vendorId: '20260018',
     email: 'm104@bnxmail.com',
-    archetype: 'PassEntry'
+    archetype: 'PassEntry',
+    gstStatus: 'WITH_GST',
+    gstNumber: '33AAAAA0000A1Z5',
+    city: 'Chennai',
+    activeBranchId: 'branch-fiesta-chennai',
+    branches: [
+      {
+        id: 'branch-fiesta-chennai',
+        name: 'Grand Fiesta Carnival — Island Grounds',
+        city: 'Chennai',
+        category: 'Events & Festivals',
+        businessType: 'Festival & Carnival',
+        address: 'Island Grounds, Anna Salai, Park Town, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'Food Trucks, Carnival Ferris Wheel, Artisan Market',
+        isMainBranch: true,
+        assignedStaffIds: ['staff-m104-1']
+      },
+      {
+        id: 'branch-fiesta-hyderabad',
+        name: 'Grand Fiesta Carnival — Hitex Exhibition Grounds',
+        city: 'Hyderabad',
+        category: 'Events & Festivals',
+        businessType: 'Festival & Carnival',
+        address: 'Trade Fair Grounds, IZZAT Nagar, Madhapur, Hyderabad',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'Mega Cultural Carnival, Night Bazaar & Live Food Pavilions',
+        isMainBranch: false,
+        assignedStaffIds: ['staff-m104-2']
+      }
+    ]
   },
   {
     id: '23c3e74f-1cdd-5a44-9756-76afcafd8e36',
@@ -1427,10 +1599,42 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     merchantName: 'Pragati Trade Expo',
     category: 'Exhibition Entry',
     logoLetter: 'P',
-    aboutText: 'Welcome to Pragati Trade Expo. We provide professional Exhibition Entry services.',
+    aboutText: 'Welcome to Pragati Trade Expo. Premier international B2B & consumer trade exhibitions, technology showcases & art expos.',
     vendorId: '20260019',
     email: 'm105@bnxmail.com',
-    archetype: 'PassEntry'
+    archetype: 'PassEntry',
+    gstStatus: 'WITH_GST',
+    gstNumber: '33AAAAA0000A1Z5',
+    city: 'Chennai',
+    activeBranchId: 'branch-pragati-chennai',
+    branches: [
+      {
+        id: 'branch-pragati-chennai',
+        name: 'Pragati Trade Expo — Chennai Trade Centre',
+        city: 'Chennai',
+        category: 'Exhibition Entry',
+        businessType: 'Trade Center & Expo',
+        address: 'Nandambakkam, Mount Poonamallee Road, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: '3 Mega AC Exhibition Halls, B2B Networking Lounges',
+        isMainBranch: true,
+        assignedStaffIds: ['staff-m105-1']
+      },
+      {
+        id: 'branch-pragati-hyderabad',
+        name: 'Pragati Trade Expo — HITEX Exhibition Centre',
+        city: 'Hyderabad',
+        category: 'Exhibition Entry',
+        businessType: 'Trade Center & Expo',
+        address: 'HITEX Exhibition Center, Madhapur, Hyderabad',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'International Trade Fairs, Machinery & Technology Pavilions',
+        isMainBranch: false,
+        assignedStaffIds: ['staff-m105-2']
+      }
+    ]
   },
   {
     id: '4d4ba8c4-4b45-54ab-89e0-3f89606bd1e9',
@@ -1438,10 +1642,42 @@ export const PRESET_MERCHANTS: MerchantUser[] = [
     merchantName: 'Creative Canvas Hub',
     category: 'Workshops / Classes',
     logoLetter: 'C',
-    aboutText: 'Welcome to Creative Canvas Hub. We provide professional Workshops / Classes services.',
+    aboutText: 'Welcome to Creative Canvas Hub. Creative studio workshops for ceramic pottery, fluid resin art, baking & culinary masterclasses.',
     vendorId: '20260020',
     email: 'm106@bnxmail.com',
-    archetype: 'Service'
+    archetype: 'Service',
+    gstStatus: 'WITH_GST',
+    gstNumber: '33AAAAA0000A1Z5',
+    city: 'Chennai',
+    activeBranchId: 'branch-canvas-chennai',
+    branches: [
+      {
+        id: 'branch-canvas-chennai',
+        name: 'Creative Canvas Hub — Alwarpet Studio',
+        city: 'Chennai',
+        category: 'Workshops / Classes',
+        businessType: 'Studio & Academy',
+        address: 'TTK Road, Alwarpet, Chennai',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'Pottery Wheel Studio, Resin Art, Acrylic Painting',
+        isMainBranch: true,
+        assignedStaffIds: ['staff-m106-1']
+      },
+      {
+        id: 'branch-canvas-hyderabad',
+        name: 'Creative Canvas Hub — Jubilee Hills',
+        city: 'Hyderabad',
+        category: 'Workshops / Classes',
+        businessType: 'Studio & Academy',
+        address: 'Road No 36, Jubilee Hills, Hyderabad',
+        gstStatus: 'WITH_GST',
+        gstNumber: '33AAAAA0000A1Z5',
+        offeringsSummary: 'Boutique Creative Workspace, Culinary & Clay Workshops',
+        isMainBranch: false,
+        assignedStaffIds: ['staff-m106-2']
+      }
+    ]
   },
   {
     id: '8fb54c57-d208-5aad-a260-5440ffea4fd0',
@@ -1724,7 +1960,72 @@ export const useVendorStore = create<VendorStoreState>()(
       }
     }
 
+    // Auto-seed entertainment service for targetBranch if it's an entertainment branch and doesn't exist
+    let currentServices = state.services || [];
+    const entCfg = getEntertainmentCategoryConfig((targetBranch?.category || updatedCategory || '').toLowerCase());
+    if (entCfg) {
+      const hasBranchSvc = currentServices.some(s => s.branchId === branchId);
+      if (!hasBranchSvc) {
+        const branchOfferings = targetBranch?.offeringsSummary || `${entCfg.categoryName} Auditoriums`;
+        const seededSvc: CatalogService = {
+          id: `svc-${entCfg.slug}-${branchId}`,
+          name: `${entCfg.categoryName} Passes & Screenings`,
+          merchant: updatedMerchantName || state.currentMerchant.merchantName || entCfg.merchantName,
+          price: entCfg.defaultPrice,
+          duration: 120,
+          category: entCfg.categoryName,
+          active: true,
+          branchId: branchId,
+          rating: 4.9,
+          bookingsCount: 420,
+          imageUrl: entCfg.heroImage,
+          description: `Premier ${entCfg.categoryName} hall, screen formats (${branchOfferings}), tier pricing and concession add-on controls.`,
+          city: targetBranch?.city || state.currentMerchant.city || 'Chennai',
+          metadata: {
+            isEntertainment: true,
+            branchId: branchId,
+            branchName: targetBranch?.name || updatedMerchantName,
+            merchantName: updatedMerchantName || state.currentMerchant.merchantName || entCfg.merchantName,
+            originalCategory: entCfg.categoryName,
+            amenities: entCfg.amenities,
+            venueRules: entCfg.venueRules,
+            formats: entCfg.formats,
+            languages: entCfg.languages,
+            showtimes: entCfg.showtimes,
+            seatTiers: entCfg.seatTiers,
+            snackAddons: entCfg.snackAddons,
+            listings: entCfg.seatTiers.map(tier => ({
+              id: tier.id,
+              name: tier.name,
+              price: tier.price,
+              imageUrl: entCfg.heroImage,
+              description: tier.desc,
+              images: [entCfg.heroImage],
+              metadata: {
+                badge: tier.badge,
+                icon: tier.icon,
+                formats: entCfg.formats,
+                showtimes: entCfg.showtimes,
+                snackAddons: entCfg.snackAddons
+              }
+            }))
+          },
+          listings: entCfg.seatTiers.map(tier => ({
+            id: tier.id,
+            name: tier.name,
+            price: tier.price,
+            imageUrl: entCfg.heroImage,
+            description: tier.desc,
+            images: [entCfg.heroImage],
+            active: true
+          }))
+        };
+        currentServices = [...currentServices, seededSvc];
+      }
+    }
+
     return {
+      services: currentServices,
       currentMerchant: {
         ...state.currentMerchant,
         activeBranchId: branchId,
@@ -1993,7 +2294,7 @@ export const useVendorStore = create<VendorStoreState>()(
           const found = PRESET_MERCHANTS.find((m) => m.id === subAcc.merchantId);
           if (found) {
             set({ currentMerchant: found, loginRole: 'supervisor', supervisorId: subAcc.subId });
-            // No mock seeding - user gets a blank slate
+            get().fetchServices();
             return true;
           }
         }
@@ -2017,12 +2318,10 @@ export const useVendorStore = create<VendorStoreState>()(
             currentMerchant: finalMerchant, 
             loginRole: 'vendor', 
             supervisorId: null,
-            services: [],
             bookings: [],
             supportTickets: []
           });
-          
-          // No mock seeding - user gets a blank slate when starting fresh
+          get().fetchServices();
           return true;
         }
 
@@ -2068,15 +2367,15 @@ export const useVendorStore = create<VendorStoreState>()(
         }
         const finalMerchant = { ...found, ...(get().customMerchants[found.id] || {}) };
         
-        // When switching stores, clear the previous store's data from memory so it doesn't bleed over
+        // When switching stores, update merchant and reload its services
         set({ 
           currentMerchant: finalMerchant, 
           loginRole: 'vendor', 
           supervisorId: null,
-          services: [],
           bookings: [],
           supportTickets: []
         });
+        get().fetchServices();
       },
       
       checkInBooking: (bookingId) => {
@@ -2285,54 +2584,103 @@ export const useVendorStore = create<VendorStoreState>()(
               'Service': [], // Generic — show all
             };
             
-            // If backend returned services for activeMerchantId, use them directly
-            let finalDataToMap = servicesData.length > 0 ? servicesData : [];
+          let finalDataToMap = servicesData.length > 0 ? servicesData : [];
 
-            // If backend has no services for this merchant yet, seed from sports/service master archetype
-            if (finalDataToMap.length === 0 && currentMerchant) {
-              const catSlug = (currentMerchant.category || '').toLowerCase().replace(/\s+/g, '-');
-              const sportCfg = getSportCategoryConfig(catSlug);
-              if (sportCfg) {
-                finalDataToMap = [
-                  {
-                    id: `svc-${sportCfg.slug}-${sportCfg.username.toLowerCase()}`,
-                    name: `${sportCfg.categoryName} Master Units`,
-                    basePrice: sportCfg.defaultPrice,
-                    durationMinutes: 60,
-                    isActive: true,
-                    images: [sportCfg.heroImage, ...sportCfg.galleryImages],
-                    description: `Professional ${sportCfg.categoryName} court and unit management. Configure court surfaces, hourly tariffs, and equipment add-ons.`,
-                    metadata: {
-                      isFacility: true,
-                      merchantName: currentMerchant.merchantName || sportCfg.merchantName,
-                      originalCategory: sportCfg.categoryName,
-                      amenities: sportCfg.amenities,
-                      mandatoryRule: sportCfg.mandatoryRule,
-                      supervisorTitle: sportCfg.supervisorTitle,
-                      includedGear: sportCfg.includedGear,
-                      listings: sportCfg.units.map(u => ({
-                        id: u.id,
-                        name: u.name,
-                        price: u.price,
+          // If backend has no services for this merchant yet, seed from sports or entertainment master archetype
+          if (finalDataToMap.length === 0 && currentMerchant) {
+            const catSlug = (currentMerchant.category || '').toLowerCase().replace(/\s+/g, '-');
+            const sportCfg = getSportCategoryConfig(catSlug);
+            const entCfg = getEntertainmentCategoryConfig(catSlug);
+            const activeBranchId = currentMerchant.activeBranchId;
+
+            if (sportCfg) {
+              finalDataToMap = [
+                {
+                  id: `svc-${sportCfg.slug}-${sportCfg.username.toLowerCase()}`,
+                  name: `${sportCfg.categoryName} Master Units`,
+                  basePrice: sportCfg.defaultPrice,
+                  durationMinutes: 60,
+                  isActive: true,
+                  branchId: activeBranchId,
+                  images: [sportCfg.heroImage, ...sportCfg.galleryImages],
+                  description: `Professional ${sportCfg.categoryName} court and unit management. Configure court surfaces, hourly tariffs, and equipment add-ons.`,
+                  metadata: {
+                    isFacility: true,
+                    branchId: activeBranchId,
+                    merchantName: currentMerchant.merchantName || sportCfg.merchantName,
+                    originalCategory: sportCfg.categoryName,
+                    amenities: sportCfg.amenities,
+                    mandatoryRule: sportCfg.mandatoryRule,
+                    supervisorTitle: sportCfg.supervisorTitle,
+                    includedGear: sportCfg.includedGear,
+                    listings: sportCfg.units.map(u => ({
+                      id: u.id,
+                      name: u.name,
+                      price: u.price,
+                      imageUrl: u.imageUrl,
+                      description: u.description,
+                      images: [u.imageUrl],
+                      metadata: {
                         imageUrl: u.imageUrl,
-                        description: u.description,
-                        images: [u.imageUrl],
-                        metadata: {
-                          imageUrl: u.imageUrl,
-                          surface: u.surface,
-                          badge: u.badge,
-                          addons: sportCfg.addons,
-                          mandatoryRule: sportCfg.mandatoryRule,
-                          equipmentAddons: sportCfg.includedGear,
-                          refereeOrManager: sportCfg.supervisorTitle
-                        }
-                      }))
-                    }
+                        surface: u.surface,
+                        badge: u.badge,
+                        addons: sportCfg.addons,
+                        mandatoryRule: sportCfg.mandatoryRule,
+                        equipmentAddons: sportCfg.includedGear,
+                        refereeOrManager: sportCfg.supervisorTitle
+                      }
+                    }))
                   }
-                ];
-              }
+                }
+              ];
+            } else if (entCfg) {
+              const branchMatch = entCfg.branches?.find(b => b.id === activeBranchId) || entCfg.branches?.[0];
+              const branchOfferings = branchMatch?.offeringsSummary || `${entCfg.categoryName} Auditoriums`;
+              finalDataToMap = [
+                {
+                  id: `svc-${entCfg.slug}-${entCfg.username.toLowerCase()}`,
+                  name: `${entCfg.categoryName} Passes & Screenings`,
+                  basePrice: entCfg.defaultPrice,
+                  durationMinutes: 120,
+                  isActive: true,
+                  branchId: activeBranchId,
+                  images: [entCfg.heroImage, ...entCfg.galleryImages],
+                  description: `Premier ${entCfg.categoryName} hall, screen formats (${branchOfferings}), tier pricing and concession add-on controls.`,
+                  metadata: {
+                    isEntertainment: true,
+                    branchId: activeBranchId,
+                    branchName: branchMatch?.name || currentMerchant.merchantName,
+                    merchantName: currentMerchant.merchantName || entCfg.merchantName,
+                    originalCategory: entCfg.categoryName,
+                    amenities: entCfg.amenities,
+                    venueRules: entCfg.venueRules,
+                    formats: entCfg.formats,
+                    languages: entCfg.languages,
+                    showtimes: entCfg.showtimes,
+                    seatTiers: entCfg.seatTiers,
+                    snackAddons: entCfg.snackAddons,
+                    listings: entCfg.seatTiers.map(tier => ({
+                      id: tier.id,
+                      name: tier.name,
+                      price: tier.price,
+                      imageUrl: entCfg.heroImage,
+                      description: tier.desc,
+                      images: [entCfg.heroImage],
+                      metadata: {
+                        badge: tier.badge,
+                        icon: tier.icon,
+                        formats: entCfg.formats,
+                        showtimes: entCfg.showtimes,
+                        snackAddons: entCfg.snackAddons
+                      }
+                    }))
+                  }
+                }
+              ];
             }
+          }
 
+          if (finalDataToMap.length > 0) {
             const mapped = finalDataToMap.map((s: any) => {
               let fetchedMerchantName = s.metadata?.merchantName || s.merchant?.name || currentMerchantName || 'Grand Hotel';
               const rawCat = s.metadata?.originalCategory || (typeof s.category === 'object' ? (s.category?.name || s.category?.slug) : s.category) || 'General';
@@ -2381,10 +2729,136 @@ export const useVendorStore = create<VendorStoreState>()(
             });
             
             set({ services: mapped });
+          } else {
+            // Keep local services if backend returns empty array to prevent overwriting vendor portal created listings
+            const currentServices = get().services;
+            if (currentServices.length > 0) {
+              set({ services: currentServices });
+            }
+          }
           }
         } catch (e: any) {
-          // Silently fail — backend may be offline or cold starting
-          // App will use local store state (services already in memory)
+          // If backend fetch fails, check if local store has no services yet and seed from master config
+          const currentMerchant = get().currentMerchant;
+          if (get().services.length === 0 && currentMerchant) {
+            const catSlug = (currentMerchant.category || '').toLowerCase().replace(/\s+/g, '-');
+            const sportCfg = getSportCategoryConfig(catSlug);
+            const entCfg = getEntertainmentCategoryConfig(catSlug);
+
+            if (sportCfg) {
+              set({
+                services: [
+                  {
+                    id: `svc-${sportCfg.slug}-${sportCfg.username.toLowerCase()}`,
+                    name: `${sportCfg.categoryName} Master Units`,
+                    merchant: currentMerchant.merchantName || sportCfg.merchantName,
+                    price: sportCfg.defaultPrice,
+                    duration: 60,
+                    category: sportCfg.categoryName,
+                    active: true,
+                    rating: 4.9,
+                    bookingsCount: 384,
+                    imageUrl: sportCfg.heroImage,
+                    description: `Professional ${sportCfg.categoryName} court and unit management. Configure court surfaces, hourly tariffs, and equipment add-ons.`,
+                    city: currentMerchant.city || 'Chennai',
+                    metadata: {
+                      isFacility: true,
+                      merchantName: currentMerchant.merchantName || sportCfg.merchantName,
+                      originalCategory: sportCfg.categoryName,
+                      amenities: sportCfg.amenities,
+                      mandatoryRule: sportCfg.mandatoryRule,
+                      supervisorTitle: sportCfg.supervisorTitle,
+                      includedGear: sportCfg.includedGear,
+                      listings: sportCfg.units.map(u => ({
+                        id: u.id,
+                        name: u.name,
+                        price: u.price,
+                        imageUrl: u.imageUrl,
+                        description: u.description,
+                        images: [u.imageUrl],
+                        metadata: {
+                          imageUrl: u.imageUrl,
+                          surface: u.surface,
+                          badge: u.badge,
+                          addons: sportCfg.addons,
+                          mandatoryRule: sportCfg.mandatoryRule,
+                          equipmentAddons: sportCfg.includedGear,
+                          refereeOrManager: sportCfg.supervisorTitle
+                        }
+                      }))
+                    },
+                    listings: sportCfg.units.map(u => ({
+                      id: u.id,
+                      name: u.name,
+                      price: u.price,
+                      imageUrl: u.imageUrl,
+                      description: u.description,
+                      images: [u.imageUrl],
+                      active: true
+                    }))
+                  }
+                ]
+              });
+            } else if (entCfg) {
+              const activeBranchId = currentMerchant.activeBranchId;
+              set({
+                services: [
+                  {
+                    id: `svc-${entCfg.slug}-${entCfg.username.toLowerCase()}`,
+                    name: `${entCfg.categoryName} Passes & Screenings`,
+                    merchant: currentMerchant.merchantName || entCfg.merchantName,
+                    price: entCfg.defaultPrice,
+                    duration: 120,
+                    category: entCfg.categoryName,
+                    active: true,
+                    branchId: activeBranchId,
+                    rating: 4.8,
+                    bookingsCount: 420,
+                    imageUrl: entCfg.heroImage,
+                    description: `Premier ${entCfg.categoryName} hall, screen formats, tier pricing and concession add-on controls.`,
+                    city: currentMerchant.city || 'Chennai',
+                    metadata: {
+                      isEntertainment: true,
+                      branchId: activeBranchId,
+                      merchantName: currentMerchant.merchantName || entCfg.merchantName,
+                      originalCategory: entCfg.categoryName,
+                      amenities: entCfg.amenities,
+                      venueRules: entCfg.venueRules,
+                      formats: entCfg.formats,
+                      languages: entCfg.languages,
+                      showtimes: entCfg.showtimes,
+                      seatTiers: entCfg.seatTiers,
+                      snackAddons: entCfg.snackAddons,
+                      listings: entCfg.seatTiers.map(tier => ({
+                        id: tier.id,
+                        name: tier.name,
+                        price: tier.price,
+                        imageUrl: entCfg.heroImage,
+                        description: tier.desc,
+                        images: [entCfg.heroImage],
+                        metadata: {
+                          badge: tier.badge,
+                          icon: tier.icon,
+                          formats: entCfg.formats,
+                          showtimes: entCfg.showtimes,
+                          snackAddons: entCfg.snackAddons
+                        }
+                      }))
+                    },
+                    listings: entCfg.seatTiers.map(tier => ({
+                      id: tier.id,
+                      name: tier.name,
+                      price: tier.price,
+                      imageUrl: entCfg.heroImage,
+                      description: tier.desc,
+                      images: [entCfg.heroImage],
+                      active: true
+                    }))
+                  }
+                ]
+              });
+            }
+          }
           if (e?.name !== 'AbortError') {
             console.warn('Backend offline — using local services data:', e?.message);
           }
