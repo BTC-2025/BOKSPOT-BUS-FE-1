@@ -240,13 +240,15 @@ export const ARCHETYPE_SCHEMAS: Record<Archetype, any> = {
     ]
   },
   DINING: {
-    title: "Dining / Restaurant Details",
+    title: "Dining Table & Restaurant Reservation Details",
     fields: [
-      { name: "costForTwo", type: "number", label: "Cost for Two (₹)", placeholder: "e.g., 1200", required: true },
-      { name: "cuisines", type: "multi-select", label: "Cuisines", placeholder: "e.g., South Indian, North Indian, Chettinad, Chinese, Continental", required: true },
-      { name: "facilities", type: "multi-select", label: "Facilities", placeholder: "e.g., AC Dining, Valet Parking, Serves Alcohol, Outdoor Seating, Live Music", required: false },
-      { name: "menuImages", type: "image-array", label: "Upload Menu Pages", required: true },
-      { name: "offers", type: "array", label: "Active Offers & Discounts", placeholder: "e.g., FLAT 20% OFF on Weekdays, 1+1 on Cocktails", required: false }
+      { name: "tableCapacity", type: "text", label: "Table Capacity & Guest Count", placeholder: "e.g., 2 Guests (Couple) / 4 Guests (Family Booth) / 8-14 Guests (PDR)", required: true },
+      { name: "minGuests", type: "number", label: "Minimum Guests Allowed", placeholder: "e.g., 1", required: false },
+      { name: "maxGuests", type: "number", label: "Maximum Guests Allowed", placeholder: "e.g., 2", required: false },
+      { name: "seatingZone", type: "text", label: "Seating Zone / Ambiance Area", placeholder: "e.g., Romantic Rooftop / AC Main Hall / Garden Patio / Private Dining Suite", required: true },
+      { name: "minSpend", type: "number", label: "Minimum Spend / Bill Commitment (₹)", placeholder: "e.g., 500 (Leave 0 for no minimum bill)", required: false },
+      { name: "sessionDurationMinutes", type: "number", label: "Reservation Session Duration (Minutes)", placeholder: "e.g., 90 or 120", required: false },
+      { name: "tableFeatures", type: "multi-select", label: "Table Amenities & Inclusions", placeholder: "e.g., Candlelight Setup, Rooftop City View, High Chair on Request, Dedicated Butler", required: false }
     ]
   },
   ACCOMMODATION: {

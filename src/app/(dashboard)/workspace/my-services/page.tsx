@@ -4,6 +4,11 @@ import { useVendorStore, CatalogService, BranchInfo, PRESET_MERCHANTS } from '@/
 import { getArchetypeConfig } from '@/lib/businessDictionary';
 import { compressImage } from '@/lib/imageUtils';
 import { getEntertainmentCategoryConfig, NOW_SHOWING_MOVIES, MovieListingItem } from '@/lib/entertainmentData';
+import { getDiningConfig } from '@/lib/diningData';
+import { getWellnessConfig } from '@/lib/wellnessData';
+import { getFitnessConfig } from '@/lib/fitnessData';
+import { getClinicConfig } from '@/lib/clinicalData';
+import { getHomeServiceConfig } from '@/lib/homeServicesData';
 import {
   Plus, Trash2, Edit, X, Package, List, Building2, MapPin,
   Check, ChevronDown, Sparkles, Activity, Layers, Search,
@@ -43,6 +48,7 @@ export default function WorkspacePage() {
 
   // Modals state
   const [showBookingTypeModal, setShowBookingTypeModal] = useState(false);
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showScreeningModal, setShowScreeningModal] = useState(false);
 
@@ -253,6 +259,200 @@ export default function WorkspacePage() {
         }))
       };
       merchantServices = [fallbackEntService];
+    }
+  }
+
+  // Dynamic Auto-Fallback for Lifestyle & Dining / Wellness / Fitness / Clinic / Home Services Branches
+  if (merchantServices.length === 0) {
+    const rawCat = (activeBranch.category || currentMerchant.category || '').toLowerCase();
+    
+    // 1. Dining Fallback
+    if (rawCat.includes('dining') || rawCat.includes('restaurant')) {
+      const diningCfg = getDiningConfig(currentMerchant.id || 'grand-temple-dine');
+      const fallbackDiningService: CatalogService = {
+        id: `svc-dining-${activeBranch.id}`,
+        name: `${diningCfg.name} Table Reservations`,
+        merchant: activeBranch.name || currentMerchant.merchantName || diningCfg.name,
+        price: diningCfg.tableTypes[0]?.depositAmount || 0,
+        duration: 90,
+        category: 'Restaurant Table Reservation',
+        active: true,
+        branchId: activeBranch.id,
+        rating: diningCfg.rating,
+        bookingsCount: 380,
+        imageUrl: diningCfg.heroImage,
+        description: `Cozy dining tables, celebration setups, session time slots, and chef specialty pre-orders.`,
+        city: activeBranch.city || currentMerchant.city || 'Chennai',
+        metadata: {
+          isDining: true,
+          tableTypes: diningCfg.tableTypes,
+          timeSlots: diningCfg.timeSlots,
+          popularMenu: diningCfg.popularMenu,
+          listings: diningCfg.tableTypes.map(t => ({
+            id: t.id,
+            name: t.name,
+            price: t.depositAmount,
+            imageUrl: diningCfg.heroImage,
+            description: `${t.capacity} • Zone: ${t.zone}`,
+            images: diningCfg.galleryImages,
+            metadata: {
+              capacity: t.capacity,
+              zone: t.zone,
+              depositAmount: t.depositAmount
+            }
+          }))
+        },
+        listings: diningCfg.tableTypes.map(t => ({
+          id: t.id,
+          name: t.name,
+          price: t.depositAmount,
+          imageUrl: diningCfg.heroImage,
+          description: `${t.capacity} • Zone: ${t.zone}`,
+          images: diningCfg.galleryImages,
+          active: true
+        }))
+      };
+      merchantServices = [fallbackDiningService];
+    }
+    // 2. Salon & Wellness Fallback
+    else if (rawCat.includes('salon') || rawCat.includes('spa') || rawCat.includes('wellness')) {
+      const wellnessCfg = getWellnessConfig(currentMerchant.id || 'style-studio');
+      const fallbackWellnessService: CatalogService = {
+        id: `svc-wellness-${activeBranch.id}`,
+        name: `${wellnessCfg.name} Treatments`,
+        merchant: activeBranch.name || currentMerchant.merchantName || wellnessCfg.name,
+        price: wellnessCfg.treatments[0]?.price || 499,
+        duration: 45,
+        category: 'Salon / Spa Appointment',
+        active: true,
+        branchId: activeBranch.id,
+        rating: wellnessCfg.rating,
+        bookingsCount: 290,
+        imageUrl: wellnessCfg.heroImage,
+        description: `Hair styling, beard grooming, facial rejuvenation and spa therapy slots.`,
+        city: activeBranch.city || currentMerchant.city || 'Chennai',
+        metadata: {
+          isWellness: true,
+          treatments: wellnessCfg.treatments,
+          specialists: wellnessCfg.specialists
+        },
+        listings: wellnessCfg.treatments.map(t => ({
+          id: t.id,
+          name: t.name,
+          price: t.price,
+          imageUrl: wellnessCfg.heroImage,
+          description: `${t.durationMinutes} Mins • ${t.category}`,
+          images: wellnessCfg.galleryImages,
+          active: true
+        }))
+      };
+      merchantServices = [fallbackWellnessService];
+    }
+    // 3. Fitness & Gym Fallback
+    else if (rawCat.includes('gym') || rawCat.includes('yoga') || rawCat.includes('fitness')) {
+      const fitCfg = getFitnessConfig(currentMerchant.id || 'zenfit-clinic');
+      const fallbackFitService: CatalogService = {
+        id: `svc-fitness-${activeBranch.id}`,
+        name: `${fitCfg.name} Passes & Batches`,
+        merchant: activeBranch.name || currentMerchant.merchantName || fitCfg.name,
+        price: fitCfg.passes[0]?.price || 299,
+        duration: 60,
+        category: 'Gym / Yoga Slot Booking',
+        active: true,
+        branchId: activeBranch.id,
+        rating: fitCfg.rating,
+        bookingsCount: 510,
+        imageUrl: fitCfg.heroImage,
+        description: `Open gym day passes, group yoga batches, personal trainers, and digital turnstile entry.`,
+        city: activeBranch.city || currentMerchant.city || 'Chennai',
+        metadata: {
+          isFitness: true,
+          passes: fitCfg.passes,
+          trainers: fitCfg.trainers,
+          timeSlots: fitCfg.timeSlots
+        },
+        listings: fitCfg.passes.map(p => ({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          imageUrl: fitCfg.heroImage,
+          description: `${p.durationMinutes === 720 ? 'Full Day' : `${p.durationMinutes}m`} • ${p.formatType}`,
+          images: fitCfg.galleryImages,
+          active: true
+        }))
+      };
+      merchantServices = [fallbackFitService];
+    }
+    // 4. Doctor & Clinic Fallback
+    else if (rawCat.includes('doctor') || rawCat.includes('clinic') || rawCat.includes('dental')) {
+      const docCfg = getClinicConfig(currentMerchant.id || 'apollo-dental');
+      const fallbackDocService: CatalogService = {
+        id: `svc-doc-${activeBranch.id}`,
+        name: `${docCfg.name} OPD Slots`,
+        merchant: activeBranch.name || currentMerchant.merchantName || docCfg.name,
+        price: docCfg.doctors[0]?.consultationFee || 500,
+        duration: 20,
+        category: 'Doctor Appointment',
+        active: true,
+        branchId: activeBranch.id,
+        rating: docCfg.rating,
+        bookingsCount: 440,
+        imageUrl: docCfg.heroImage,
+        description: `OPD consultation chambers, live waiting room token queue, and verified medical specialists.`,
+        city: activeBranch.city || currentMerchant.city || 'Chennai',
+        metadata: {
+          isDoctor: true,
+          doctors: docCfg.doctors,
+          consultationModes: docCfg.consultationModes,
+          timeSlots: docCfg.timeSlots
+        },
+        listings: docCfg.doctors.map(d => ({
+          id: d.id,
+          name: d.name,
+          price: d.consultationFee,
+          imageUrl: d.avatar,
+          description: `${d.role} • ${d.opdRoom}`,
+          images: [d.avatar],
+          active: true
+        }))
+      };
+      merchantServices = [fallbackDocService];
+    }
+    // 5. Home Services Fallback
+    else if (rawCat.includes('electrician') || rawCat.includes('plumber') || rawCat.includes('clean') || rawCat.includes('technician') || rawCat.includes('repair')) {
+      const homeCfg = getHomeServiceConfig(rawCat);
+      const matched = homeCfg.services.find(s => rawCat.includes(s.category)) || homeCfg.services[0];
+      const fallbackHomeService: CatalogService = {
+        id: `svc-home-${activeBranch.id}`,
+        name: `${matched.name}`,
+        merchant: activeBranch.name || currentMerchant.merchantName || homeCfg.name,
+        price: matched.inspectionFee,
+        duration: matched.estDurationMinutes,
+        category: currentMerchant.category || 'Electrician Booking',
+        active: true,
+        branchId: activeBranch.id,
+        rating: homeCfg.rating,
+        bookingsCount: 890,
+        imageUrl: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=1200&auto=format&fit=crop',
+        description: `${matched.description} Includes 30-Day BOKSPOT Warranty & Background-Checked Technician.`,
+        city: activeBranch.city || currentMerchant.city || 'Chennai',
+        metadata: {
+          isHomeService: true,
+          serviceItem: matched,
+          arrivalWindows: homeCfg.arrivalWindows,
+          warrantyDays: homeCfg.warrantyDays
+        },
+        listings: matched.popularAddons.map((a, idx) => ({
+          id: `addon-${idx}`,
+          name: a.name,
+          price: a.price,
+          imageUrl: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=1200&auto=format&fit=crop',
+          description: `Add-on Service / Spare Installation (+₹${a.price})`,
+          images: ['https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=1200&auto=format&fit=crop'],
+          active: true
+        }))
+      };
+      merchantServices = [fallbackHomeService];
     }
   }
 
@@ -893,7 +1093,11 @@ export default function WorkspacePage() {
                   <input
                     type="text"
                     value={bookingTypeCategory}
-                    onChange={(e) => setBookingTypeCategory(e.target.value)}
+                    onChange={(e) => {
+                      setBookingTypeCategory(e.target.value);
+                      setIsCategoryDropdownOpen(true);
+                    }}
+                    onFocus={() => setIsCategoryDropdownOpen(true)}
                     placeholder="e.g. Hotel Booking, Football Turf, Resort Booking..."
                     autoFocus
                     autoComplete="off"
@@ -901,7 +1105,7 @@ export default function WorkspacePage() {
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#162033] text-slate-900 dark:text-white font-medium focus:border-[#ff6325] outline-none"
                     required
                   />
-                  {categorySuggestions.length > 0 && bookingTypeCategory.trim() !== '' && (
+                  {isCategoryDropdownOpen && categorySuggestions.length > 0 && bookingTypeCategory.trim() !== '' && (
                     <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white dark:bg-[#162033] border border-slate-200 dark:border-white/10 rounded-xl shadow-xl overflow-hidden max-h-48 overflow-y-auto">
                       {categorySuggestions.map((cat) => (
                         <button
@@ -910,6 +1114,7 @@ export default function WorkspacePage() {
                           onMouseDown={(e) => {
                             e.preventDefault();
                             setBookingTypeCategory(cat);
+                            setIsCategoryDropdownOpen(false);
                           }}
                           className="w-full text-left px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-slate-100 hover:bg-[#ff6325]/10 hover:text-[#ff6325] transition-colors flex items-center justify-between cursor-pointer border-b border-slate-100 dark:border-white/5 last:border-0"
                         >

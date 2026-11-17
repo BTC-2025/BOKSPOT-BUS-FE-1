@@ -1,12 +1,18 @@
 'use client';
 
-import { useVendorStore, CatalogListing } from '@/lib/store';
+import { useVendorStore, CatalogListing, CatalogService } from '@/lib/store';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Clock, Package, AlertTriangle, Tag, Users, CheckSquare, Info, X, Save, Bed, Image as ImageIcon, Activity, Heart, Car, Ticket, Briefcase, Zap, CheckCircle2, Plus, Calendar } from 'lucide-react';
 import DynamicForm from '@/components/DynamicForm';
 import { getArchetypeFromCategory, Archetype } from '@/lib/archetypes';
 import { compressImage } from '@/lib/imageUtils';
+import { getEntertainmentCategoryConfig } from '@/lib/entertainmentData';
+import { getDiningConfig } from '@/lib/diningData';
+import { getWellnessConfig } from '@/lib/wellnessData';
+import { getFitnessConfig } from '@/lib/fitnessData';
+import { getClinicConfig } from '@/lib/clinicalData';
+import { getHomeServiceConfig } from '@/lib/homeServicesData';
 
 export default function ListingEditorPage() {
   const router = useRouter();
@@ -71,11 +77,194 @@ export default function ListingEditorPage() {
   // Config-Driven Metadata State
   const [metadata, setMetadata] = useState<Record<string, any>>({});
 
+  const resolveCategory = () => {
+    let cat = services.find(s => s.id === serviceId);
+    if (cat) return cat;
+
+    if (!cat && serviceId && currentMerchant) {
+      const rawCat = (currentMerchant.category || '').toLowerCase();
+      const branchId = currentMerchant.activeBranchId || 'main-branch';
+
+      if (rawCat.includes('dining') || rawCat.includes('restaurant') || serviceId.includes('dining')) {
+        const diningCfg = getDiningConfig(currentMerchant.id || 'grand-temple-dine');
+        return {
+          id: serviceId,
+          name: `${diningCfg.name} Table Reservations`,
+          merchant: currentMerchant.merchantName || diningCfg.name,
+          price: diningCfg.tableTypes[0]?.depositAmount || 0,
+          duration: 90,
+          category: 'Restaurant Table Reservation',
+          active: true,
+          branchId,
+          rating: diningCfg.rating,
+          bookingsCount: 380,
+          imageUrl: diningCfg.heroImage,
+          description: `Cozy dining tables, celebration setups, session time slots, and chef specialty pre-orders.`,
+          city: currentMerchant.city || 'Chennai',
+          metadata: {
+            isDining: true,
+            tableTypes: diningCfg.tableTypes,
+            timeSlots: diningCfg.timeSlots,
+            popularMenu: diningCfg.popularMenu
+          },
+          listings: diningCfg.tableTypes.map(t => ({
+            id: t.id,
+            name: t.name,
+            price: t.depositAmount,
+            imageUrl: diningCfg.heroImage,
+            description: `${t.capacity} • Zone: ${t.zone}`,
+            images: diningCfg.galleryImages,
+            active: true,
+            metadata: {
+              tableCapacity: t.capacity,
+              minGuests: t.minGuests,
+              maxGuests: t.maxGuests,
+              seatingZone: t.zone === 'AC_INDOOR' ? 'AC Main Hall' : t.zone === 'ROOFTOP' ? 'Romantic Rooftop' : t.zone === 'PRIVATE_DINING' ? 'Private Dining Suite' : 'Garden Patio',
+              sessionDurationMinutes: 90,
+              minSpend: t.depositAmount > 0 ? t.depositAmount * 2 : 0,
+              priceUnit: 'per reservation / table deposit',
+              totalUnits: 1
+            }
+          }))
+        } as CatalogService;
+      } else if (rawCat.includes('salon') || rawCat.includes('spa') || serviceId.includes('wellness')) {
+        const wellnessCfg = getWellnessConfig(currentMerchant.id || 'style-studio');
+        return {
+          id: serviceId,
+          name: `${wellnessCfg.name} Treatments`,
+          merchant: currentMerchant.merchantName || wellnessCfg.name,
+          price: wellnessCfg.treatments[0]?.price || 499,
+          duration: 45,
+          category: 'Salon / Spa Appointment',
+          active: true,
+          branchId,
+          rating: wellnessCfg.rating,
+          bookingsCount: 290,
+          imageUrl: wellnessCfg.heroImage,
+          description: `Hair styling, beard grooming, facial rejuvenation and spa therapy slots.`,
+          city: currentMerchant.city || 'Chennai',
+          metadata: {
+            isWellness: true,
+            treatments: wellnessCfg.treatments,
+            specialists: wellnessCfg.specialists
+          },
+          listings: wellnessCfg.treatments.map(t => ({
+            id: t.id,
+            name: t.name,
+            price: t.price,
+            imageUrl: wellnessCfg.heroImage,
+            description: `${t.durationMinutes} Mins • ${t.category}`,
+            images: wellnessCfg.galleryImages,
+            active: true
+          }))
+        } as CatalogService;
+      } else if (rawCat.includes('gym') || rawCat.includes('yoga') || serviceId.includes('fitness')) {
+        const fitCfg = getFitnessConfig(currentMerchant.id || 'zenfit-clinic');
+        return {
+          id: serviceId,
+          name: `${fitCfg.name} Passes & Batches`,
+          merchant: currentMerchant.merchantName || fitCfg.name,
+          price: fitCfg.passes[0]?.price || 299,
+          duration: 60,
+          category: 'Gym / Yoga Slot Booking',
+          active: true,
+          branchId,
+          rating: fitCfg.rating,
+          bookingsCount: 510,
+          imageUrl: fitCfg.heroImage,
+          description: `Open gym day passes, group yoga batches, personal trainers, and digital turnstile entry.`,
+          city: currentMerchant.city || 'Chennai',
+          metadata: {
+            isFitness: true,
+            passes: fitCfg.passes,
+            trainers: fitCfg.trainers,
+            timeSlots: fitCfg.timeSlots
+          },
+          listings: fitCfg.passes.map(p => ({
+            id: p.id,
+            name: p.name,
+            price: p.price,
+            imageUrl: fitCfg.heroImage,
+            description: `${p.durationMinutes === 720 ? 'Full Day' : `${p.durationMinutes}m`} • ${p.formatType}`,
+            images: fitCfg.galleryImages,
+            active: true
+          }))
+        } as CatalogService;
+      } else if (rawCat.includes('doctor') || rawCat.includes('clinic') || serviceId.includes('doc')) {
+        const docCfg = getClinicConfig(currentMerchant.id || 'apollo-dental');
+        return {
+          id: serviceId,
+          name: `${docCfg.name} OPD Slots`,
+          merchant: currentMerchant.merchantName || docCfg.name,
+          price: docCfg.doctors[0]?.consultationFee || 500,
+          duration: 20,
+          category: 'Doctor Appointment',
+          active: true,
+          branchId,
+          rating: docCfg.rating,
+          bookingsCount: 440,
+          imageUrl: docCfg.heroImage,
+          description: `OPD consultation chambers, live waiting room token queue, and verified medical specialists.`,
+          city: currentMerchant.city || 'Chennai',
+          metadata: {
+            isDoctor: true,
+            doctors: docCfg.doctors,
+            consultationModes: docCfg.consultationModes,
+            timeSlots: docCfg.timeSlots
+          },
+          listings: docCfg.doctors.map(d => ({
+            id: d.id,
+            name: d.name,
+            price: d.consultationFee,
+            imageUrl: d.avatar,
+            description: `${d.role} • ${d.opdRoom}`,
+            images: [d.avatar],
+            active: true
+          }))
+        } as CatalogService;
+      } else if (rawCat.includes('electrician') || rawCat.includes('plumber') || rawCat.includes('clean') || rawCat.includes('technician') || serviceId.includes('home')) {
+        const homeCfg = getHomeServiceConfig(rawCat);
+        const matched = homeCfg.services.find(s => rawCat.includes(s.category)) || homeCfg.services[0];
+        return {
+          id: serviceId,
+          name: matched.name,
+          merchant: currentMerchant.merchantName || homeCfg.name,
+          price: matched.inspectionFee,
+          duration: matched.estDurationMinutes,
+          category: currentMerchant.category || 'Electrician Booking',
+          active: true,
+          branchId,
+          rating: homeCfg.rating,
+          bookingsCount: 890,
+          imageUrl: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=1200&auto=format&fit=crop',
+          description: `${matched.description}`,
+          city: currentMerchant.city || 'Chennai',
+          metadata: {
+            isHomeService: true,
+            serviceItem: matched,
+            arrivalWindows: homeCfg.arrivalWindows,
+            warrantyDays: homeCfg.warrantyDays
+          },
+          listings: matched.popularAddons.map((a, idx) => ({
+            id: `addon-${idx}`,
+            name: a.name,
+            price: a.price,
+            imageUrl: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=1200&auto=format&fit=crop',
+            description: `Add-on Service (+₹${a.price})`,
+            images: ['https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=1200&auto=format&fit=crop'],
+            active: true
+          }))
+        } as CatalogService;
+      }
+    }
+    return cat || null;
+  };
+
   useEffect(() => {
     setMounted(true);
-    if (services.length > 0 && currentMerchant) {
-      const category = services.find(s => s.id === serviceId);
-      if (category && !isCreating) {
+    const category = resolveCategory();
+    if (category && currentMerchant) {
+      if (!isCreating) {
         const list = category.listings?.find(l => l.id === listingId);
         if (list) {
           setServiceName(list.name || '');
@@ -110,7 +299,17 @@ export default function ListingEditorPage() {
 
           setOfferBadge(list.metadata?.offerBadge || (list as any).offerBadge || '');
           setBannerTagline(list.metadata?.bannerTagline || (list as any).bannerTagline || '');
-          setPriceUnit(list.metadata?.priceUnit || (list as any).priceUnit || 'monthly rent (all inclusive)');
+          const categoryArchetype = getArchetypeFromCategory(category.category) || getArchetypeFromCategory(category.name);
+          const isListingDining = category.metadata?.isDining || (category.category || '').toLowerCase().includes('dining') || (category.category || '').toLowerCase().includes('restaurant') || categoryArchetype === 'DINING';
+          const defaultPriceUnit = isListingDining
+            ? 'per reservation / table deposit'
+            : (category.category || '').toLowerCase().includes('turf')
+              ? '/ hour'
+              : (category.category || '').toLowerCase().includes('pg') || (category.category || '').toLowerCase().includes('hostel')
+                ? 'monthly rent (all inclusive)'
+                : '/ unit';
+
+          setPriceUnit(list.metadata?.priceUnit || (list as any).priceUnit || defaultPriceUnit);
           const existingDeposit = list.metadata?.securityDeposit !== undefined
             ? list.metadata.securityDeposit
             : (list as any).securityDeposit;
@@ -176,7 +375,7 @@ export default function ListingEditorPage() {
 
   if (!mounted || !currentMerchant) return null;
 
-  const category = services.find(s => s.id === serviceId);
+  const category = resolveCategory();
   if (!category) return null;
 
   // Clean human-readable category name
@@ -216,19 +415,32 @@ export default function ListingEditorPage() {
     (currentMerchant?.category || '').toLowerCase().includes('hostel') ||
     (currentMerchant?.category || '').toLowerCase().includes('pg');
 
-  const isAccommodation = isHotel || isResortVilla || isCamping || isPgOrHostel ||
+  const isDining =
+    (categoryDisplayName || '').toLowerCase().includes('dining') ||
+    (categoryDisplayName || '').toLowerCase().includes('restaurant') ||
+    (categoryDisplayName || '').toLowerCase().includes('bistro') ||
+    (categoryDisplayName || '').toLowerCase().includes('cafe') ||
+    (categoryDisplayName || '').toLowerCase().includes('table') ||
+    (category.category || '').toLowerCase().includes('restaurant') ||
+    (category.category || '').toLowerCase().includes('dining') ||
+    (currentMerchant?.category || '').toLowerCase().includes('dining') ||
+    (currentMerchant?.category || '').toLowerCase().includes('restaurant') ||
+    Boolean(category.metadata?.isDining);
+
+  const isAccommodation = !isDining && (isHotel || isResortVilla || isCamping || isPgOrHostel ||
     (categoryDisplayName || '').toLowerCase().includes('suite') ||
     (categoryDisplayName || '').toLowerCase().includes('stay') ||
     (currentMerchant?.archetype?.toUpperCase() === 'ACCOMMODATION') ||
-    ((currentMerchant?.category || '').toLowerCase().includes('hotel') || (currentMerchant?.category || '').toLowerCase().includes('resort'));
+    ((currentMerchant?.category || '').toLowerCase().includes('hotel') || (currentMerchant?.category || '').toLowerCase().includes('resort')));
 
   const archetype: Archetype =
-    isTurfCategory ? 'RENTAL' :
-      isAccommodation ? 'ACCOMMODATION' :
-        getArchetypeFromCategory(category?.name) ||
-        getArchetypeFromCategory(category?.category) ||
-        getArchetypeFromCategory(currentMerchant?.category) ||
-        'RENTAL';
+    isDining ? 'DINING' :
+      isTurfCategory ? 'RENTAL' :
+        isAccommodation ? 'ACCOMMODATION' :
+          getArchetypeFromCategory(category?.name) ||
+          getArchetypeFromCategory(category?.category) ||
+          getArchetypeFromCategory(currentMerchant?.category) ||
+          'RENTAL';
 
   const handleSaveDetails = () => {
     if (!serviceName.trim()) {
@@ -416,14 +628,16 @@ export default function ListingEditorPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2 space-y-2">
                   <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                    {isTurfCategory ? 'Pitch / Court / Unit Title' : 'Unit / Listing Title'} <span className="text-red-500">*</span>
+                    {isDining ? 'Table / Seating Unit Title' : isTurfCategory ? 'Pitch / Court / Unit Title' : 'Unit / Listing Title'} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={serviceName}
                     onChange={(e) => setServiceName(e.target.value)}
                     placeholder={
-                      isTurfCategory
+                      isDining
+                        ? "e.g. Cozy Couple Table (2 Seater), Prime Family Booth (4 Seater), Royal PDR"
+                        : isTurfCategory
                         ? "e.g. 7-a-side Main Astro Turf A, 5s Cage Pitch B, Box Cricket Arena"
                         : isHotel
                           ? "e.g. Deluxe AC Room, Executive Suite, Standard Non-AC Room"
@@ -894,7 +1108,7 @@ export default function ListingEditorPage() {
                 {/* 1. Original Rate (Rack Price / MRP) */}
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                    {isTurfCategory ? 'Original Hourly Slot Rate (₹)' : archetype === 'ACCOMMODATION' ? 'Original Rate / Rack Price (₹)' : 'Original Price / MRP (₹)'} <span className="text-red-500">*</span>
+                    {isDining ? 'Standard Table Deposit / Minimum Spend (₹)' : isTurfCategory ? 'Original Hourly Slot Rate (₹)' : archetype === 'ACCOMMODATION' ? 'Original Rate / Rack Price (₹)' : 'Original Price / MRP (₹)'} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-400 text-sm">₹</span>
@@ -912,14 +1126,14 @@ export default function ListingEditorPage() {
                           setBasePrice('');
                         }
                       }}
-                      placeholder={isTurfCategory ? "e.g. 1500 or 1200" : "e.g. 16111 or 15000"}
+                      placeholder={isDining ? "e.g. 0 (Free Table) or 200 (Deposit)" : isTurfCategory ? "e.g. 1500 or 1200" : "e.g. 16111 or 15000"}
                       min="0"
                       className="w-full pl-9 pr-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-black text-sm focus:border-[#ff6325] focus:bg-white dark:focus:bg-[#131d2e] outline-none transition-all shadow-xs"
                       required
                     />
                   </div>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                    {isTurfCategory ? 'Standard hourly court/pitch tariff before discount.' : 'Your standard rack tariff before applying discount.'}
+                    {isDining ? 'Reservation deposit or cover charge payable to hold table.' : isTurfCategory ? 'Standard hourly court/pitch tariff before discount.' : 'Your standard rack tariff before applying discount.'}
                   </p>
                 </div>
 
@@ -965,7 +1179,7 @@ export default function ListingEditorPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
                     <div>
                       <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
-                        {isTurfCategory ? 'Final Tariff (Customer Hourly Checkout Price)' : 'Final Tariff (Guest Checkout Price)'}
+                        {isDining ? 'Final Reservation Deposit / Cover Charge' : isTurfCategory ? 'Final Tariff (Customer Hourly Checkout Price)' : 'Final Tariff (Guest Checkout Price)'}
                       </span>
                       <div className="flex items-baseline gap-2 mt-1">
                         <span className="text-2xl font-black text-[#ff6325]">
@@ -977,15 +1191,17 @@ export default function ListingEditorPage() {
                           </span>
                         )}
                         <span className="text-xs text-slate-500 dark:text-slate-300 font-bold">
-                          {priceUnit || (isTurfCategory ? '/ hour' : isAccommodation ? '/ night' : '/ service')}
+                          {priceUnit || (isDining ? 'per reservation / table deposit' : isTurfCategory ? '/ hour' : isAccommodation ? '/ night' : '/ service')}
                         </span>
                       </div>
                       <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
-                        {discountPercentage && Number(discountPercentage) > 0
-                          ? `Customer saves ₹${(Number(originalPrice) - Number(basePrice)).toLocaleString()} (${discountPercentage}% OFF)`
-                          : 'Full price tariff without discount.'}
+                        {isDining
+                          ? (Number(basePrice) === 0 ? 'Free Table Booking (No upfront deposit required).' : 'Deposit adjusted against final dining bill at venue.')
+                          : discountPercentage && Number(discountPercentage) > 0
+                            ? `Customer saves ₹${(Number(originalPrice) - Number(basePrice)).toLocaleString()} (${discountPercentage}% OFF)`
+                            : 'Full price tariff without discount.'}
                       </span>
-                      {securityDeposit && Number(securityDeposit) > 0 && (
+                      {!isDining && securityDeposit && Number(securityDeposit) > 0 && (
                         <span className="inline-block mt-1 text-[11px] font-bold text-slate-700 dark:text-slate-300">
                           Refundable Deposit: <span className="font-extrabold text-[#ff6325]">₹{Number(securityDeposit).toLocaleString()}</span>
                         </span>
@@ -1000,62 +1216,64 @@ export default function ListingEditorPage() {
                         type="text"
                         value={offerBadge}
                         onChange={(e) => setOfferBadge(e.target.value)}
-                        placeholder={isTurfCategory ? "e.g. Prime Evening Slot, Weekend Match Offer" : "e.g. Early Bird 10% Offer, Limited Period"}
+                        placeholder={isDining ? "e.g. Romantic, Most Popular, 15% OFF Chef Menu" : isTurfCategory ? "e.g. Prime Evening Slot, Weekend Match Offer" : "e.g. Early Bird 10% Offer, Limited Period"}
                         className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
                       />
                     </div>
                   </div>
 
-                  {/* Rent Cadence / Price Unit & Refundable Deposit Inputs */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-200 dark:border-white/10">
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-                        Billing Period / Rent Cadence <span className="text-slate-400 font-normal">(e.g. monthly rent)</span>
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          value={priceUnit}
-                          onChange={(e) => setPriceUnit(e.target.value)}
-                          placeholder={isTurfCategory ? "/ hour" : "e.g. monthly rent (all inclusive) or / night"}
-                          list="price-unit-suggestions"
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
-                        />
-                        <datalist id="price-unit-suggestions">
-                          <option value="monthly rent (all inclusive)" />
-                          <option value="/ month" />
-                          <option value="/ night" />
-                          <option value="/ hour" />
-                          <option value="/ day" />
-                          <option value="/ slot" />
-                          <option value="/ person / month" />
-                        </datalist>
+                  {/* Rent Cadence / Price Unit & Refundable Deposit Inputs (Hidden for Dining since dining uses per reservation) */}
+                  {!isDining && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-200 dark:border-white/10">
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                          Billing Period / Rent Cadence <span className="text-slate-400 font-normal">(e.g. monthly rent)</span>
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={priceUnit}
+                            onChange={(e) => setPriceUnit(e.target.value)}
+                            placeholder={isTurfCategory ? "/ hour" : "e.g. monthly rent (all inclusive) or / night"}
+                            list="price-unit-suggestions"
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                          />
+                          <datalist id="price-unit-suggestions">
+                            <option value="monthly rent (all inclusive)" />
+                            <option value="/ month" />
+                            <option value="/ night" />
+                            <option value="/ hour" />
+                            <option value="/ day" />
+                            <option value="/ slot" />
+                            <option value="/ person / month" />
+                          </datalist>
+                        </div>
+                        <p className="text-[10px] text-slate-400 mt-1">
+                          Subtitle shown below price (e.g. &apos;monthly rent (all inclusive)&apos;).
+                        </p>
                       </div>
-                      <p className="text-[10px] text-slate-400 mt-1">
-                        Subtitle shown below price (e.g. &apos;monthly rent (all inclusive)&apos;).
-                      </p>
-                    </div>
 
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-                        Refundable Security Deposit (₹) <span className="text-slate-400 font-normal">(Optional)</span>
-                      </label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">₹</span>
-                        <input
-                          type="number"
-                          value={securityDeposit}
-                          onChange={(e) => setSecurityDeposit(e.target.value)}
-                          placeholder="e.g. 3000"
-                          min="0"
-                          className="w-full pl-7 pr-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
-                        />
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                          Refundable Security Deposit (₹) <span className="text-slate-400 font-normal">(Optional)</span>
+                        </label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">₹</span>
+                          <input
+                            type="number"
+                            value={securityDeposit}
+                            onChange={(e) => setSecurityDeposit(e.target.value)}
+                            placeholder="e.g. 3000"
+                            min="0"
+                            className="w-full pl-7 pr-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                          />
+                        </div>
+                        <p className="text-[10px] text-slate-400 mt-1">
+                          Shown as &apos;Refundable Deposit: ₹X,XXX&apos; on listing card.
+                        </p>
                       </div>
-                      <p className="text-[10px] text-slate-400 mt-1">
-                        Shown as &apos;Refundable Deposit: ₹X,XXX&apos; on listing card.
-                      </p>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
               )}
@@ -1063,27 +1281,31 @@ export default function ListingEditorPage() {
                   {/* Promo Banner Tagline Field */}
                   <div className="md:col-span-2 pt-2 border-t border-slate-200 dark:border-white/10">
                     <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-                      {isTurfCategory ? 'Arena / Pitch Banner Tagline' : 'Promotional Getaway Banner Tagline'} <span className="text-slate-400 font-normal">(Shown on bottom card)</span>
+                      {isDining ? 'Dining Table Atmosphere Tagline' : isTurfCategory ? 'Arena / Pitch Banner Tagline' : 'Promotional Getaway Banner Tagline'} <span className="text-slate-400 font-normal">(Shown on bottom card)</span>
                     </label>
                     <input
                       type="text"
                       value={bannerTagline}
                       onChange={(e) => setBannerTagline(e.target.value)}
                       placeholder={
-                        isTurfCategory 
-                          ? "e.g. Premier FIFA 7v7 Astro Arena, Floodlit Night Tournament Pitch" 
-                          : isHotel
-                          ? "e.g. Comfortable City Centre Stay, Peaceful Business & Leisure Getaway"
-                          : isCamping
-                          ? "e.g. Camp Under the Stars, Serene Riverfront Wilderness Camp"
-                          : "e.g. Your Perfect Getaway Awaits, Serene Waterfront Escape, Luxury Weekend Treat"
+                        isDining
+                          ? "e.g. Candlelit Starlit Dinner, Sunset Bistro Vibes, Royal Heritage Dining"
+                          : isTurfCategory 
+                            ? "e.g. Premier FIFA 7v7 Astro Arena, Floodlit Night Tournament Pitch" 
+                            : isHotel
+                            ? "e.g. Comfortable City Centre Stay, Peaceful Business & Leisure Getaway"
+                            : isCamping
+                            ? "e.g. Camp Under the Stars, Serene Riverfront Wilderness Camp"
+                            : "e.g. Your Perfect Getaway Awaits, Serene Waterfront Escape, Luxury Weekend Treat"
                       }
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
                     />
                     <p className="text-[10px] text-slate-400 mt-1">
-                      {isTurfCategory 
-                        ? "Custom promotional caption overlaid onto the turf card's showcase banner." 
-                        : "Custom caption overlaid onto the room card's atmospheric getaway banner."}
+                      {isDining
+                        ? "Custom promotional caption overlaid onto the table card's atmospheric dining banner."
+                        : isTurfCategory 
+                          ? "Custom promotional caption overlaid onto the turf card's showcase banner." 
+                          : "Custom caption overlaid onto the room card's atmospheric getaway banner."}
                     </p>
                   </div>
                 </div>
@@ -1807,7 +2029,26 @@ export default function ListingEditorPage() {
 
               {/* Specs Grid */}
               <div className="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-sky-50/60 dark:bg-sky-950/20 border border-sky-100 dark:border-sky-900/30 text-[10px] font-bold text-slate-700 dark:text-slate-300">
-                {isTurfCategory ? (
+                {isDining ? (
+                  <>
+                    <div className="flex items-center gap-1">
+                      <Users size={12} className="text-[#033266] dark:text-[#ff6325] shrink-0" />
+                      <span>{metadata.tableCapacity || (metadata.maxGuests ? `${metadata.maxGuests} Guests` : '2 Guests')}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>📍</span>
+                      <span className="truncate">{metadata.seatingZone || 'Rooftop / AC Hall'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>⏱️</span>
+                      <span>{metadata.sessionDurationMinutes || 90} Mins Dine</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>🍽️</span>
+                      <span>{metadata.minSpend ? `Min ₹${metadata.minSpend}` : 'Instant Seating'}</span>
+                    </div>
+                  </>
+                ) : isTurfCategory ? (
                   <>
                     <div className="flex items-center gap-1">
                       <Users size={12} className="text-[#033266] dark:text-[#ff6325] shrink-0" />
@@ -1964,7 +2205,7 @@ export default function ListingEditorPage() {
                         ₹{basePrice ? Number(basePrice).toLocaleString() : '0'}
                       </span>
                       <span className="text-[10px] text-slate-400">
-                        {isPgOrHostel ? (priceUnit || 'monthly rent (all inclusive)') : isTurfCategory ? '/ hour' : archetype === 'ACCOMMODATION' ? (priceUnit || '/ night') : archetype === 'ASSET_RENTAL' ? '/ day' : archetype === 'APPOINTMENT' ? '/ consult' : '/ person'}
+                        {isPgOrHostel ? (priceUnit || 'monthly rent (all inclusive)') : isDining ? (priceUnit || 'per reservation') : isTurfCategory ? '/ hour' : archetype === 'ACCOMMODATION' ? (priceUnit || '/ night') : archetype === 'ASSET_RENTAL' ? '/ day' : archetype === 'APPOINTMENT' ? '/ consult' : '/ person'}
                       </span>
                     </div>
                   </div>
@@ -1995,7 +2236,7 @@ export default function ListingEditorPage() {
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent flex items-end p-2.5">
                   <span className="font-serif italic text-white text-xs font-bold drop-shadow-md">
-                    {bannerTagline.trim() ? bannerTagline : (isTurfCategory ? 'Premier FIFA Astro Turf Arena' : 'Your Perfect Getaway Awaits')}
+                    {bannerTagline.trim() ? bannerTagline : (isDining ? 'Romantic Rooftop & Gourmet Dining Experience' : isTurfCategory ? 'Premier FIFA Astro Turf Arena' : 'Your Perfect Getaway Awaits')}
                   </span>
                 </div>
               </div>
@@ -2007,7 +2248,11 @@ export default function ListingEditorPage() {
                 <CheckCircle2 size={13} className="text-amber-600" /> BOKSPOT Verified Guarantee
               </span>
               <p className="text-[10px] text-amber-700/80 dark:text-amber-300/80 leading-normal">
-                Units with high-resolution photos and detailed bed & washroom specs receive 3.4x higher bookings.
+                {isDining
+                  ? 'Dining tables with clear seating capacity, ambiance photos and menu highlights receive 3.8x higher advance reservations.'
+                  : isTurfCategory
+                    ? 'Turf pitches with lighting specs and boundary dimensions receive 3.5x higher bookings.'
+                    : 'Units with high-resolution photos and detailed bed & washroom specs receive 3.4x higher bookings.'}
               </p>
             </div>
           </div>

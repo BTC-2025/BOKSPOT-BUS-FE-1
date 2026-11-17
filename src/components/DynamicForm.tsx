@@ -246,6 +246,10 @@ export default function DynamicForm({
           };
         }
       }
+      return field;
+    }
+    if (archetype === 'DINING') {
+      return field;
     }
     if (archetype === 'ACCOMMODATION') {
       if (isPgOrHostel) {
@@ -423,7 +427,9 @@ export default function DynamicForm({
           };
         }
       }
+      return field;
     }
+    return field;
   }).filter(Boolean);
 
   const schema = {

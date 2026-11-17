@@ -1,15 +1,21 @@
 'use client';
 
-import { useVendorStore, CatalogListing } from '@/lib/store';
+import { useVendorStore, CatalogListing, CatalogService } from '@/lib/store';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Plus, ArrowLeft, Image as ImageIcon, Trash2, Calendar, Building2 } from 'lucide-react';
+import { getEntertainmentCategoryConfig } from '@/lib/entertainmentData';
+import { getDiningConfig } from '@/lib/diningData';
+import { getWellnessConfig } from '@/lib/wellnessData';
+import { getFitnessConfig } from '@/lib/fitnessData';
+import { getClinicConfig } from '@/lib/clinicalData';
+import { getHomeServiceConfig } from '@/lib/homeServicesData';
 
 export default function ServiceListingsPage() {
   const router = useRouter();
   const params = useParams();
   const serviceId = params.serviceId as string;
-  const { services, updateService, currentMerchant } = useVendorStore();
+  const { services, addService, updateService, currentMerchant } = useVendorStore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -24,7 +30,207 @@ export default function ServiceListingsPage() {
     );
   }
 
-  const category = services.find(s => s.id === serviceId);
+  let category = services.find(s => s.id === serviceId);
+
+  // Fallback: If category not in store but generated via auto-fallback (e.g. svc-dining-*, svc-wellness-*, etc.)
+  if (!category && serviceId && currentMerchant) {
+    const rawCat = (currentMerchant.category || '').toLowerCase();
+    const branchId = currentMerchant.activeBranchId || 'main-branch';
+
+    if (rawCat.includes('dining') || rawCat.includes('restaurant') || serviceId.includes('dining')) {
+      const diningCfg = getDiningConfig(currentMerchant.id || 'grand-temple-dine');
+      category = {
+        id: serviceId,
+        name: `${diningCfg.name} Table Reservations`,
+        merchant: currentMerchant.merchantName || diningCfg.name,
+        price: diningCfg.tableTypes[0]?.depositAmount || 0,
+        duration: 90,
+        category: 'Restaurant Table Reservation',
+        active: true,
+        branchId,
+        rating: diningCfg.rating,
+        bookingsCount: 380,
+        imageUrl: diningCfg.heroImage,
+        description: `Cozy dining tables, celebration setups, session time slots, and chef specialty pre-orders.`,
+        city: currentMerchant.city || 'Chennai',
+        metadata: {
+          isDining: true,
+          tableTypes: diningCfg.tableTypes,
+          timeSlots: diningCfg.timeSlots,
+          popularMenu: diningCfg.popularMenu
+        },
+        listings: diningCfg.tableTypes.map(t => ({
+          id: t.id,
+          name: t.name,
+          price: t.depositAmount,
+          imageUrl: diningCfg.heroImage,
+          description: `${t.capacity} • Zone: ${t.zone}`,
+          images: diningCfg.galleryImages,
+          active: true
+        }))
+      };
+    } else if (rawCat.includes('salon') || rawCat.includes('spa') || serviceId.includes('wellness')) {
+      const wellnessCfg = getWellnessConfig(currentMerchant.id || 'style-studio');
+      category = {
+        id: serviceId,
+        name: `${wellnessCfg.name} Treatments`,
+        merchant: currentMerchant.merchantName || wellnessCfg.name,
+        price: wellnessCfg.treatments[0]?.price || 499,
+        duration: 45,
+        category: 'Salon / Spa Appointment',
+        active: true,
+        branchId,
+        rating: wellnessCfg.rating,
+        bookingsCount: 290,
+        imageUrl: wellnessCfg.heroImage,
+        description: `Hair styling, beard grooming, facial rejuvenation and spa therapy slots.`,
+        city: currentMerchant.city || 'Chennai',
+        metadata: {
+          isWellness: true,
+          treatments: wellnessCfg.treatments,
+          specialists: wellnessCfg.specialists
+        },
+        listings: wellnessCfg.treatments.map(t => ({
+          id: t.id,
+          name: t.name,
+          price: t.price,
+          imageUrl: wellnessCfg.heroImage,
+          description: `${t.durationMinutes} Mins • ${t.category}`,
+          images: wellnessCfg.galleryImages,
+          active: true
+        }))
+      };
+    } else if (rawCat.includes('gym') || rawCat.includes('yoga') || serviceId.includes('fitness')) {
+      const fitCfg = getFitnessConfig(currentMerchant.id || 'zenfit-clinic');
+      category = {
+        id: serviceId,
+        name: `${fitCfg.name} Passes & Batches`,
+        merchant: currentMerchant.merchantName || fitCfg.name,
+        price: fitCfg.passes[0]?.price || 299,
+        duration: 60,
+        category: 'Gym / Yoga Slot Booking',
+        active: true,
+        branchId,
+        rating: fitCfg.rating,
+        bookingsCount: 510,
+        imageUrl: fitCfg.heroImage,
+        description: `Open gym day passes, group yoga batches, personal trainers, and digital turnstile entry.`,
+        city: currentMerchant.city || 'Chennai',
+        metadata: {
+          isFitness: true,
+          passes: fitCfg.passes,
+          trainers: fitCfg.trainers,
+          timeSlots: fitCfg.timeSlots
+        },
+        listings: fitCfg.passes.map(p => ({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          imageUrl: fitCfg.heroImage,
+          description: `${p.durationMinutes === 720 ? 'Full Day' : `${p.durationMinutes}m`} • ${p.formatType}`,
+          images: fitCfg.galleryImages,
+          active: true
+        }))
+      };
+    } else if (rawCat.includes('doctor') || rawCat.includes('clinic') || serviceId.includes('doc')) {
+      const docCfg = getClinicConfig(currentMerchant.id || 'apollo-dental');
+      category = {
+        id: serviceId,
+        name: `${docCfg.name} OPD Slots`,
+        merchant: currentMerchant.merchantName || docCfg.name,
+        price: docCfg.doctors[0]?.consultationFee || 500,
+        duration: 20,
+        category: 'Doctor Appointment',
+        active: true,
+        branchId,
+        rating: docCfg.rating,
+        bookingsCount: 440,
+        imageUrl: docCfg.heroImage,
+        description: `OPD consultation chambers, live waiting room token queue, and verified medical specialists.`,
+        city: currentMerchant.city || 'Chennai',
+        metadata: {
+          isDoctor: true,
+          doctors: docCfg.doctors,
+          consultationModes: docCfg.consultationModes,
+          timeSlots: docCfg.timeSlots
+        },
+        listings: docCfg.doctors.map(d => ({
+          id: d.id,
+          name: d.name,
+          price: d.consultationFee,
+          imageUrl: d.avatar,
+          description: `${d.role} • ${d.opdRoom}`,
+          images: [d.avatar],
+          active: true
+        }))
+      };
+    } else if (rawCat.includes('electrician') || rawCat.includes('plumber') || rawCat.includes('clean') || rawCat.includes('technician') || serviceId.includes('home')) {
+      const homeCfg = getHomeServiceConfig(rawCat);
+      const matched = homeCfg.services.find(s => rawCat.includes(s.category)) || homeCfg.services[0];
+      category = {
+        id: serviceId,
+        name: matched.name,
+        merchant: currentMerchant.merchantName || homeCfg.name,
+        price: matched.inspectionFee,
+        duration: matched.estDurationMinutes,
+        category: currentMerchant.category || 'Electrician Booking',
+        active: true,
+        branchId,
+        rating: homeCfg.rating,
+        bookingsCount: 890,
+        imageUrl: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=1200&auto=format&fit=crop',
+        description: `${matched.description}`,
+        city: currentMerchant.city || 'Chennai',
+        metadata: {
+          isHomeService: true,
+          serviceItem: matched,
+          arrivalWindows: homeCfg.arrivalWindows,
+          warrantyDays: homeCfg.warrantyDays
+        },
+        listings: matched.popularAddons.map((a, idx) => ({
+          id: `addon-${idx}`,
+          name: a.name,
+          price: a.price,
+          imageUrl: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=1200&auto=format&fit=crop',
+          description: `Add-on Service (+₹${a.price})`,
+          images: ['https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=1200&auto=format&fit=crop'],
+          active: true
+        }))
+      };
+    } else if (rawCat.includes('movie') || rawCat.includes('cinema') || serviceId.includes('movies')) {
+      const entCfg = getEntertainmentCategoryConfig('movies');
+      if (entCfg) {
+        category = {
+          id: serviceId,
+          name: `${entCfg.categoryName} Passes & Screenings`,
+          merchant: currentMerchant.merchantName || entCfg.merchantName,
+          price: entCfg.defaultPrice,
+          duration: 120,
+          category: entCfg.categoryName,
+          active: true,
+          branchId,
+          rating: 4.9,
+          bookingsCount: 420,
+          imageUrl: entCfg.heroImage,
+          description: `Premier ${entCfg.categoryName} hall, screen formats, tier pricing and concession add-on controls.`,
+          city: currentMerchant.city || 'Chennai',
+          metadata: {
+            isEntertainment: true,
+            seatTiers: entCfg.seatTiers
+          },
+          listings: entCfg.seatTiers.map(tier => ({
+            id: tier.id,
+            name: tier.name,
+            price: tier.price,
+            imageUrl: entCfg.heroImage,
+            description: tier.desc,
+            images: [entCfg.heroImage],
+            active: true
+          }))
+        };
+      }
+    }
+  }
 
   if (!category) {
     return (

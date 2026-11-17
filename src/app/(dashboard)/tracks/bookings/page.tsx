@@ -1086,6 +1086,360 @@ export default function BookingsPage() {
                 </div>
               )}
 
+              {/* 5. RESTAURANT TABLE RESERVATION & GUEST SEATING MANAGEMENT (DINING ARCHETYPE) */}
+              {(currentMerchant.category?.toLowerCase().includes('dining') || currentMerchant.category?.toLowerCase().includes('restaurant') || selectedBooking.category?.toLowerCase().includes('dining') || selectedBooking.metadata?.isDining || selectedBooking.metadata?.dining) && (
+                <div className="p-5 rounded-2xl bg-orange-500/10 border border-orange-500/25 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-[#ff6325] font-extrabold text-sm">
+                      <Tag size={16} />
+                      <span>Table Reservation & Maitre D\' Seating Control</span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-black text-[10px] border border-emerald-500/30">
+                      {selectedBooking.metadata?.dining?.session || 'DINNER'} Session • {selectedBooking.metadata?.dining?.guestsCount || 2} Guests
+                    </span>
+                  </div>
+
+                  {/* Table & Seating Specs Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand">
+                      <span className="text-[10px] font-bold text-text-muted uppercase block">Reserved Table:</span>
+                      <span className="text-sm font-black text-[#ff6325] block mt-0.5">
+                        {selectedBooking.metadata?.dining?.tableType || 'Cozy Couple Table (2 Seater)'}
+                      </span>
+                      <span className="text-[10px] text-text-secondary block mt-0.5">
+                        Zone: {selectedBooking.metadata?.dining?.seatingZone || 'AC Dining Hall'}
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand">
+                      <span className="text-[10px] font-bold text-text-muted uppercase block">Arrival Time:</span>
+                      <span className="text-xs font-black text-text-primary block mt-0.5">
+                        {selectedBooking.date} • {selectedBooking.time}
+                      </span>
+                      <span className="text-[10px] text-emerald-400 font-bold block mt-0.5">
+                        15-min grace hold period
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand sm:col-span-1 col-span-2">
+                      <span className="text-[10px] font-bold text-text-muted uppercase block">Special Occasion Setup:</span>
+                      <span className="text-xs font-black block mt-0.5 text-amber-400">
+                        {selectedBooking.metadata?.dining?.celebrationType && selectedBooking.metadata?.dining?.celebrationType !== 'NONE'
+                          ? `✨ ${selectedBooking.metadata.dining.celebrationType}`
+                          : 'Standard Casual Dining'}
+                      </span>
+                      {selectedBooking.metadata?.dining?.specialRequest && (
+                        <span className="text-[10px] text-text-muted block mt-0.5 italic">
+                          Note: "{selectedBooking.metadata.dining.specialRequest}"
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Pre-ordered Kitchen Specialties Slip */}
+                  {Array.isArray(selectedBooking.metadata?.dining?.preOrderDishes) && selectedBooking.metadata.dining.preOrderDishes.length > 0 && (
+                    <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 block">
+                          🍳 Pre-Ordered Kitchen KOT (Kitchen Order Ticket):
+                        </span>
+                        <span className="text-[10px] font-mono font-bold text-text-muted">
+                          Total: ₹{selectedBooking.metadata.dining.preOrderTotal || 0}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-2 text-xs pt-1">
+                        {selectedBooking.metadata.dining.preOrderDishes.map((dish: any, idx: number) => (
+                          <span key={idx} className="px-2.5 py-1 rounded-lg bg-bg-secondary border border-amber-500/30 text-text-primary font-bold">
+                            {dish.qty}x {dish.name} <span className="text-amber-400 font-semibold">(₹{dish.price * dish.qty})</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Table Check-in Actions */}
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={async () => {
+                        checkInBooking(selectedBooking.id);
+                        const updated = { ...selectedBooking, status: 'CHECKED_IN', checkedInAt: new Date().toISOString() };
+                        setLiveBookings(prev => prev.map(item => item.id === selectedBooking.id ? updated : item));
+                        try {
+                          await fetch('/api/v1/bookings/sync', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(updated),
+                          });
+                        } catch (e) {}
+                        alert(`Table Marked as Seated! Guests seated at ${selectedBooking.metadata?.dining?.tableType || 'reserved table'}.`);
+                      }}
+                      className="flex-1 py-2.5 rounded-xl bg-[#ff6325] hover:bg-[#e04e13] text-white font-black text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      🍽️ Verify Reservation & Seat Guests
+                    </button>
+                    {selectedBooking.status === 'CHECKED_IN' && (
+                      <span className="px-3 py-2 rounded-xl bg-emerald-500/20 text-emerald-400 font-black text-xs border border-emerald-500/30">
+                        ✓ Table Seated
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* 6. SALON, SPA & WELLNESS CHAIR DISPATCH & APPOINTMENT CHECK-IN */}
+              {(currentMerchant.category?.toLowerCase().includes('salon') || currentMerchant.category?.toLowerCase().includes('spa') || selectedBooking.category?.toLowerCase().includes('salon') || selectedBooking.metadata?.isWellness || selectedBooking.metadata?.wellness) && (
+                <div className="p-5 rounded-2xl bg-rose-500/10 border border-rose-500/25 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-rose-400 font-extrabold text-sm">
+                      <Tag size={16} />
+                      <span>Salon Chair Allocation & Stylist Specialist Dispatch</span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-black text-[10px] border border-rose-500/30">
+                      Duration: {selectedBooking.metadata?.wellness?.durationMinutes || selectedBooking.duration || 45} mins
+                    </span>
+                  </div>
+
+                  {/* Specialist & Appointment Specs Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand">
+                      <span className="text-[10px] font-bold text-text-muted uppercase block">Assigned Specialist:</span>
+                      <span className="text-sm font-black text-rose-400 block mt-0.5">
+                        {selectedBooking.metadata?.wellness?.specialistName || selectedBooking.assignedDoctorName || 'Senior Salon Stylist'}
+                      </span>
+                      <span className="text-[10px] text-text-secondary block mt-0.5">
+                        {selectedBooking.metadata?.wellness?.specialistRole || 'Hair & Beauty Artist'}
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand">
+                      <span className="text-[10px] font-bold text-text-muted uppercase block">Appointment Slot:</span>
+                      <span className="text-xs font-black text-text-primary block mt-0.5">
+                        {selectedBooking.date} • {selectedBooking.time}
+                      </span>
+                      <span className="text-[10px] text-emerald-400 font-bold block mt-0.5">
+                        Private Sanitized Suite
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand sm:col-span-1 col-span-2">
+                      <span className="text-[10px] font-bold text-text-muted uppercase block">Chair Session Status:</span>
+                      <span className={`text-xs font-black block mt-0.5 ${selectedBooking.status === 'CHECKED_IN' ? 'text-emerald-400' : 'text-blue-400'}`}>
+                        {selectedBooking.status === 'CHECKED_IN' ? '✓ In Progress (Chair Occupied)' : '● Awaiting Guest Arrival'}
+                      </span>
+                      <span className="text-[10px] text-text-muted block mt-0.5">
+                        Ref: {selectedBooking.ref}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Treatments List Slip */}
+                  {Array.isArray(selectedBooking.metadata?.wellness?.treatments) && selectedBooking.metadata.wellness.treatments.length > 0 && (
+                    <div className="p-3.5 rounded-xl bg-bg-secondary border border-rose-500/20 space-y-1.5">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-rose-400 block">
+                        ✂️ Booked Salon / Spa Treatments:
+                      </span>
+                      <div className="flex flex-wrap gap-2 text-xs pt-1">
+                        {selectedBooking.metadata.wellness.treatments.map((t: any, idx: number) => (
+                          <span key={idx} className="px-2.5 py-1 rounded-lg bg-rose-500/10 border border-rose-500/30 text-text-primary font-bold">
+                            {t.name} <span className="text-rose-400 font-semibold">(₹{t.price} • {t.duration}m)</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Check-in & Chair Occupy Action */}
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={async () => {
+                        checkInBooking(selectedBooking.id);
+                        const updated = { ...selectedBooking, status: 'CHECKED_IN', checkedInAt: new Date().toISOString() };
+                        setLiveBookings(prev => prev.map(item => item.id === selectedBooking.id ? updated : item));
+                        try {
+                          await fetch('/api/v1/bookings/sync', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(updated),
+                          });
+                        } catch (e) {}
+                        alert(`Client Admitted! ${selectedBooking.customerName} seated with ${selectedBooking.metadata?.wellness?.specialistName || 'Specialist'}.`);
+                      }}
+                      className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      💇 Check-In Client & Occupy Styling Chair
+                    </button>
+                    {selectedBooking.status === 'CHECKED_IN' && (
+                      <span className="px-3 py-2 rounded-xl bg-emerald-500/20 text-emerald-400 font-black text-xs border border-emerald-500/30">
+                        ✓ In Chair
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* 7. GYM, YOGA & FITNESS TURNSTILE PUNCH & BATCH ADMISSION */}
+              {(currentMerchant.category?.toLowerCase().includes('gym') || currentMerchant.category?.toLowerCase().includes('yoga') || currentMerchant.category?.toLowerCase().includes('fitness') || selectedBooking.category?.toLowerCase().includes('gym') || selectedBooking.category?.toLowerCase().includes('yoga') || selectedBooking.metadata?.isFitness || selectedBooking.metadata?.fitness) && (
+                <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-emerald-400 font-extrabold text-sm">
+                      <Tag size={16} />
+                      <span>Gym Turnstile Punch & Yoga Mat Check-in</span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-black text-[10px] border border-emerald-500/30">
+                      {selectedBooking.metadata?.fitness?.passName || 'Fitness Pass'}
+                    </span>
+                  </div>
+
+                  {/* Fitness Specs Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand">
+                      <span className="text-[10px] font-bold text-text-muted uppercase block">Workout / Batch:</span>
+                      <span className="text-xs font-black text-emerald-400 block mt-0.5 truncate">
+                        {selectedBooking.metadata?.fitness?.passName || selectedBooking.serviceName || 'Workout Batch'}
+                      </span>
+                      <span className="text-[10px] text-text-secondary block mt-0.5">
+                        Duration: {selectedBooking.metadata?.fitness?.durationMinutes === 720 ? 'Full Day' : `${selectedBooking.metadata?.fitness?.durationMinutes || 60}m`}
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand">
+                      <span className="text-[10px] font-bold text-text-muted uppercase block">Coach / Trainer:</span>
+                      <span className="text-xs font-black text-text-primary block mt-0.5">
+                        {selectedBooking.metadata?.fitness?.trainerName || 'Floor Coach'}
+                      </span>
+                      <span className="text-[10px] text-text-secondary block mt-0.5">
+                        {selectedBooking.metadata?.fitness?.trainerRole || 'Certified Coach'}
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand">
+                      <span className="text-[10px] font-bold text-text-muted uppercase block">Slot & Add-ons:</span>
+                      <span className="text-xs font-black text-text-primary block mt-0.5">
+                        {selectedBooking.date} • {selectedBooking.time}
+                      </span>
+                      <span className="text-[10px] text-emerald-400 font-bold block mt-0.5">
+                        {selectedBooking.metadata?.fitness?.lockerIncluded ? '🔒 Digital Locker' : ''}
+                        {selectedBooking.metadata?.fitness?.proteinShakeIncluded ? ' • 🥤 Whey Shake' : ''}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Punch In / Turnstile Gate Action */}
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={async () => {
+                        checkInBooking(selectedBooking.id);
+                        const updated = { ...selectedBooking, status: 'CHECKED_IN', checkedInAt: new Date().toISOString() };
+                        setLiveBookings(prev => prev.map(item => item.id === selectedBooking.id ? updated : item));
+                        try {
+                          await fetch('/api/v1/bookings/sync', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(updated),
+                          });
+                        } catch (e) {}
+                        alert(`Turnstile Unlocked! ${selectedBooking.customerName} admitted to ${selectedBooking.metadata?.fitness?.passName || 'Gym Floor'}.`);
+                      }}
+                      className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      ⚡ Punch Gym Entry / Mark on Mat
+                    </button>
+                    {selectedBooking.status === 'CHECKED_IN' && (
+                      <span className="px-3 py-2 rounded-xl bg-emerald-500/20 text-emerald-400 font-black text-xs border border-emerald-500/30">
+                        ✓ Inside Gym
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* 8. CLINIC & DOCTOR OPD TOKEN DISPATCH CONSOLE */}
+              {(currentMerchant.category?.toLowerCase().includes('doc') || currentMerchant.category?.toLowerCase().includes('clinic') || currentMerchant.category?.toLowerCase().includes('dental') || selectedBooking.category?.toLowerCase().includes('doc') || selectedBooking.metadata?.isDoctor || selectedBooking.metadata?.doctor) && (
+                <div className="p-5 rounded-2xl bg-blue-500/10 border border-blue-500/25 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-blue-400 font-extrabold text-sm">
+                      <Tag size={16} />
+                      <span>Doctor OPD Live Token Dispatch & Patient Consultation</span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-black text-[10px] border border-blue-500/30">
+                      Token #{selectedBooking.metadata?.doctor?.tokenNumber || selectedBooking.metadata?.appointmentBooking?.tokenNum || '14'}
+                    </span>
+                  </div>
+
+                  {/* Doctor & Patient Specs Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand">
+                      <span className="text-[10px] font-bold text-text-muted uppercase block">Consultant Doctor:</span>
+                      <span className="text-xs font-black text-blue-400 block mt-0.5 truncate">
+                        {selectedBooking.metadata?.doctor?.doctorName || selectedBooking.assignedDoctorName || 'Chief Dental Surgeon'}
+                      </span>
+                      <span className="text-[10px] text-text-secondary block mt-0.5">
+                        {selectedBooking.metadata?.doctor?.opdRoom || 'OPD Room 102'}
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand">
+                      <span className="text-[10px] font-bold text-text-muted uppercase block">Patient Details:</span>
+                      <span className="text-xs font-black text-text-primary block mt-0.5">
+                        {selectedBooking.metadata?.doctor?.patientName || selectedBooking.customerName}
+                      </span>
+                      <span className="text-[10px] text-text-secondary block mt-0.5">
+                        {selectedBooking.metadata?.doctor?.patientAge || 28}y • {selectedBooking.metadata?.doctor?.patientGender || 'Male'}
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand">
+                      <span className="text-[10px] font-bold text-text-muted uppercase block">Mode & Time Slot:</span>
+                      <span className="text-xs font-black text-text-primary block mt-0.5">
+                        {selectedBooking.date} • {selectedBooking.time}
+                      </span>
+                      <span className="text-[10px] text-blue-400 font-bold block mt-0.5">
+                        {selectedBooking.metadata?.doctor?.consultationMode === 'IN_CLINIC' ? '🏥 In-Clinic OPD' : '📱 Teleconsultation'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Chief Symptoms Slip */}
+                  {selectedBooking.metadata?.doctor?.symptoms && (
+                    <div className="p-3.5 rounded-xl bg-bg-secondary border border-blue-500/20 space-y-1">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-blue-400 block">
+                        🩺 Chief Complaint / Symptoms:
+                      </span>
+                      <p className="text-xs text-text-primary font-medium">
+                        {selectedBooking.metadata.doctor.symptoms}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Call Token / Admit Patient Action */}
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={async () => {
+                        checkInBooking(selectedBooking.id);
+                        const updated = { ...selectedBooking, status: 'CHECKED_IN', checkedInAt: new Date().toISOString() };
+                        setLiveBookings(prev => prev.map(item => item.id === selectedBooking.id ? updated : item));
+                        try {
+                          await fetch('/api/v1/bookings/sync', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(updated),
+                          });
+                        } catch (e) {}
+                        alert(`📢 Token #${selectedBooking.metadata?.doctor?.tokenNumber || '14'} Called! ${selectedBooking.metadata?.doctor?.patientName || selectedBooking.customerName} admitted into ${selectedBooking.metadata?.doctor?.opdRoom || 'OPD Room'}.`);
+                      }}
+                      className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      📢 Call Token #{selectedBooking.metadata?.doctor?.tokenNumber || '14'} into Chamber
+                    </button>
+                    {selectedBooking.status === 'CHECKED_IN' && (
+                      <span className="px-3 py-2 rounded-xl bg-emerald-500/20 text-emerald-400 font-black text-xs border border-emerald-500/30">
+                        ✓ In Consultation
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* 5. HOME SERVICE DOORSTEP DISPATCH & OTP */}
               {(currentMerchant.category?.toLowerCase().includes('electrician') || currentMerchant.category?.toLowerCase().includes('plumber') || currentMerchant.category?.toLowerCase().includes('cleaning') || currentMerchant.category?.toLowerCase().includes('ac') || currentMerchant.category?.toLowerCase().includes('repair') || currentMerchant.category?.toLowerCase().includes('technician') || selectedBooking.metadata?.homeService) && (
                 <div className="p-5 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-3">
