@@ -432,9 +432,21 @@ export default function BookingsPage() {
                         Visit Pass
                       </span>
                     )}
+                    {(b.metadata?.isDiningBooking || b.metadata?.diningBooking || b.category?.toLowerCase().includes('dining') || b.serviceName?.toLowerCase().includes('table')) && (
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-orange-500/15 text-[#ff6325] border border-orange-500/30 shrink-0">
+                        🍽️ Table
+                      </span>
+                    )}
                     <p className="text-xs font-bold text-text-primary line-clamp-1">{b.serviceName}</p>
                   </div>
-                  <p className="text-[10px] font-semibold text-text-secondary">{b.category || currentMerchant.category}</p>
+                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                    <p className="text-[10px] font-semibold text-text-secondary">{b.category || currentMerchant.category}</p>
+                    {b.metadata?.diningBooking && (
+                      <span className="text-[10px] font-bold text-[#ff6325]">
+                        • {b.metadata.diningBooking.guests || 2} Guests • {b.metadata.diningBooking.zone || 'AC Main Hall'}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Column 4: Doctor/Staff Assign Selector */}
@@ -1087,104 +1099,178 @@ export default function BookingsPage() {
               )}
 
               {/* 5. RESTAURANT TABLE RESERVATION & GUEST SEATING MANAGEMENT (DINING ARCHETYPE) */}
-              {(currentMerchant.category?.toLowerCase().includes('dining') || currentMerchant.category?.toLowerCase().includes('restaurant') || selectedBooking.category?.toLowerCase().includes('dining') || selectedBooking.metadata?.isDining || selectedBooking.metadata?.dining) && (
+              {(currentMerchant.category?.toLowerCase().includes('dining') || currentMerchant.category?.toLowerCase().includes('restaurant') || selectedBooking.category?.toLowerCase().includes('dining') || selectedBooking.metadata?.isDining || selectedBooking.metadata?.dining || selectedBooking.metadata?.isDiningBooking || selectedBooking.metadata?.diningBooking) && (() => {
+                const diningMeta = selectedBooking.metadata?.diningBooking || selectedBooking.metadata?.dining || {};
+                const tableName = diningMeta.tableType || selectedBooking.serviceName || 'Standard Table';
+                const zone = diningMeta.zone || diningMeta.seatingZone || 'AC Main Hall';
+                const guestCount = diningMeta.guests || diningMeta.guestsCount || 2;
+                const depositAmount = diningMeta.depositAmount ?? (selectedBooking.amount || 0);
+                const preOrderItems = diningMeta.preOrderItems || diningMeta.preOrderDishes || [];
+                const appliedDeal = diningMeta.appliedDeal;
+                const specialRequest = diningMeta.specialRequest;
+
+                return (
                 <div className="p-5 rounded-2xl bg-orange-500/10 border border-orange-500/25 space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-[#ff6325] font-extrabold text-sm">
                       <Tag size={16} />
-                      <span>Table Reservation & Maitre D\' Seating Control</span>
+                      <span>Table Reservation & Guest Manifest</span>
                     </div>
                     <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-black text-[10px] border border-emerald-500/30">
-                      {selectedBooking.metadata?.dining?.session || 'DINNER'} Session • {selectedBooking.metadata?.dining?.guestsCount || 2} Guests
+                      👥 {guestCount} Guests • {diningMeta.time || selectedBooking.time}
                     </span>
                   </div>
 
                   {/* Table & Seating Specs Grid */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
                     <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand">
-                      <span className="text-[10px] font-bold text-text-muted uppercase block">Reserved Table:</span>
-                      <span className="text-sm font-black text-[#ff6325] block mt-0.5">
-                        {selectedBooking.metadata?.dining?.tableType || 'Cozy Couple Table (2 Seater)'}
+                      <span className="text-[10px] font-bold text-text-muted uppercase block">Assigned Table:</span>
+                      <span className="text-sm font-black text-[#ff6325] block mt-0.5 truncate">
+                        {tableName}
                       </span>
                       <span className="text-[10px] text-text-secondary block mt-0.5">
-                        Zone: {selectedBooking.metadata?.dining?.seatingZone || 'AC Dining Hall'}
+                        Zone: {zone}
                       </span>
                     </div>
 
                     <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand">
-                      <span className="text-[10px] font-bold text-text-muted uppercase block">Arrival Time:</span>
-                      <span className="text-xs font-black text-text-primary block mt-0.5">
-                        {selectedBooking.date} • {selectedBooking.time}
+                      <span className="text-[10px] font-bold text-text-muted uppercase block">Deposit Status:</span>
+                      <span className={`text-sm font-black block mt-0.5 ${depositAmount > 0 ? 'text-emerald-400' : 'text-blue-400'}`}>
+                        {depositAmount > 0 ? `₹${depositAmount} Paid Deposit` : '₹0 Free Hold'}
                       </span>
-                      <span className="text-[10px] text-emerald-400 font-bold block mt-0.5">
-                        15-min grace hold period
+                      <span className="text-[10px] text-text-muted block mt-0.5">
+                        {depositAmount > 0 ? 'Adjustable against final bill' : 'Pay full bill at restaurant'}
                       </span>
                     </div>
 
                     <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand sm:col-span-1 col-span-2">
-                      <span className="text-[10px] font-bold text-text-muted uppercase block">Special Occasion Setup:</span>
-                      <span className="text-xs font-black block mt-0.5 text-amber-400">
-                        {selectedBooking.metadata?.dining?.celebrationType && selectedBooking.metadata?.dining?.celebrationType !== 'NONE'
-                          ? `✨ ${selectedBooking.metadata.dining.celebrationType}`
-                          : 'Standard Casual Dining'}
-                      </span>
-                      {selectedBooking.metadata?.dining?.specialRequest && (
-                        <span className="text-[10px] text-text-muted block mt-0.5 italic">
-                          Note: "{selectedBooking.metadata.dining.specialRequest}"
+                      <span className="text-[10px] font-bold text-text-muted uppercase block">Special Requests & Deal:</span>
+                      {appliedDeal && (
+                        <span className="inline-block px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 font-black text-[10px] border border-emerald-500/30 mb-1">
+                          🎉 {appliedDeal.code || appliedDeal}
                         </span>
                       )}
+                      <p className="text-xs text-text-primary italic mt-0.5 line-clamp-2">
+                        {specialRequest ? `"${specialRequest}"` : 'Standard Table Reservation'}
+                      </p>
                     </div>
                   </div>
 
                   {/* Pre-ordered Kitchen Specialties Slip */}
-                  {Array.isArray(selectedBooking.metadata?.dining?.preOrderDishes) && selectedBooking.metadata.dining.preOrderDishes.length > 0 && (
+                  {Array.isArray(preOrderItems) && preOrderItems.length > 0 && (
                     <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 block">
-                          🍳 Pre-Ordered Kitchen KOT (Kitchen Order Ticket):
+                        <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 block flex items-center gap-1">
+                          <span>🍳</span> Pre-Ordered Kitchen Dishes:
                         </span>
                         <span className="text-[10px] font-mono font-bold text-text-muted">
-                          Total: ₹{selectedBooking.metadata.dining.preOrderTotal || 0}
+                          Total: ₹{diningMeta.preOrderTotal || preOrderItems.reduce((acc: number, d: any) => acc + ((d.price || 0) * (d.qty || 1)), 0)}
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-2 text-xs pt-1">
-                        {selectedBooking.metadata.dining.preOrderDishes.map((dish: any, idx: number) => (
-                          <span key={idx} className="px-2.5 py-1 rounded-lg bg-bg-secondary border border-amber-500/30 text-text-primary font-bold">
-                            {dish.qty}x {dish.name} <span className="text-amber-400 font-semibold">(₹{dish.price * dish.qty})</span>
+                        {preOrderItems.map((dish: any, idx: number) => (
+                          <span key={idx} className="px-2.5 py-1 rounded-lg bg-bg-secondary border border-amber-500/30 text-text-primary font-bold flex items-center gap-1">
+                            <span className={dish.isVeg ? 'text-emerald-400' : 'text-red-400'}>●</span>
+                            <span>{dish.qty}x {dish.name}</span>
+                            <span className="text-amber-400 font-semibold">(₹{(dish.price || 0) * (dish.qty || 1)})</span>
                           </span>
                         ))}
                       </div>
                     </div>
                   )}
 
-                  {/* Table Check-in Actions */}
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={async () => {
-                        checkInBooking(selectedBooking.id);
-                        const updated = { ...selectedBooking, status: 'CHECKED_IN', checkedInAt: new Date().toISOString() };
-                        setLiveBookings(prev => prev.map(item => item.id === selectedBooking.id ? updated : item));
-                        try {
-                          await fetch('/api/v1/bookings/sync', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(updated),
-                          });
-                        } catch (e) {}
-                        alert(`Table Marked as Seated! Guests seated at ${selectedBooking.metadata?.dining?.tableType || 'reserved table'}.`);
-                      }}
-                      className="flex-1 py-2.5 rounded-xl bg-[#ff6325] hover:bg-[#e04e13] text-white font-black text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
-                    >
-                      🍽️ Verify Reservation & Seat Guests
-                    </button>
+                  {/* Table Manifest Action Buttons */}
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    {/* Mark Seated */}
+                    {selectedBooking.status !== 'CHECKED_IN' && selectedBooking.status !== 'COMPLETED' && selectedBooking.status !== 'NO_SHOW' && (
+                      <button
+                        onClick={async () => {
+                          checkInBooking(selectedBooking.id);
+                          const updated = { ...selectedBooking, status: 'CHECKED_IN', checkedInAt: new Date().toISOString() };
+                          setLiveBookings(prev => prev.map(item => item.id === selectedBooking.id ? updated : item));
+                          try {
+                            await fetch('/api/v1/bookings/sync', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify(updated),
+                            });
+                          } catch (e) {}
+                          alert(`Guests marked as SEATED at ${tableName}!`);
+                        }}
+                        className="flex-1 py-2.5 px-4 rounded-xl bg-[#ff6325] hover:bg-[#e04e13] text-white font-black text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                      >
+                        🍽️ Mark Seated
+                      </button>
+                    )}
+
                     {selectedBooking.status === 'CHECKED_IN' && (
-                      <span className="px-3 py-2 rounded-xl bg-emerald-500/20 text-emerald-400 font-black text-xs border border-emerald-500/30">
-                        ✓ Table Seated
+                      <span className="py-2.5 px-3 rounded-xl bg-blue-500/20 text-blue-400 font-black text-xs border border-blue-500/30">
+                        ✓ Currently Seated
+                      </span>
+                    )}
+
+                    {/* Mark Completed */}
+                    {selectedBooking.status !== 'COMPLETED' && (
+                      <button
+                        onClick={async () => {
+                          completeBooking(selectedBooking.id);
+                          const updated = { ...selectedBooking, status: 'COMPLETED', completedAt: new Date().toISOString() };
+                          setLiveBookings(prev => prev.map(item => item.id === selectedBooking.id ? updated : item));
+                          try {
+                            await fetch('/api/v1/bookings/sync', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify(updated),
+                            });
+                          } catch (e) {}
+                          alert(`Table reservation with ${selectedBooking.customerName || 'Guest'} marked as COMPLETED!`);
+                        }}
+                        className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                      >
+                        ✓ Mark Completed
+                      </button>
+                    )}
+
+                    {selectedBooking.status === 'COMPLETED' && (
+                      <span className="py-2.5 px-3 rounded-xl bg-emerald-500/15 text-emerald-400 font-black text-xs border border-emerald-500/30">
+                        ✓ Dining Completed
+                      </span>
+                    )}
+
+                    {/* Mark No Show */}
+                    {selectedBooking.status !== 'COMPLETED' && selectedBooking.status !== 'NO_SHOW' && (
+                      <button
+                        onClick={async () => {
+                          if (confirm(`Mark ${selectedBooking.customerName || 'Guest'} as NO SHOW? Table will be released for walk-ins.`)) {
+                            const updated = { ...selectedBooking, status: 'NO_SHOW', noShowAt: new Date().toISOString() };
+                            setLiveBookings(prev => prev.map(item => item.id === selectedBooking.id ? updated : item));
+                            useVendorStore.setState(state => ({
+                              bookings: state.bookings.map(item => item.id === selectedBooking.id ? updated : item)
+                            }));
+                            try {
+                              await fetch('/api/v1/bookings/sync', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(updated),
+                              });
+                            } catch (e) {}
+                          }
+                        }}
+                        className="py-2.5 px-3 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-400 font-black text-xs uppercase tracking-wider border border-red-500/30 transition-all cursor-pointer"
+                      >
+                        ✕ No Show
+                      </button>
+                    )}
+
+                    {selectedBooking.status === 'NO_SHOW' && (
+                      <span className="py-2.5 px-3 rounded-xl bg-red-500/20 text-red-400 font-black text-xs border border-red-500/30">
+                        ✕ Marked No Show
                       </span>
                     )}
                   </div>
                 </div>
-              )}
+                );
+              })()}
 
               {/* 6. SALON, SPA & WELLNESS CHAIR DISPATCH & APPOINTMENT CHECK-IN */}
               {(currentMerchant.category?.toLowerCase().includes('salon') || currentMerchant.category?.toLowerCase().includes('spa') || selectedBooking.category?.toLowerCase().includes('salon') || selectedBooking.metadata?.isWellness || selectedBooking.metadata?.wellness) && (
