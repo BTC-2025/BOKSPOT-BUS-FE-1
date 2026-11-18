@@ -322,6 +322,11 @@ export default function ServiceListingsPage() {
       <div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {listings.map(list => {
+            const isDiningCategory = (category.name || '').toLowerCase().includes('dining') ||
+              (category.name || '').toLowerCase().includes('restaurant') ||
+              (category.category || '').toLowerCase().includes('dining') ||
+              (category.category || '').toLowerCase().includes('restaurant') ||
+              Boolean(category.metadata?.isDining);
             const isTurfListing = (category.name || '').toLowerCase().includes('turf') ||
               (category.name || '').toLowerCase().includes('football') ||
               (category.name || '').toLowerCase().includes('cricket') ||
@@ -365,7 +370,21 @@ export default function ServiceListingsPage() {
                   {/* Top Bar on Cover */}
                   <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between z-10">
                     <div className="flex flex-col gap-0.5">
-                      {list.price !== undefined && list.price > 0 ? (
+                      {isDiningCategory ? (
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span
+                            className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-black shadow-lg border border-white/20 backdrop-blur-md"
+                            style={{ backgroundColor: Number(list.price) > 0 ? 'rgba(255, 99, 37, 0.95)' : 'rgba(16, 185, 129, 0.95)', color: '#ffffff' }}
+                          >
+                            {Number(list.price) > 0 ? `₹${Number(list.price).toLocaleString('en-IN')} Deposit` : 'Free Hold'}
+                          </span>
+                          {(list.metadata as any)?.seatingZone && (
+                            <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-white/20 text-white backdrop-blur-md border border-white/20">
+                              {(list.metadata as any).seatingZone}
+                            </span>
+                          )}
+                        </div>
+                      ) : list.price !== undefined && list.price > 0 ? (
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span
                             className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-black shadow-lg border border-white/20 backdrop-blur-md"

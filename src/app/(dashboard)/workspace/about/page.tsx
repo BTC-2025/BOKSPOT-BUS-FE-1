@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useVendorStore } from '@/lib/store';
-import { 
-  Building2, Info, CheckSquare, Image as ImageIcon, Plus, X, Save, 
+import {
+  Building2, Info, CheckSquare, Image as ImageIcon, Plus, X, Save,
   MapPin, Phone, Globe, Mail, Clock, ShieldCheck, CheckCircle2, ChevronRight, Sparkles,
   Luggage, Dog, Crown, Star, Award
 } from 'lucide-react';
@@ -26,6 +26,110 @@ export default function VenueProfilePage() {
   const [checkOutTime, setCheckOutTime] = useState('11:00 AM');
   const [operatingHours, setOperatingHours] = useState('24/7 Front Desk');
 
+  // Restaurant & Dining Specific Configurations
+  const isDiningVendor = Boolean(
+    (currentMerchant?.category || '').toLowerCase().includes('dine') ||
+    (currentMerchant?.category || '').toLowerCase().includes('restaurant') ||
+    (currentMerchant?.category || '').toLowerCase().includes('food') ||
+    currentMerchant?.metadata?.isDiningVendor
+  );
+
+  const [cuisines, setCuisines] = useState<string[]>(() => {
+    return currentMerchant?.metadata?.cuisines || ['South Indian Heritage', 'Chettinad Gourmet', 'North Indian', 'Tandoor & Grills'];
+  });
+  const [costForTwo, setCostForTwo] = useState<number>(() => {
+    return Number(currentMerchant?.metadata?.costForTwo) || 800;
+  });
+  const [lunchStartTime, setLunchStartTime] = useState<string>(() => {
+    return currentMerchant?.metadata?.lunchStartTime || '11:30 AM';
+  });
+  const [lunchEndTime, setLunchEndTime] = useState<string>(() => {
+    return currentMerchant?.metadata?.lunchEndTime || '03:30 PM';
+  });
+  const [dinnerStartTime, setDinnerStartTime] = useState<string>(() => {
+    return currentMerchant?.metadata?.dinnerStartTime || '07:00 PM';
+  });
+  const [dinnerEndTime, setDinnerEndTime] = useState<string>(() => {
+    return currentMerchant?.metadata?.dinnerEndTime || '11:00 PM';
+  });
+  const [slotIntervalMinutes, setSlotIntervalMinutes] = useState<number>(() => {
+    return Number(currentMerchant?.metadata?.slotIntervalMinutes) || 30;
+  });
+  const [diningFeatures, setDiningFeatures] = useState<string[]>(() => {
+    return currentMerchant?.metadata?.diningFeatures || [
+      'Air Conditioned Luxury Dining',
+      'Starlit Romantic Rooftop Seating',
+      'Pure Veg & Non-Veg Kitchens',
+      'Complimentary Valet Parking',
+      'Live Instrumental Music'
+    ];
+  });
+
+  // Dynamic Custom Sessions & Custom Inputs
+  interface CustomDiningSession {
+    id: string;
+    name: string;
+    icon: string;
+    opensAt: string;
+    closesAt: string;
+    enabled: boolean;
+  }
+  const [customSessions, setCustomSessions] = useState<CustomDiningSession[]>(() => {
+    return currentMerchant?.metadata?.customSessions || [
+      { id: 'breakfast', name: 'Breakfast & Morning Tiffin', icon: '🍳', opensAt: '07:30 AM', closesAt: '10:30 AM', enabled: false },
+      { id: 'hightea', name: 'High Tea & Evening Snacks', icon: '☕', opensAt: '04:00 PM', closesAt: '06:30 PM', enabled: false }
+    ];
+  });
+  const [customCuisineInput, setCustomCuisineInput] = useState('');
+  const [customHighlightInput, setCustomHighlightInput] = useState('');
+
+  // Module 3: Dining Deals, Promo Coupons & Slot Perks
+  interface DiningPromoDeal {
+    id: string;
+    title: string;
+    code: string;
+    description: string;
+    type: 'PERCENTAGE' | 'FLAT' | 'PERK';
+    value: string;
+    session: 'ALL' | 'LUNCH' | 'DINNER';
+    minGuests?: number;
+    active: boolean;
+  }
+
+  const [bookingDeals, setBookingDeals] = useState<DiningPromoDeal[]>(() => {
+    return currentMerchant?.metadata?.bookingDeals || [
+      {
+        id: 'deal-1',
+        title: '20% Instant Discount on Lunch',
+        code: 'DINE20',
+        description: 'Applicable on total food bill for lunch bookings between 12 PM - 3 PM',
+        type: 'PERCENTAGE',
+        value: '20%',
+        session: 'LUNCH',
+        active: true
+      },
+      {
+        id: 'deal-2',
+        title: 'Free Birthday Cake & Sparklers',
+        code: 'BDAYBOK',
+        description: 'Complimentary 500g chocolate truffle cake for celebration table reservations',
+        type: 'PERK',
+        value: 'Free 500g Cake',
+        session: 'ALL',
+        minGuests: 4,
+        active: true
+      }
+    ];
+  });
+
+  const [lunchPerkText, setLunchPerkText] = useState<string>(() => {
+    return currentMerchant?.metadata?.lunchPerkText || 'Flat 20% Off on Food Bill';
+  });
+
+  const [dinnerPerkText, setDinnerPerkText] = useState<string>(() => {
+    return currentMerchant?.metadata?.dinnerPerkText || 'Complimentary Welcome Mocktail';
+  });
+
   // Pet Policy & Luxe Status
   const [isPetFriendly, setIsPetFriendly] = useState<boolean>(false);
   const [isLuxeVerified, setIsLuxeVerified] = useState<boolean>(false);
@@ -34,7 +138,7 @@ export default function VenueProfilePage() {
       try {
         const stored = localStorage.getItem(`hotel_mystery_optin_${currentMerchant?.id || 'default'}`);
         if (stored !== null) return stored === 'true';
-      } catch {}
+      } catch { }
     }
     return currentMerchant?.isMysteryModeOptIn ?? currentMerchant?.metadata?.isMysteryModeOptIn ?? true;
   });
@@ -45,7 +149,7 @@ export default function VenueProfilePage() {
       try {
         const stored = localStorage.getItem(`hotel_luggage_enabled_${currentMerchant?.id || 'default'}`);
         if (stored !== null) return stored === 'true';
-      } catch {}
+      } catch { }
     }
     return currentMerchant?.metadata?.isLuggageStorageEnabled ?? true;
   });
@@ -133,7 +237,7 @@ export default function VenueProfilePage() {
       try {
         const stored = localStorage.getItem(`hotel_luggage_rate_${currentMerchant?.id || 'default'}`);
         if (stored) return Number(stored);
-      } catch {}
+      } catch { }
     }
     return currentMerchant?.luggageHourlyRate ?? currentMerchant?.metadata?.luggageHourlyRate ?? 49;
   });
@@ -144,7 +248,7 @@ export default function VenueProfilePage() {
       try {
         const stored = localStorage.getItem(`hotel_luggage_rate_handbag_${currentMerchant?.id || 'default'}`);
         if (stored) return Number(stored);
-      } catch {}
+      } catch { }
     }
     return currentMerchant?.metadata?.rateHandbag ?? 25;
   });
@@ -154,7 +258,7 @@ export default function VenueProfilePage() {
       try {
         const stored = localStorage.getItem(`hotel_luggage_rate_backpack_${currentMerchant?.id || 'default'}`);
         if (stored) return Number(stored);
-      } catch {}
+      } catch { }
     }
     return currentMerchant?.metadata?.rateBackpack ?? 39;
   });
@@ -164,7 +268,7 @@ export default function VenueProfilePage() {
       try {
         const stored = localStorage.getItem(`hotel_luggage_rate_trolley_${currentMerchant?.id || 'default'}`);
         if (stored) return Number(stored);
-      } catch {}
+      } catch { }
     }
     return currentMerchant?.metadata?.rateTrolley ?? 49;
   });
@@ -174,7 +278,7 @@ export default function VenueProfilePage() {
       try {
         const stored = localStorage.getItem(`hotel_luggage_rate_box_${currentMerchant?.id || 'default'}`);
         if (stored) return Number(stored);
-      } catch {}
+      } catch { }
     }
     return currentMerchant?.metadata?.rateBox ?? 59;
   });
@@ -184,7 +288,7 @@ export default function VenueProfilePage() {
       try {
         const stored = localStorage.getItem(`hotel_luggage_rate_bulky_${currentMerchant?.id || 'default'}`);
         if (stored) return Number(stored);
-      } catch {}
+      } catch { }
     }
     return currentMerchant?.metadata?.rateBulky ?? 79;
   });
@@ -194,7 +298,7 @@ export default function VenueProfilePage() {
       try {
         const stored = localStorage.getItem(`hotel_luggage_daypass_${currentMerchant?.id || 'default'}`);
         if (stored) return Number(stored);
-      } catch {}
+      } catch { }
     }
     return currentMerchant?.metadata?.luggageDayPassRate ?? 500;
   });
@@ -204,7 +308,7 @@ export default function VenueProfilePage() {
       try {
         const stored = localStorage.getItem(`hotel_luggage_capacity_${currentMerchant?.id || 'default'}`);
         if (stored) return Number(stored);
-      } catch {}
+      } catch { }
     }
     return currentMerchant?.metadata?.luggageMaxCapacity ?? 10;
   });
@@ -303,7 +407,7 @@ export default function VenueProfilePage() {
               initialGallery = parsedG;
             }
           }
-        } catch {}
+        } catch { }
       }
       setGallery(initialGallery);
 
@@ -313,7 +417,7 @@ export default function VenueProfilePage() {
       setPostalCode((currentMerchant as any).postalCode || '');
       if (currentMerchant.latitude) setLatitude(String(currentMerchant.latitude));
       if (currentMerchant.longitude) setLongitude(String(currentMerchant.longitude));
-      
+
       if (currentMerchant.policies) {
         setPolicies(Array.isArray(currentMerchant.policies) ? currentMerchant.policies : []);
       }
@@ -575,6 +679,19 @@ export default function VenueProfilePage() {
       luggageHourlyRate,
       metadata: {
         ...(currentMerchant.metadata || {}),
+        isDiningVendor,
+        cuisines,
+        costForTwo,
+        lunchStartTime,
+        lunchEndTime,
+        dinnerStartTime,
+        dinnerEndTime,
+        slotIntervalMinutes,
+        diningFeatures,
+        customSessions,
+        bookingDeals,
+        lunchPerkText,
+        dinnerPerkText,
         isLuggageStorageEnabled,
         luggageHourlyRate: rateTrolley || luggageHourlyRate,
         rateHandbag,
@@ -625,7 +742,7 @@ export default function VenueProfilePage() {
         localStorage.setItem(`hotel_mystery_optin_${id}`, String(isMysteryModeOptIn));
         if (uname) localStorage.setItem(`hotel_mystery_optin_${uname}`, String(isMysteryModeOptIn));
         localStorage.setItem('hotel_mystery_optin_default', String(isMysteryModeOptIn));
-        
+
         // Multi-key sync so H101 / UUID / default never get out of sync
         localStorage.setItem(`hotel_luggage_enabled_${id}`, valStr);
         if (uname) localStorage.setItem(`hotel_luggage_enabled_${uname}`, valStr);
@@ -710,7 +827,7 @@ export default function VenueProfilePage() {
         window.dispatchEvent(new CustomEvent('pg_config_updated', { detail: { ...pgConfig, merchantId: id } }));
         window.dispatchEvent(new CustomEvent('venue_gallery_updated', { detail: { gallery, merchantId: id } }));
         window.dispatchEvent(new Event('storage'));
-      } catch {}
+      } catch { }
     }
 
     setIsSaved(true);
@@ -719,7 +836,7 @@ export default function VenueProfilePage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-28 animate-fade-in font-sans">
-      
+
       {/* Top Header & Save Action */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 py-4 border-b border-slate-200 dark:border-white/[0.08]">
         <div>
@@ -891,6 +1008,647 @@ export default function VenueProfilePage() {
           </div>
         )}
 
+        {/* 2.5 Restaurant Table Reservation & Dining Configurations */}
+        {(isDiningVendor || true) && (
+          <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all">
+            <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100 dark:border-white/5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#ff6325] to-[#f4511e] text-white flex items-center justify-center font-bold shadow-md shadow-[#ff6325]/25 ring-4 ring-[#ff6325]/15 shrink-0">
+                  <span className="text-lg">🍽️</span>
+                </div>
+                <div>
+                  <h2 className="text-base font-black text-slate-900 dark:text-white">Restaurant Dining & Meal Sessions</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Configure cuisines, approximate cost for two, lunch & dinner timings for live table bookings.
+                  </p>
+                </div>
+              </div>
+              <span className="px-3 py-1 rounded-full text-[11px] font-black bg-orange-500/10 text-[#ff6325] border border-orange-500/20">
+                Dining Setup
+              </span>
+            </div>
+
+            <div className="space-y-6 pt-1">
+              {/* Cuisines Multi-Select Chips & Custom Cuisine Adder */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                    Cuisines Offered (Click to toggle or add custom)
+                  </label>
+                  <span className="text-[10px] text-slate-400 font-bold">
+                    {cuisines.length} selected
+                  </span>
+                </div>
+
+                {/* Active & Predefined Chips */}
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {Array.from(new Set([
+                    'South Indian Heritage', 'Chettinad Gourmet', 'North Indian', 'Tandoor & Grills',
+                    'Chinese & Pan-Asian', 'Biryani & Kebabs', 'Continental & Italian', 'Arabian / Mandi',
+                    'Pure Vegetarian', 'Seafood Delicacies', 'Desserts & Beverages',
+                    ...cuisines
+                  ])).map((cuisine) => {
+                    const isSelected = cuisines.includes(cuisine);
+                    return (
+                      <button
+                        key={cuisine}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) {
+                            setCuisines(cuisines.filter(c => c !== cuisine));
+                          } else {
+                            setCuisines([...cuisines, cuisine]);
+                          }
+                        }}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${isSelected
+                            ? 'bg-[#033266] dark:bg-[#ff6325] text-white shadow-xs'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                          }`}
+                      >
+                        <span>{isSelected ? '✓' : '+'}</span>
+                        <span>{cuisine}</span>
+                        {isSelected && !['South Indian Heritage', 'Chettinad Gourmet', 'North Indian', 'Tandoor & Grills'].includes(cuisine) && (
+                          <span
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCuisines(cuisines.filter(c => c !== cuisine));
+                            }}
+                            className="ml-1 text-[10px] hover:text-red-300 font-black"
+                            title="Remove cuisine"
+                          >
+                            ✕
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Custom Cuisine Input Adder */}
+                <div className="flex items-center gap-2 max-w-md">
+                  <input
+                    type="text"
+                    value={customCuisineInput}
+                    onChange={(e) => setCustomCuisineInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const val = customCuisineInput.trim();
+                        if (val && !cuisines.includes(val)) {
+                          setCuisines([...cuisines, val]);
+                          setCustomCuisineInput('');
+                        }
+                      }
+                    }}
+                    placeholder="Add custom cuisine (e.g. Kerala Malabar, Japanese Sushi, French Bistro)..."
+                    className="flex-1 px-3.5 py-2 rounded-xl border border-dashed border-slate-300 dark:border-white/20 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-bold text-slate-800 dark:text-white outline-none focus:border-[#ff6325] focus:bg-white dark:focus:bg-slate-900"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const val = customCuisineInput.trim();
+                      if (val && !cuisines.includes(val)) {
+                        setCuisines([...cuisines, val]);
+                        setCustomCuisineInput('');
+                      }
+                    }}
+                    className="px-3 py-2 rounded-xl bg-[#033266] dark:bg-[#ff6325] hover:opacity-90 text-white font-black text-xs shrink-0 cursor-pointer transition-all"
+                  >
+                    + Add Cuisine
+                  </button>
+                </div>
+              </div>
+
+              {/* Cost for Two & Slot Interval */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                    Approximate Cost for Two (₹)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
+                    <input
+                      type="number"
+                      value={costForTwo}
+                      onChange={(e) => setCostForTwo(Number(e.target.value))}
+                      placeholder="e.g. 800"
+                      className="w-full pl-8 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-[#162033] text-slate-900 dark:text-white font-bold text-xs outline-none focus:border-[#ff6325]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                    Table Slot Booking Interval
+                  </label>
+                  <select
+                    value={slotIntervalMinutes}
+                    onChange={(e) => setSlotIntervalMinutes(Number(e.target.value))}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-[#162033] text-slate-900 dark:text-white font-bold text-xs outline-none focus:border-[#ff6325]"
+                  >
+                    <option value={15}>Every 15 Minutes</option>
+                    <option value={30}>Every 30 Minutes (Recommended)</option>
+                    <option value={45}>Every 45 Minutes</option>
+                    <option value={60}>Every 60 Minutes (1 Hour)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Meal Sessions Timings Grid */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                    Meal Sessions & Operating Windows
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newId = `session-${Date.now()}`;
+                      setCustomSessions([
+                        ...customSessions,
+                        { id: newId, name: 'Late Night Dinner', icon: '🌃', opensAt: '11:00 PM', closesAt: '02:00 AM', enabled: true }
+                      ]);
+                    }}
+                    className="text-xs font-bold text-[#ff6325] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    + Add New Meal Session
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Lunch Timings */}
+                  <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span>☀️</span>
+                      <h3 className="text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-300">
+                        Lunch Session Window
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Opens At</label>
+                        <input
+                          type="text"
+                          value={lunchStartTime}
+                          onChange={(e) => setLunchStartTime(e.target.value)}
+                          placeholder="11:30 AM"
+                          className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-xs font-bold text-slate-800 dark:text-white outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Closes At</label>
+                        <input
+                          type="text"
+                          value={lunchEndTime}
+                          onChange={(e) => setLunchEndTime(e.target.value)}
+                          placeholder="03:30 PM"
+                          className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-xs font-bold text-slate-800 dark:text-white outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dinner Timings */}
+                  <div className="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/20 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span>🌙</span>
+                      <h3 className="text-xs font-black uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
+                        Dinner Session Window
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Opens At</label>
+                        <input
+                          type="text"
+                          value={dinnerStartTime}
+                          onChange={(e) => setDinnerStartTime(e.target.value)}
+                          placeholder="07:00 PM"
+                          className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-xs font-bold text-slate-800 dark:text-white outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Closes At</label>
+                        <input
+                          type="text"
+                          value={dinnerEndTime}
+                          onChange={(e) => setDinnerEndTime(e.target.value)}
+                          placeholder="11:00 PM"
+                          className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-xs font-bold text-slate-800 dark:text-white outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dynamic Custom Sessions (Breakfast, High Tea, Late Night, etc.) */}
+                  {customSessions.map((ses, idx) => (
+                    <div
+                      key={ses.id}
+                      className={`p-4 rounded-2xl border space-y-3 transition-all ${ses.enabled
+                          ? 'bg-purple-500/5 border-purple-500/20'
+                          : 'bg-slate-50/50 dark:bg-slate-800/20 border-slate-200/60 dark:border-white/5 opacity-70'
+                        }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span>{ses.icon}</span>
+                          <input
+                            type="text"
+                            value={ses.name}
+                            onChange={(e) => {
+                              const next = [...customSessions];
+                              next[idx].name = e.target.value;
+                              setCustomSessions(next);
+                            }}
+                            className="bg-transparent font-black text-xs uppercase tracking-wider text-purple-700 dark:text-purple-300 outline-none border-b border-dashed border-purple-400/40"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={ses.enabled}
+                              onChange={(e) => {
+                                const next = [...customSessions];
+                                next[idx].enabled = e.target.checked;
+                                setCustomSessions(next);
+                              }}
+                              className="sr-only peer"
+                            />
+                            <div className="w-8 h-4 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-purple-600"></div>
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => setCustomSessions(customSessions.filter((_, i) => i !== idx))}
+                            className="text-slate-400 hover:text-red-500 text-xs cursor-pointer ml-1"
+                            title="Delete session"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+
+                      {ses.enabled ? (
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Opens At</label>
+                            <input
+                              type="text"
+                              value={ses.opensAt}
+                              onChange={(e) => {
+                                const next = [...customSessions];
+                                next[idx].opensAt = e.target.value;
+                                setCustomSessions(next);
+                              }}
+                              placeholder="07:30 AM"
+                              className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-xs font-bold text-slate-800 dark:text-white outline-none"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Closes At</label>
+                            <input
+                              type="text"
+                              value={ses.closesAt}
+                              onChange={(e) => {
+                                const next = [...customSessions];
+                                next[idx].closesAt = e.target.value;
+                                setCustomSessions(next);
+                              }}
+                              placeholder="10:30 AM"
+                              className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-xs font-bold text-slate-800 dark:text-white outline-none"
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-[11px] text-slate-400 italic">Session is currently disabled.</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Dining Features Checklist & Custom Highlight Adder */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                    Restaurant Ambiance & Dining Highlights
+                  </label>
+                  <span className="text-[10px] text-slate-400 font-bold">
+                    {diningFeatures.length} enabled
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 mb-3">
+                  {Array.from(new Set([
+                    'Air Conditioned Luxury Dining', 'Starlit Romantic Rooftop Seating',
+                    'Garden Patio Outdoor Seating', 'Private Dining Suite (PDR)',
+                    'Pure Veg & Non-Veg Kitchens', 'Complimentary Valet Parking',
+                    'Live Instrumental Fusion Music', 'Family & Kids High Chair Friendly',
+                    'Bar & Mocktails Available',
+                    ...diningFeatures
+                  ])).map((feat) => {
+                    const hasFeat = diningFeatures.includes(feat);
+                    const isCustom = ![
+                      'Air Conditioned Luxury Dining', 'Starlit Romantic Rooftop Seating',
+                      'Garden Patio Outdoor Seating', 'Private Dining Suite (PDR)',
+                      'Pure Veg & Non-Veg Kitchens', 'Complimentary Valet Parking',
+                      'Live Instrumental Fusion Music', 'Family & Kids High Chair Friendly',
+                      'Bar & Mocktails Available'
+                    ].includes(feat);
+
+                    return (
+                      <div
+                        key={feat}
+                        onClick={() => {
+                          if (hasFeat) {
+                            setDiningFeatures(diningFeatures.filter(f => f !== feat));
+                          } else {
+                            setDiningFeatures([...diningFeatures, feat]);
+                          }
+                        }}
+                        className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-between cursor-pointer transition-all ${hasFeat
+                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300'
+                            : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400'
+                          }`}
+                      >
+                        <span className="truncate">{feat}</span>
+                        <div className="flex items-center gap-1.5 shrink-0 ml-1">
+                          <span className="font-black">{hasFeat ? '✓' : '+'}</span>
+                          {isCustom && (
+                            <span
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDiningFeatures(diningFeatures.filter(f => f !== feat));
+                              }}
+                              className="text-[11px] text-slate-400 hover:text-red-500 font-bold"
+                              title="Delete custom highlight"
+                            >
+                              ✕
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Custom Highlight Input Adder */}
+                <div className="flex items-center gap-2 max-w-md">
+                  <input
+                    type="text"
+                    value={customHighlightInput}
+                    onChange={(e) => setCustomHighlightInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const val = customHighlightInput.trim();
+                        if (val && !diningFeatures.includes(val)) {
+                          setDiningFeatures([...diningFeatures, val]);
+                          setCustomHighlightInput('');
+                        }
+                      }
+                    }}
+                    placeholder="Add custom highlight (e.g. Pet Friendly Dining, Sea View Deck, Candlelight Dinner)..."
+                    className="flex-1 px-3.5 py-2 rounded-xl border border-dashed border-slate-300 dark:border-white/20 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-bold text-slate-800 dark:text-white outline-none focus:border-[#ff6325] focus:bg-white dark:focus:bg-slate-900"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const val = customHighlightInput.trim();
+                      if (val && !diningFeatures.includes(val)) {
+                        setDiningFeatures([...diningFeatures, val]);
+                        setCustomHighlightInput('');
+                      }
+                    }}
+                    className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shrink-0 cursor-pointer transition-all"
+                  >
+                    + Add Highlight
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 2.6 Module 3: Restaurant Slot Deals & Promo Coupon Manager */}
+        {(isDiningVendor || true) && (
+          <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all space-y-6">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center font-bold shadow-md shadow-orange-500/25 ring-4 ring-orange-500/15 shrink-0">
+                  <span className="text-lg">🏷️</span>
+                </div>
+                <div>
+                  <h2 className="text-base font-black text-slate-900 dark:text-white">
+                    Restaurant Promo Deals & Coupon Manager
+                  </h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Create promo codes and session discounts (e.g. Lunch 20% Off, Celebration Cake) for table bookings.
+                  </p>
+                </div>
+              </div>
+              <span className="px-3 py-1 rounded-full text-[11px] font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                Offers Engine
+              </span>
+            </div>
+
+            {/* Promo Coupons & Deals List */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-white flex items-center gap-1.5">
+                    <span>🎉</span> Active Booking Deals & Promo Codes
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    Coupons selectable by customer at Step 4 during table booking.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newDeal: DiningPromoDeal = {
+                      id: `deal-${Date.now()}`,
+                      title: 'Special Celebration Deal',
+                      code: `DINE${Math.floor(10 + Math.random() * 40)}`,
+                      description: 'Special dining discount applicable on reservations',
+                      type: 'PERCENTAGE',
+                      value: '15%',
+                      session: 'ALL',
+                      active: true
+                    };
+                    setBookingDeals([...bookingDeals, newDeal]);
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-[#ff6325] hover:bg-[#e04e13] text-white text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-md shadow-[#ff6325]/20 active:scale-95 transition-all"
+                >
+                  <Plus size={14} /> Add New Deal
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {bookingDeals.map((deal, idx) => {
+                  const availableSessions = [
+                    { id: 'ALL', label: 'All Day (Any Session)' },
+                    { id: 'LUNCH', label: 'Lunch Session' },
+                    { id: 'DINNER', label: 'Dinner Session' },
+                    ...customSessions.map(cs => ({ id: cs.name, label: cs.name }))
+                  ];
+
+                  return (
+                    <div
+                      key={deal.id}
+                      className={`p-4 sm:p-5 rounded-2xl border transition-all space-y-3.5 ${deal.active
+                          ? 'bg-white dark:bg-slate-800/60 border-slate-200 dark:border-white/10 shadow-2xs'
+                          : 'bg-slate-50 dark:bg-slate-900/40 border-dashed border-slate-200 dark:border-white/5 opacity-60'
+                        }`}
+                    >
+                      {/* Top Row: Deal Title Input & Code & Toggle Controls */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-white/5">
+                        <div className="flex-1">
+                          <label className="block text-[10px] uppercase font-black text-slate-400 mb-1 tracking-wider">
+                            Deal / Offer Name *
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl">🎉</span>
+                            <input
+                              type="text"
+                              value={deal.title}
+                              onChange={(e) => {
+                                const next = [...bookingDeals];
+                                next[idx].title = e.target.value;
+                                setBookingDeals(next);
+                              }}
+                              placeholder="e.g. 20% Instant Discount on Lunch / Free Anniversary Cake"
+                              className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-[#111927] font-black text-xs text-slate-900 dark:text-white outline-none focus:border-[#ff6325] focus:bg-white dark:focus:bg-slate-900 shadow-2xs"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                          <div>
+                            <label className="block text-[10px] uppercase font-black text-slate-400 mb-1 text-center tracking-wider">
+                              Promo Code
+                            </label>
+                            <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-700/60 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/10">
+                              <input
+                                type="text"
+                                value={deal.code}
+                                onChange={(e) => {
+                                  const next = [...bookingDeals];
+                                  next[idx].code = e.target.value.toUpperCase();
+                                  setBookingDeals(next);
+                                }}
+                                placeholder="CODE"
+                                className="font-black text-xs text-[#ff6325] uppercase tracking-wider bg-transparent outline-none w-24 text-center"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Active Toggle */}
+                          <div className="text-center">
+                            <label className="block text-[10px] uppercase font-black text-slate-400 mb-1 tracking-wider">
+                              Status
+                            </label>
+                            <label className="relative inline-flex items-center cursor-pointer mt-1">
+                              <input
+                                type="checkbox"
+                                checked={deal.active}
+                                onChange={(e) => {
+                                  const next = [...bookingDeals];
+                                  next[idx].active = e.target.checked;
+                                  setBookingDeals(next);
+                                }}
+                                className="sr-only peer"
+                              />
+                              <div className="w-8 h-4 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
+                          </div>
+
+                          {/* Delete Deal */}
+                          <div className="pt-4">
+                            <button
+                              type="button"
+                              onClick={() => setBookingDeals(bookingDeals.filter((_, i) => i !== idx))}
+                              className="h-8 w-8 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-500/10 flex items-center justify-center transition-colors cursor-pointer"
+                              title="Delete Deal"
+                            >
+                              <X size={15} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Bottom Row: Description, Session Dropdown, Min Guests */}
+                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-1">
+                        <div className="sm:col-span-6">
+                          <label className="block text-[10px] uppercase font-black text-slate-400 mb-1 tracking-wider">
+                            Customer Description (Terms / Perk details)
+                          </label>
+                          <input
+                            type="text"
+                            value={deal.description}
+                            onChange={(e) => {
+                              const next = [...bookingDeals];
+                              next[idx].description = e.target.value;
+                              setBookingDeals(next);
+                            }}
+                            placeholder="e.g. Applicable on total food bill for lunch bookings between 12 PM - 3 PM"
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-[#111927] text-xs font-semibold text-slate-700 dark:text-slate-300 outline-none focus:border-[#ff6325]"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-4">
+                          <label className="block text-[10px] uppercase font-black text-slate-400 mb-1 tracking-wider">
+                            Applicable Session *
+                          </label>
+                          <select
+                            value={deal.session}
+                            onChange={(e) => {
+                              const next = [...bookingDeals];
+                              next[idx].session = e.target.value as any;
+                              setBookingDeals(next);
+                            }}
+                            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111927] text-xs font-bold text-slate-800 dark:text-white outline-none focus:border-[#ff6325] cursor-pointer"
+                          >
+                            {availableSessions.map((s) => (
+                              <option key={s.id} value={s.id}>
+                                {s.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <label className="block text-[10px] uppercase font-black text-slate-400 mb-1 tracking-wider text-center">
+                            Min Guests
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={deal.minGuests || ''}
+                            onChange={(e) => {
+                              const next = [...bookingDeals];
+                              next[idx].minGuests = e.target.value ? Number(e.target.value) : undefined;
+                              setBookingDeals(next);
+                            }}
+                            placeholder="Any"
+                            className="w-full px-2 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111927] text-xs font-black text-slate-800 dark:text-white outline-none text-center focus:border-[#ff6325]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {bookingDeals.length === 0 && (
+                  <p className="text-xs text-slate-400 italic text-center py-3">
+                    No active deals configured yet. Click &quot;Add New Deal&quot; to offer discounts or celebration perks.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 3. Amenities & Facilities */}
         <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all">
           <div className="flex items-center gap-3 mb-5 pb-3 border-b border-slate-100 dark:border-white/5">
@@ -907,9 +1665,9 @@ export default function VenueProfilePage() {
             {thingsToKnow.map((thing, idx) => (
               <span key={idx} className="inline-flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 px-3.5 py-1.5 rounded-xl text-xs font-bold border border-emerald-200 dark:border-emerald-500/20">
                 <span>✓</span> {thing}
-                <button 
-                  type="button" 
-                  onClick={() => handleRemoveThing(thing)} 
+                <button
+                  type="button"
+                  onClick={() => handleRemoveThing(thing)}
                   className="hover:text-red-500 ml-1 cursor-pointer font-bold"
                 >
                   &times;
@@ -930,9 +1688,9 @@ export default function VenueProfilePage() {
               placeholder="e.g. Free Wi-Fi, Valet Parking, Multi-cuisine Restaurant, Private Beach"
               className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-[#162033] text-slate-900 dark:text-white font-medium text-xs focus:border-[#ff6325] outline-none"
             />
-            <button 
-              type="button" 
-              onClick={handleAddThing} 
+            <button
+              type="button"
+              onClick={handleAddThing}
               className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-md"
             >
               Add
@@ -956,9 +1714,9 @@ export default function VenueProfilePage() {
             {policies.map((policy, idx) => (
               <div key={idx} className="flex justify-between items-center bg-slate-50 dark:bg-[#162033] text-slate-800 dark:text-slate-200 px-4 py-3 rounded-xl border border-slate-200/80 dark:border-white/10">
                 <span className="font-medium text-xs leading-relaxed">• {policy}</span>
-                <button 
-                  type="button" 
-                  onClick={() => handleRemovePolicy(policy)} 
+                <button
+                  type="button"
+                  onClick={() => handleRemovePolicy(policy)}
                   className="text-slate-400 hover:text-red-500 ml-2 cursor-pointer font-bold text-sm"
                 >
                   &times;
@@ -979,9 +1737,9 @@ export default function VenueProfilePage() {
               placeholder="e.g. Valid Government Photo ID required at check-in (Aadhaar / Passport / Driving License)"
               className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-[#162033] text-slate-900 dark:text-white font-medium text-xs focus:border-[#ff6325] outline-none"
             />
-            <button 
-              type="button" 
-              onClick={handleAddPolicy} 
+            <button
+              type="button"
+              onClick={handleAddPolicy}
               className="bg-[#ff6325] hover:bg-[#e04e13] text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-md"
             >
               Add Policy
@@ -1011,7 +1769,7 @@ export default function VenueProfilePage() {
               onClick={async () => {
                 const nextVal = !isLuggageStorageEnabled;
                 setIsLuggageStorageEnabled(nextVal);
-                
+
                 // Direct fast fetch to Backend API
                 try {
                   const isProd = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
@@ -1044,7 +1802,7 @@ export default function VenueProfilePage() {
                     localStorage.setItem('hotel_luggage_enabled_default', valStr);
                     window.dispatchEvent(new CustomEvent('hotel_luggage_toggle', { detail: { enabled: nextVal, merchantId: id } }));
                     window.dispatchEvent(new Event('storage'));
-                  } catch {}
+                  } catch { }
                 }
 
                 // Also update local store
@@ -1058,16 +1816,14 @@ export default function VenueProfilePage() {
                       }
                     } as any);
                   }
-                } catch (e) {}
+                } catch (e) { }
               }}
-              className={`relative inline-flex h-6 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                isLuggageStorageEnabled ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-700'
-              }`}
+              className={`relative inline-flex h-6 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isLuggageStorageEnabled ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-700'
+                }`}
             >
               <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                  isLuggageStorageEnabled ? 'translate-x-6' : 'translate-x-0'
-                }`}
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isLuggageStorageEnabled ? 'translate-x-6' : 'translate-x-0'
+                  }`}
               />
             </button>
           </div>
@@ -1256,180 +2012,173 @@ export default function VenueProfilePage() {
             <button
               type="button"
               onClick={() => setIsPetFriendly(!isPetFriendly)}
-              className={`relative inline-flex h-6 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                isPetFriendly ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'
-              }`}
+              className={`relative inline-flex h-6 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isPetFriendly ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'
+                }`}
             >
               <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                  isPetFriendly ? 'translate-x-6' : 'translate-x-0'
-                }`}
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isPetFriendly ? 'translate-x-6' : 'translate-x-0'
+                  }`}
               />
             </button>
           </div>
 
-          <div className={`text-xs font-semibold px-3.5 py-2.5 rounded-xl border ${
-            isPetFriendly 
-              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' 
+          <div className={`text-xs font-semibold px-3.5 py-2.5 rounded-xl border ${isPetFriendly
+              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
               : 'bg-slate-50 dark:bg-[#162033] text-slate-400 border-slate-200 dark:border-white/10'
-          }`}>
-            {isPetFriendly 
-              ? '✓ Pets Allowed: Hotel appears when travelers select "Pet Friendly" filter or add pets in guest counter.' 
+            }`}>
+            {isPetFriendly
+              ? '✓ Pets Allowed: Hotel appears when travelers select "Pet Friendly" filter or add pets in guest counter.'
               : '✕ Pets Not Allowed: Guests searching for pet-friendly stays will not see this property.'}
           </div>
         </div>
 
         {/* 7. BokSpot Luxe™ Certification — Exclusively for Luxury Hotels, Resorts & Villas (Hidden for Hostels & PG) */}
         {!isPgProperty && !currentMerchant?.category?.toLowerCase().includes('hostel') && !currentMerchant?.category?.toLowerCase().includes('pg') && !currentMerchant?.merchantName?.toLowerCase().includes('hostel') && (
-        <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all space-y-4">
-          {(() => {
-            const guestRating = Number((currentMerchant as any)?.rating || (currentMerchant as any)?.metadata?.rating || 4.8);
-            const isEligibleForLuxe = guestRating >= 4.5;
+          <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all space-y-4">
+            {(() => {
+              const guestRating = Number((currentMerchant as any)?.rating || (currentMerchant as any)?.metadata?.rating || 4.8);
+              const isEligibleForLuxe = guestRating >= 4.5;
 
-            return (
-              <>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-white/5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-500 to-yellow-500 text-slate-950 flex items-center justify-center font-black shadow-md shadow-amber-500/25 ring-4 ring-amber-500/15 shrink-0">
-                      <Crown size={18} className="text-slate-950 stroke-[2.2]" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h2 className="text-base font-black text-slate-900 dark:text-white">
-                          7. BokSpot Luxe™ Partner Verification
-                        </h2>
-                        <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${
-                          isEligibleForLuxe 
-                            ? 'bg-amber-500/15 text-amber-500 border-amber-500/30' 
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-300 dark:border-slate-700'
-                        }`}>
-                          {isEligibleForLuxe ? '⭐ Verified Luxe Partner' : 'Standard Partner'}
-                        </span>
+              return (
+                <>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-white/5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-500 to-yellow-500 text-slate-950 flex items-center justify-center font-black shadow-md shadow-amber-500/25 ring-4 ring-amber-500/15 shrink-0">
+                        <Crown size={18} className="text-slate-950 stroke-[2.2]" />
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        Properties must maintain a 4.5+ guest review rating and pass BokSpot quality standards to unlock the golden Luxe badge.
-                      </p>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-base font-black text-slate-900 dark:text-white">
+                            7. BokSpot Luxe™ Partner Verification
+                          </h2>
+                          <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${isEligibleForLuxe
+                              ? 'bg-amber-500/15 text-amber-500 border-amber-500/30'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-300 dark:border-slate-700'
+                            }`}>
+                            {isEligibleForLuxe ? '⭐ Verified Luxe Partner' : 'Standard Partner'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                          Properties must maintain a 4.5+ guest review rating and pass BokSpot quality standards to unlock the golden Luxe badge.
+                        </p>
+                      </div>
                     </div>
-                  </div>
 
-                  {isEligibleForLuxe ? (
-                    <div className="px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20 shrink-0 flex items-center gap-1.5 select-none">
-                      <Sparkles size={13} />
-                      <span>Luxe Certified ✓</span>
-                    </div>
-                  ) : (
-                    <div className="px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-300 dark:border-slate-700 shrink-0 flex items-center gap-1.5 select-none" title="Requires a 4.5★ guest rating">
-                      <span>🔒 Requires 4.5★+ Rating</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-amber-500/5 border border-amber-500/20 flex items-start gap-3">
-                  <span className="text-amber-500 text-sm mt-0.5">ℹ️</span>
-                  <div className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                    <strong>How Luxe Verification Works:</strong> Certified properties carry the <strong>BokSpot Luxe Badge</strong> across guest listings and qualify under the <em>&quot;Just Luxury&quot;</em> filter. Properties maintain verified status through authentic guest reviews (current score: <strong>{guestRating}★</strong>).
-                  </div>
-                </div>
-              </>
-            );
-          })()}
-
-          {/* Mystery Secret Deals Opt-In Toggle Card */}
-          {(() => {
-            const guestRating = Number((currentMerchant as any)?.rating || (currentMerchant as any)?.metadata?.rating || 4.8);
-            const isEligibleByRating = guestRating >= 4.5;
-
-            return (
-              <div className="pt-3 border-t border-slate-100 dark:border-white/5">
-                <div className={`p-4 rounded-2xl border transition-all ${
-                  isEligibleByRating 
-                    ? 'bg-slate-50 dark:bg-[#162033] border-slate-200 dark:border-white/10' 
-                    : 'bg-slate-50/50 dark:bg-[#162033]/50 border-slate-200/60 dark:border-white/5 opacity-80'
-                } flex flex-col sm:flex-row sm:items-center justify-between gap-4`}>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-base">🤫</span>
-                      <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                        Participate in BokSpot Mystery Deals (Secret Mode)
-                      </h3>
-                      {isEligibleByRating ? (
-                        <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-                          ⭐ {guestRating} Rating Qualified
-                        </span>
-                      ) : (
-                        <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
-                          🔒 Requires 4.5★+ Guest Rating ({guestRating}★ current)
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-xl leading-relaxed">
-                      Sell luxury rooms at exclusive special rates without diluting your public brand. In <strong>Just Luxury (Secret Mode)</strong>, your property name and exact street address remain confidential until the guest completes booking confirmation.
-                    </p>
-                    {!isEligibleByRating && (
-                      <p className="text-[10px] text-rose-500 font-semibold pt-1">
-                        ⚠️ To protect customer trust in Secret Mode, only verified properties maintaining 4.5★ or higher guest reviews can participate.
-                      </p>
+                    {isEligibleForLuxe ? (
+                      <div className="px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20 shrink-0 flex items-center gap-1.5 select-none">
+                        <Sparkles size={13} />
+                        <span>Luxe Certified ✓</span>
+                      </div>
+                    ) : (
+                      <div className="px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-300 dark:border-slate-700 shrink-0 flex items-center gap-1.5 select-none" title="Requires a 4.5★ guest rating">
+                        <span>🔒 Requires 4.5★+ Rating</span>
+                      </div>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
-                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
-                      {!isEligibleByRating 
-                        ? 'Locked (Rating < 4.5★)' 
-                        : (isMysteryModeOptIn ? 'Opted In' : 'Direct Name Visible')}
-                    </span>
-                    <button
-                      type="button"
-                      disabled={!isEligibleByRating}
-                      onClick={async () => {
-                        if (!isEligibleByRating) return;
-                        const nextVal = !isMysteryModeOptIn;
-                        setIsMysteryModeOptIn(nextVal);
-                        if (typeof window !== 'undefined') {
-                          try {
-                            const id = currentMerchant?.id;
-                            const uname = currentMerchant?.username;
-                            const valStr = String(nextVal);
-                            if (id) localStorage.setItem(`hotel_mystery_optin_${id}`, valStr);
-                            if (uname) localStorage.setItem(`hotel_mystery_optin_${uname}`, valStr);
-                            localStorage.setItem('hotel_mystery_optin_H101', valStr);
-                            localStorage.setItem('hotel_mystery_optin_default', valStr);
-                            window.dispatchEvent(new CustomEvent('hotel_mystery_toggle', { detail: { enabled: nextVal } }));
-                            window.dispatchEvent(new Event('storage'));
-                          } catch {}
-                        }
-                        // Instantly update vendor store and backend metadata
-                        try {
-                          if (currentMerchant?.id) {
-                            await updateMerchantProfile(currentMerchant.id, {
-                              isMysteryModeOptIn: nextVal,
-                              metadata: {
-                                ...(currentMerchant.metadata || {}),
-                                isMysteryModeOptIn: nextVal
-                              }
-                            } as any);
+                  <div className="p-3.5 rounded-2xl bg-amber-500/5 border border-amber-500/20 flex items-start gap-3">
+                    <span className="text-amber-500 text-sm mt-0.5">ℹ️</span>
+                    <div className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                      <strong>How Luxe Verification Works:</strong> Certified properties carry the <strong>BokSpot Luxe Badge</strong> across guest listings and qualify under the <em>&quot;Just Luxury&quot;</em> filter. Properties maintain verified status through authentic guest reviews (current score: <strong>{guestRating}★</strong>).
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+
+            {/* Mystery Secret Deals Opt-In Toggle Card */}
+            {(() => {
+              const guestRating = Number((currentMerchant as any)?.rating || (currentMerchant as any)?.metadata?.rating || 4.8);
+              const isEligibleByRating = guestRating >= 4.5;
+
+              return (
+                <div className="pt-3 border-t border-slate-100 dark:border-white/5">
+                  <div className={`p-4 rounded-2xl border transition-all ${isEligibleByRating
+                      ? 'bg-slate-50 dark:bg-[#162033] border-slate-200 dark:border-white/10'
+                      : 'bg-slate-50/50 dark:bg-[#162033]/50 border-slate-200/60 dark:border-white/5 opacity-80'
+                    } flex flex-col sm:flex-row sm:items-center justify-between gap-4`}>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-base">🤫</span>
+                        <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                          Participate in BokSpot Mystery Deals (Secret Mode)
+                        </h3>
+                        {isEligibleByRating ? (
+                          <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                            ⭐ {guestRating} Rating Qualified
+                          </span>
+                        ) : (
+                          <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
+                            🔒 Requires 4.5★+ Guest Rating ({guestRating}★ current)
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-xl leading-relaxed">
+                        Sell luxury rooms at exclusive special rates without diluting your public brand. In <strong>Just Luxury (Secret Mode)</strong>, your property name and exact street address remain confidential until the guest completes booking confirmation.
+                      </p>
+                      {!isEligibleByRating && (
+                        <p className="text-[10px] text-rose-500 font-semibold pt-1">
+                          ⚠️ To protect customer trust in Secret Mode, only verified properties maintaining 4.5★ or higher guest reviews can participate.
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                      <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                        {!isEligibleByRating
+                          ? 'Locked (Rating < 4.5★)'
+                          : (isMysteryModeOptIn ? 'Opted In' : 'Direct Name Visible')}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={!isEligibleByRating}
+                        onClick={async () => {
+                          if (!isEligibleByRating) return;
+                          const nextVal = !isMysteryModeOptIn;
+                          setIsMysteryModeOptIn(nextVal);
+                          if (typeof window !== 'undefined') {
+                            try {
+                              const id = currentMerchant?.id;
+                              const uname = currentMerchant?.username;
+                              const valStr = String(nextVal);
+                              if (id) localStorage.setItem(`hotel_mystery_optin_${id}`, valStr);
+                              if (uname) localStorage.setItem(`hotel_mystery_optin_${uname}`, valStr);
+                              localStorage.setItem('hotel_mystery_optin_H101', valStr);
+                              localStorage.setItem('hotel_mystery_optin_default', valStr);
+                              window.dispatchEvent(new CustomEvent('hotel_mystery_toggle', { detail: { enabled: nextVal } }));
+                              window.dispatchEvent(new Event('storage'));
+                            } catch { }
                           }
-                        } catch (e) {}
-                      }}
-                      className={`relative inline-flex h-6 w-12 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        !isEligibleByRating 
-                          ? 'opacity-40 cursor-not-allowed bg-slate-300 dark:bg-slate-700' 
-                          : (isMysteryModeOptIn ? 'bg-amber-500 cursor-pointer' : 'bg-slate-300 dark:bg-slate-700 cursor-pointer')
-                      }`}
-                      title={!isEligibleByRating ? 'Requires a 4.5★ guest rating to activate' : ''}
-                    >
-                      <span
-                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                          isMysteryModeOptIn && isEligibleByRating ? 'translate-x-6' : 'translate-x-0'
-                        }`}
-                      />
-                    </button>
+                          // Instantly update vendor store and backend metadata
+                          try {
+                            if (currentMerchant?.id) {
+                              await updateMerchantProfile(currentMerchant.id, {
+                                isMysteryModeOptIn: nextVal,
+                                metadata: {
+                                  ...(currentMerchant.metadata || {}),
+                                  isMysteryModeOptIn: nextVal
+                                }
+                              } as any);
+                            }
+                          } catch (e) { }
+                        }}
+                        className={`relative inline-flex h-6 w-12 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${!isEligibleByRating
+                            ? 'opacity-40 cursor-not-allowed bg-slate-300 dark:bg-slate-700'
+                            : (isMysteryModeOptIn ? 'bg-amber-500 cursor-pointer' : 'bg-slate-300 dark:bg-slate-700 cursor-pointer')
+                          }`}
+                        title={!isEligibleByRating ? 'Requires a 4.5★ guest rating to activate' : ''}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isMysteryModeOptIn && isEligibleByRating ? 'translate-x-6' : 'translate-x-0'
+                            }`}
+                        />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })()}
-        </div>
+              );
+            })()}
+          </div>
         )}
 
 
@@ -1456,13 +2205,11 @@ export default function VenueProfilePage() {
               <button
                 type="button"
                 onClick={() => setIsPgProperty(!isPgProperty)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
-                  isPgProperty ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
-                }`}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${isPgProperty ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                  }`}
               >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  isPgProperty ? 'translate-x-6' : 'translate-x-1'
-                }`} />
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isPgProperty ? 'translate-x-6' : 'translate-x-1'
+                  }`} />
               </button>
             </div>
           </div>
@@ -1552,13 +2299,11 @@ export default function VenueProfilePage() {
                       <button
                         type="button"
                         onClick={() => setHasLadyWarden(!hasLadyWarden)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                          hasLadyWarden ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
-                        }`}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${hasLadyWarden ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                          }`}
                       >
-                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          hasLadyWarden ? 'translate-x-4.5' : 'translate-x-1'
-                        }`} />
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${hasLadyWarden ? 'translate-x-4.5' : 'translate-x-1'
+                          }`} />
                       </button>
                     </div>
 
@@ -1573,13 +2318,11 @@ export default function VenueProfilePage() {
                       <button
                         type="button"
                         onClick={() => setZeroMaleFloorAccess(!zeroMaleFloorAccess)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                          zeroMaleFloorAccess ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
-                        }`}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${zeroMaleFloorAccess ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                          }`}
                       >
-                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          zeroMaleFloorAccess ? 'translate-x-4.5' : 'translate-x-1'
-                        }`} />
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${zeroMaleFloorAccess ? 'translate-x-4.5' : 'translate-x-1'
+                          }`} />
                       </button>
                     </div>
 
@@ -1594,13 +2337,11 @@ export default function VenueProfilePage() {
                       <button
                         type="button"
                         onClick={() => setHasReceptionVisitorLobby(!hasReceptionVisitorLobby)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                          hasReceptionVisitorLobby ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
-                        }`}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${hasReceptionVisitorLobby ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                          }`}
                       >
-                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          hasReceptionVisitorLobby ? 'translate-x-4.5' : 'translate-x-1'
-                        }`} />
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${hasReceptionVisitorLobby ? 'translate-x-4.5' : 'translate-x-1'
+                          }`} />
                       </button>
                     </div>
 
@@ -1615,13 +2356,11 @@ export default function VenueProfilePage() {
                       <button
                         type="button"
                         onClick={() => setHasParentsDaytimeLounge(!hasParentsDaytimeLounge)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                          hasParentsDaytimeLounge ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
-                        }`}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${hasParentsDaytimeLounge ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                          }`}
                       >
-                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          hasParentsDaytimeLounge ? 'translate-x-4.5' : 'translate-x-1'
-                        }`} />
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${hasParentsDaytimeLounge ? 'translate-x-4.5' : 'translate-x-1'
+                          }`} />
                       </button>
                     </div>
 
@@ -1636,13 +2375,11 @@ export default function VenueProfilePage() {
                       <button
                         type="button"
                         onClick={() => setHasPeriodEmergencyKit(!hasPeriodEmergencyKit)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                          hasPeriodEmergencyKit ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
-                        }`}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${hasPeriodEmergencyKit ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                          }`}
                       >
-                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          hasPeriodEmergencyKit ? 'translate-x-4.5' : 'translate-x-1'
-                        }`} />
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${hasPeriodEmergencyKit ? 'translate-x-4.5' : 'translate-x-1'
+                          }`} />
                       </button>
                     </div>
 
@@ -1657,13 +2394,11 @@ export default function VenueProfilePage() {
                       <button
                         type="button"
                         onClick={() => setHasPrivateDryingZone(!hasPrivateDryingZone)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                          hasPrivateDryingZone ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
-                        }`}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${hasPrivateDryingZone ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                          }`}
                       >
-                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          hasPrivateDryingZone ? 'translate-x-4.5' : 'translate-x-1'
-                        }`} />
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${hasPrivateDryingZone ? 'translate-x-4.5' : 'translate-x-1'
+                          }`} />
                       </button>
                     </div>
 
@@ -1678,13 +2413,11 @@ export default function VenueProfilePage() {
                       <button
                         type="button"
                         onClick={() => setHasVanityMirrorSocket(!hasVanityMirrorSocket)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                          hasVanityMirrorSocket ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
-                        }`}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${hasVanityMirrorSocket ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                          }`}
                       >
-                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          hasVanityMirrorSocket ? 'translate-x-4.5' : 'translate-x-1'
-                        }`} />
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${hasVanityMirrorSocket ? 'translate-x-4.5' : 'translate-x-1'
+                          }`} />
                       </button>
                     </div>
 
@@ -1699,13 +2432,11 @@ export default function VenueProfilePage() {
                       <button
                         type="button"
                         onClick={() => setHasPackedLunchBox(!hasPackedLunchBox)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                          hasPackedLunchBox ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
-                        }`}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${hasPackedLunchBox ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                          }`}
                       >
-                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          hasPackedLunchBox ? 'translate-x-4.5' : 'translate-x-1'
-                        }`} />
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${hasPackedLunchBox ? 'translate-x-4.5' : 'translate-x-1'
+                          }`} />
                       </button>
                     </div>
 
@@ -1720,13 +2451,11 @@ export default function VenueProfilePage() {
                       <button
                         type="button"
                         onClick={() => setHasContactlessParcelHub(!hasContactlessParcelHub)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                          hasContactlessParcelHub ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
-                        }`}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${hasContactlessParcelHub ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                          }`}
                       >
-                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          hasContactlessParcelHub ? 'translate-x-4.5' : 'translate-x-1'
-                        }`} />
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${hasContactlessParcelHub ? 'translate-x-4.5' : 'translate-x-1'
+                          }`} />
                       </button>
                     </div>
 
@@ -1741,13 +2470,11 @@ export default function VenueProfilePage() {
                       <button
                         type="button"
                         onClick={() => setParentMotherStayAllowed(!parentMotherStayAllowed)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                          parentMotherStayAllowed ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
-                        }`}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${parentMotherStayAllowed ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                          }`}
                       >
-                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          parentMotherStayAllowed ? 'translate-x-4.5' : 'translate-x-1'
-                        }`} />
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${parentMotherStayAllowed ? 'translate-x-4.5' : 'translate-x-1'
+                          }`} />
                       </button>
                     </div>
                   </div>
@@ -1781,13 +2508,11 @@ export default function VenueProfilePage() {
                       <button
                         type="button"
                         onClick={() => setHasCoworkingLounge(!hasCoworkingLounge)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                          hasCoworkingLounge ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
-                        }`}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${hasCoworkingLounge ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                          }`}
                       >
-                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          hasCoworkingLounge ? 'translate-x-4.5' : 'translate-x-1'
-                        }`} />
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${hasCoworkingLounge ? 'translate-x-4.5' : 'translate-x-1'
+                          }`} />
                       </button>
                     </div>
 
@@ -1802,13 +2527,11 @@ export default function VenueProfilePage() {
                       <button
                         type="button"
                         onClick={() => setHasHighSpeedDualWifi(!hasHighSpeedDualWifi)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                          hasHighSpeedDualWifi ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
-                        }`}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${hasHighSpeedDualWifi ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                          }`}
                       >
-                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          hasHighSpeedDualWifi ? 'translate-x-4.5' : 'translate-x-1'
-                        }`} />
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${hasHighSpeedDualWifi ? 'translate-x-4.5' : 'translate-x-1'
+                          }`} />
                       </button>
                     </div>
 
@@ -1823,13 +2546,11 @@ export default function VenueProfilePage() {
                       <button
                         type="button"
                         onClick={() => setHasFullPowerBackup(!hasFullPowerBackup)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                          hasFullPowerBackup ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
-                        }`}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${hasFullPowerBackup ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                          }`}
                       >
-                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          hasFullPowerBackup ? 'translate-x-4.5' : 'translate-x-1'
-                        }`} />
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${hasFullPowerBackup ? 'translate-x-4.5' : 'translate-x-1'
+                          }`} />
                       </button>
                     </div>
 
@@ -1844,13 +2565,11 @@ export default function VenueProfilePage() {
                       <button
                         type="button"
                         onClick={() => setHasGamingLounge(!hasGamingLounge)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                          hasGamingLounge ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
-                        }`}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${hasGamingLounge ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                          }`}
                       >
-                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          hasGamingLounge ? 'translate-x-4.5' : 'translate-x-1'
-                        }`} />
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${hasGamingLounge ? 'translate-x-4.5' : 'translate-x-1'
+                          }`} />
                       </button>
                     </div>
 
@@ -1865,13 +2584,11 @@ export default function VenueProfilePage() {
                       <button
                         type="button"
                         onClick={() => setHasRooftopCafe(!hasRooftopCafe)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                          hasRooftopCafe ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
-                        }`}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${hasRooftopCafe ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                          }`}
                       >
-                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          hasRooftopCafe ? 'translate-x-4.5' : 'translate-x-1'
-                        }`} />
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${hasRooftopCafe ? 'translate-x-4.5' : 'translate-x-1'
+                          }`} />
                       </button>
                     </div>
 
@@ -1886,13 +2603,11 @@ export default function VenueProfilePage() {
                       <button
                         type="button"
                         onClick={() => setHasModularKitchen(!hasModularKitchen)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                          hasModularKitchen ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
-                        }`}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${hasModularKitchen ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                          }`}
                       >
-                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          hasModularKitchen ? 'translate-x-4.5' : 'translate-x-1'
-                        }`} />
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${hasModularKitchen ? 'translate-x-4.5' : 'translate-x-1'
+                          }`} />
                       </button>
                     </div>
 
@@ -1907,13 +2622,11 @@ export default function VenueProfilePage() {
                       <button
                         type="button"
                         onClick={() => setHasFitnessGym(!hasFitnessGym)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                          hasFitnessGym ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
-                        }`}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${hasFitnessGym ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                          }`}
                       >
-                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          hasFitnessGym ? 'translate-x-4.5' : 'translate-x-1'
-                        }`} />
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${hasFitnessGym ? 'translate-x-4.5' : 'translate-x-1'
+                          }`} />
                       </button>
                     </div>
 
@@ -1928,13 +2641,11 @@ export default function VenueProfilePage() {
                       <button
                         type="button"
                         onClick={() => setHasCommercialDryerLaundry(!hasCommercialDryerLaundry)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                          hasCommercialDryerLaundry ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
-                        }`}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${hasCommercialDryerLaundry ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                          }`}
                       >
-                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          hasCommercialDryerLaundry ? 'translate-x-4.5' : 'translate-x-1'
-                        }`} />
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${hasCommercialDryerLaundry ? 'translate-x-4.5' : 'translate-x-1'
+                          }`} />
                       </button>
                     </div>
 
@@ -1949,13 +2660,11 @@ export default function VenueProfilePage() {
                       <button
                         type="button"
                         onClick={() => setHasEvChargingPoint(!hasEvChargingPoint)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                          hasEvChargingPoint ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
-                        }`}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${hasEvChargingPoint ? 'bg-[#ff6325]' : 'bg-slate-300 dark:bg-slate-700'
+                          }`}
                       >
-                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          hasEvChargingPoint ? 'translate-x-4.5' : 'translate-x-1'
-                        }`} />
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${hasEvChargingPoint ? 'translate-x-4.5' : 'translate-x-1'
+                          }`} />
                       </button>
                     </div>
                   </div>

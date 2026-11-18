@@ -650,8 +650,181 @@ export default function ListingEditorPage() {
                   />
                 </div>
 
-                {/* If PG / Hostel: Dedicated Clean 3-Payment Flow UI */}
-                {isPgOrHostel ? (
+                {/* If Restaurant / Dining: Dedicated Table Setup & Reservation Fee UI */}
+                {isDining ? (
+                  <div className="md:col-span-2 space-y-5">
+                    {/* Seating Zone & Table Capacity Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {/* 1. Seating Zone Dropdown */}
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                          Seating Zone / Ambiance <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          value={metadata.seatingZone || 'AC Main Hall'}
+                          onChange={(e) => setMetadata({ ...metadata, seatingZone: e.target.value })}
+                          className="w-full px-3.5 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-black text-xs focus:border-[#ff6325] outline-none shadow-xs cursor-pointer"
+                        >
+                          <option value="AC Main Hall">🌟 AC Main Hall (Indoor)</option>
+                          <option value="Romantic Rooftop">🌆 Romantic Rooftop (Open-Air)</option>
+                          <option value="Garden Patio">🌿 Garden Patio (Al-fresco)</option>
+                          <option value="Private Dining Suite">👑 Private Dining Suite (PDR)</option>
+                        </select>
+                        <span className="text-[10px] text-slate-400">
+                          Zone shown on customer table filter chips.
+                        </span>
+                      </div>
+
+                      {/* 2. Min Guests Allowed */}
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                          Min Guests Allowed <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="30"
+                          value={metadata.minGuests !== undefined ? metadata.minGuests : 1}
+                          onChange={(e) => {
+                            const val = Number(e.target.value) || 1;
+                            const maxG = metadata.maxGuests || 2;
+                            setMetadata({ 
+                              ...metadata, 
+                              minGuests: val, 
+                              tableCapacity: `${val} - ${maxG} Guests` 
+                            });
+                          }}
+                          placeholder="e.g. 1 or 2"
+                          className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-black text-sm focus:border-[#ff6325] outline-none shadow-xs"
+                          required
+                        />
+                        <span className="text-[10px] text-slate-400">
+                          Minimum party size for this table.
+                        </span>
+                      </div>
+
+                      {/* 3. Max Guests Allowed */}
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                          Max Guests Allowed <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="50"
+                          value={metadata.maxGuests !== undefined ? metadata.maxGuests : 2}
+                          onChange={(e) => {
+                            const val = Number(e.target.value) || 2;
+                            const minG = metadata.minGuests || 1;
+                            setMetadata({ 
+                              ...metadata, 
+                              maxGuests: val, 
+                              tableCapacity: `${minG} - ${val} Guests` 
+                            });
+                          }}
+                          placeholder="e.g. 2, 4 or 8"
+                          className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-black text-sm focus:border-[#ff6325] outline-none shadow-xs"
+                          required
+                        />
+                        <span className="text-[10px] text-slate-400">
+                          Maximum party size for this table.
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Table Deposit & Booking Fee */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {/* Hold Deposit Fee */}
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                          Table Hold Deposit (₹)
+                        </label>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-400 text-sm">₹</span>
+                          <input
+                            type="number"
+                            value={basePrice}
+                            onChange={(e) => setBasePrice(e.target.value)}
+                            placeholder="0 (Free) or 200 / 500"
+                            min="0"
+                            className="w-full pl-9 pr-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-black text-sm focus:border-[#ff6325] outline-none shadow-xs"
+                          />
+                        </div>
+                        <span className="text-[10px] text-slate-400">
+                          {Number(basePrice) > 0 ? `₹${basePrice} adjustable against food bill` : 'Free Table Reservation (No upfront payment)'}
+                        </span>
+                      </div>
+
+                      {/* Minimum Food Spend Commitment */}
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                          Min Food Spend Commitment (₹)
+                        </label>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-400 text-sm">₹</span>
+                          <input
+                            type="number"
+                            value={metadata.minSpend || ''}
+                            onChange={(e) => setMetadata({ ...metadata, minSpend: Number(e.target.value) || 0 })}
+                            placeholder="0 (No minimum bill)"
+                            min="0"
+                            className="w-full pl-9 pr-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-black text-sm focus:border-[#ff6325] outline-none shadow-xs"
+                          />
+                        </div>
+                        <span className="text-[10px] text-slate-400">
+                          Optional minimum food spend for PDR/VIP tables.
+                        </span>
+                      </div>
+
+                      {/* Total Number of Identical Tables in this Zone */}
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                          Total Table Inventory Count
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="100"
+                          value={metadata.totalUnits || 1}
+                          onChange={(e) => setMetadata({ ...metadata, totalUnits: Number(e.target.value) || 1 })}
+                          placeholder="e.g. 4 tables"
+                          className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-black text-sm focus:border-[#ff6325] outline-none shadow-xs"
+                        />
+                        <span className="text-[10px] text-slate-400">
+                          Number of tables of this exact type available.
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Table Highlight Badge */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-1">
+                          Highlight Badge <span className="text-slate-400 font-normal">(Optional Tag)</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={offerBadge}
+                          onChange={(e) => setOfferBadge(e.target.value)}
+                          placeholder="e.g. MOST POPULAR, ROMANTIC, CELEBRATIONS, VIP SUITE"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-1">
+                          Table Ambiance Description
+                        </label>
+                        <input
+                          type="text"
+                          value={description}
+                          onChange={(e) => setDescription(e.target.value)}
+                          placeholder="e.g. Intimate candlelit seating with panoramic city rooftop views"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : isPgOrHostel ? (
                   <div className="md:col-span-2 space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       {/* 1. Monthly Rent (Selling Price) */}
@@ -1509,7 +1682,7 @@ export default function ListingEditorPage() {
                       <span className="text-[10px] text-slate-400 mt-0.5 block">
                         {isTurfCategory
                           ? 'Select photos of Pitch Grass, Goal Posts, Floodlights, Dugout'
-                          : 'Select multiple files together (Bedroom, Jacuzzi, Balcony, Sunset View)'}
+                          : isDining ? 'Select photos of Table Setup, City View, Interior Ambiance, Cutlery' : 'Select multiple files together (Bedroom, Jacuzzi, Balcony, Sunset View)'}
                       </span>
                     </div>
                   </div>
@@ -1651,7 +1824,7 @@ export default function ListingEditorPage() {
 
               <div>
                 <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2">
-                  {isTurfCategory ? 'Pitch Highlights & Ground Rules' : 'Unit Highlights & Layout'}
+                  {isDining ? 'Table Ambiance Highlights & Dining Policy' : isTurfCategory ? 'Pitch Highlights & Ground Rules' : 'Unit Highlights & Layout'}
                 </label>
                 <textarea
                   value={description}
@@ -1663,7 +1836,7 @@ export default function ListingEditorPage() {
                         ? "e.g. Well-ventilated modern room featuring comfortable bedding, clean attached washroom with 24/7 hot water, work desk, high-speed WiFi, and daily housekeeping..."
                         : isCamping
                           ? "e.g. Weatherproof pitched dome tent with foam sleeping mats, clean sleeping bags, campfire setup, shared washrooms, and starry night outdoor BBQ..."
-                          : "e.g. Spacious beachfront villa featuring private plunge pool, king-size bed, sunset sea views, complimentary breakfast, and signature bath amenities..."
+                          : isDining ? "e.g. Intimate candlelit setting on the 5th floor open-air rooftop with panoramic city views, live acoustic music, and dedicated steward service..." : "e.g. Spacious beachfront villa featuring private plunge pool, king-size bed, sunset sea views, complimentary breakfast, and signature bath amenities..."
                   }
                   rows={3}
                   className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-medium text-xs focus:border-[#ff6325] focus:bg-white dark:focus:bg-[#131d2e] outline-none transition-all shadow-xs"
@@ -1674,7 +1847,9 @@ export default function ListingEditorPage() {
               {!isPgOrHostel && (
                 <div>
                   <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2">
-                    {isTurfCategory
+                    {isDining
+                      ? '🍽️ Complimentary Table Amenities & Inclusions'
+                      : isTurfCategory
                       ? '⚽ Complimentary / Included Playing Gear'
                       : isHotel
                         ? '🎁 Complimentary Welcome Pack & Free Inclusions'
@@ -1691,7 +1866,7 @@ export default function ListingEditorPage() {
                           ? "e.g. RO Drinking Water, High-Speed WiFi, Clean Towels & Bath Soap, Electric Kettle"
                           : isCamping
                             ? "e.g. Sleeping Bags, Flashlight & Lanterns, Campfire Wood, Mineral Water"
-                            : "e.g. Welcome Drinks, High-Speed WiFi, Beach Towels, Snorkeling Kit"
+                            : isDining ? "e.g. Welcome Drink, Warm Hand Towels, Cutlery & Napkin Setup, Mineral Water Bottle" : "e.g. Welcome Drinks, High-Speed WiFi, Beach Towels, Snorkeling Kit"
                     }
                     className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-medium text-xs focus:border-[#ff6325] outline-none transition-all shadow-xs"
                   />
@@ -1705,7 +1880,7 @@ export default function ListingEditorPage() {
                 <div className="flex items-center justify-between mb-3 bg-slate-50 dark:bg-white/[0.03] p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10">
                   <div>
                     <span className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider block">
-                      {isTurfCategory ? 'Optional Turf Add-ons' : 'Optional Unit Add-ons'}
+                      {isDining ? 'Signature Food & Menu Pre-order Dishes' : isTurfCategory ? 'Optional Turf Add-ons' : 'Optional Unit Add-ons'}
                     </span>
                     <span className="text-[11px] text-slate-500 dark:text-slate-400">
                       {isTurfCategory
@@ -1714,7 +1889,7 @@ export default function ListingEditorPage() {
                           ? 'Homely 3 Meals (Breakfast/Lunch/Dinner), Extra Pillow & Blanket, Covered Parking'
                           : isCamping
                             ? 'BBQ Grill Kit, Extra Sleeping Bag, Guided Night Trek, Bonfire Wood'
-                            : 'Homely Meals (Mess), Extra Bed, BBQ Setup, Candlelight Dinner, Airport Pickup'}
+                            : isDining ? 'Special Chef Dishes (Dum Biryani, Pepper Chicken, Sizzlers, Payasam) guests can pre-order' : 'Homely Meals (Mess), Extra Bed, BBQ Setup, Candlelight Dinner, Airport Pickup'}
                     </span>
                   </div>
                   <button
@@ -1722,7 +1897,7 @@ export default function ListingEditorPage() {
                     onClick={() => setAddons(prev => [...prev, { name: '', price: 0 }])}
                     className="px-4 py-2 rounded-xl bg-[#ff6325] hover:bg-[#e04e13] text-white font-black text-xs flex items-center gap-1.5 cursor-pointer transition-all shadow-md shadow-[#ff6325]/25 active:scale-95"
                   >
-                    <Plus size={15} /> Add Add-on
+                    <Plus size={15} /> {isDining ? 'Add Menu Dish' : 'Add Add-on'}
                   </button>
                 </div>
 
@@ -1885,13 +2060,14 @@ export default function ListingEditorPage() {
                     })}
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-400 italic">No add-ons added yet. Click &quot;Add Add-on&quot; to configure optional upsells.</p>
+                  <p className="text-xs text-slate-400 italic">{isDining ? 'No menu items configured yet. Click "Add Menu Dish" to let guests pre-order signature delicacies.' : 'No add-ons added yet. Click "Add Add-on" to configure optional upsells.'}</p>
                 )}
               </div>
             </div>
           </div>
 
           {/* Section 4: Category Details Dynamic Grid */}
+          {!isDining && (
           <div className="bg-white dark:bg-[#0f1624] rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-sm overflow-hidden transition-all hover:shadow-md">
             <div className="h-1.5 w-full bg-gradient-to-r from-purple-500 via-violet-600 to-indigo-600" />
             <div className="p-6 sm:p-8 space-y-6">
@@ -1920,6 +2096,7 @@ export default function ListingEditorPage() {
               />
             </div>
           </div>
+          )}
 
           {/* Bottom Action Bar (Normal flow - never overlaps content) */}
           <div className="mt-8 p-5 sm:p-6 rounded-3xl bg-white dark:bg-[#0f1624] border border-slate-200/90 dark:border-white/10 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
