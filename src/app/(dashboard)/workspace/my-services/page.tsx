@@ -346,10 +346,25 @@ export default function WorkspacePage() {
           id: t.id,
           name: t.name,
           price: t.price,
+          originalPrice: t.originalPrice,
+          discountPercentage: t.originalPrice ? Math.round(((t.originalPrice - t.price) / t.originalPrice) * 100) : 0,
           imageUrl: wellnessCfg.heroImage,
           description: `${t.durationMinutes} Mins • ${t.category}`,
           images: wellnessCfg.galleryImages,
-          active: true
+          active: true,
+          metadata: {
+            speciality: t.category,
+            consultationDuration: t.durationMinutes,
+            doctorName: t.genderTarget === 'MEN' ? 'Arun Varma (Lead Hair Director)' : t.genderTarget === 'WOMEN' ? 'Priya Sundaram (Senior Aesthetician)' : 'Any Senior Stylist',
+            qualification: "Toni&Guy Certified / L'Oréal Color Pro (8+ yrs exp)",
+            opdRoomNumber: 'Styling Station #2 (Luxury Suite)',
+            maxDailyTokens: 16,
+            consultationFee: t.price,
+            opdTimings: 'Mon-Sun: 09:00 AM - 09:00 PM',
+            treatmentCategory: t.category,
+            serviceMode: t.serviceMode,
+            genderTarget: t.genderTarget
+          }
         }))
       };
       merchantServices = [fallbackWellnessService];

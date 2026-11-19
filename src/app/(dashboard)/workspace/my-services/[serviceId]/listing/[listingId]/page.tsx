@@ -79,6 +79,16 @@ export default function ListingEditorPage() {
 
   const resolveCategory = () => {
     let cat = services.find(s => s.id === serviceId);
+    if (!cat && typeof window !== 'undefined') {
+      try {
+        const storedOverride = localStorage.getItem(`custom_service_override_${serviceId}`);
+        if (storedOverride) {
+          cat = JSON.parse(storedOverride);
+        }
+      } catch (err) {
+        console.warn('Failed to parse stored service override', err);
+      }
+    }
     if (cat) return cat;
 
     if (!cat && serviceId && currentMerchant) {
@@ -152,10 +162,25 @@ export default function ListingEditorPage() {
             id: t.id,
             name: t.name,
             price: t.price,
+            originalPrice: t.originalPrice,
+            discountPercentage: t.originalPrice ? Math.round(((t.originalPrice - t.price) / t.originalPrice) * 100) : 0,
             imageUrl: wellnessCfg.heroImage,
             description: `${t.durationMinutes} Mins • ${t.category}`,
             images: wellnessCfg.galleryImages,
-            active: true
+            active: true,
+            metadata: {
+              speciality: t.category,
+              consultationDuration: t.durationMinutes,
+              doctorName: t.genderTarget === 'MEN' ? 'Arun Varma (Lead Hair Director)' : t.genderTarget === 'WOMEN' ? 'Priya Sundaram (Senior Aesthetician)' : 'Any Senior Stylist',
+              qualification: "Toni&Guy Certified / L'Oréal Color Pro (8+ yrs exp)",
+              opdRoomNumber: 'Styling Station #2 (Luxury Suite)',
+              maxDailyTokens: 16,
+              consultationFee: t.price,
+              opdTimings: 'Mon-Sun: 09:00 AM - 09:00 PM',
+              treatmentCategory: t.category,
+              serviceMode: t.serviceMode,
+              genderTarget: t.genderTarget
+            }
           }))
         } as CatalogService;
       } else if (rawCat.includes('gym') || rawCat.includes('yoga') || serviceId.includes('fitness')) {
@@ -184,10 +209,24 @@ export default function ListingEditorPage() {
             id: p.id,
             name: p.name,
             price: p.price,
+            originalPrice: Math.round(p.price * 1.3),
+            discountPercentage: 20,
             imageUrl: fitCfg.heroImage,
             description: `${p.durationMinutes === 720 ? 'Full Day' : `${p.durationMinutes}m`} • ${p.formatType}`,
             images: fitCfg.galleryImages,
-            active: true
+            active: true,
+            metadata: {
+              speciality: p.formatType === 'OPEN_GYM' ? 'Open Gym Floor & Cardio' : p.formatType === 'YOGA_CLASS' ? 'Traditional Yoga & Pranayama' : 'Personal 1-on-1 Training',
+              consultationDuration: p.durationMinutes,
+              doctorName: p.formatType === 'YOGA_CLASS' ? 'Acharya Ananya Sharma' : 'Vikram Rathore, CSCS',
+              qualification: p.formatType === 'YOGA_CLASS' ? 'Yoga Alliance RYT 500' : 'Head Strength & Conditioning Coach (8+ yrs exp)',
+              opdRoomNumber: p.formatType === 'YOGA_CLASS' ? 'Bamboo-Floored Sound-Insulated Yoga Shala' : 'Main Strength & Free Weights Turf Floor',
+              maxDailyTokens: p.maxCapacity || 25,
+              consultationFee: p.price,
+              opdTimings: '05:30 AM – 10:00 PM (Monday – Sunday)',
+              formatType: p.formatType,
+              batchType: p.batchType
+            }
           }))
         } as CatalogService;
       } else if (rawCat.includes('doctor') || rawCat.includes('clinic') || serviceId.includes('doc')) {
@@ -262,10 +301,20 @@ export default function ListingEditorPage() {
 
   useEffect(() => {
     setMounted(true);
-    const category = resolveCategory();
+    let category = resolveCategory();
     if (category && currentMerchant) {
       if (!isCreating) {
-        const list = category.listings?.find(l => l.id === listingId);
+        let list = category.listings?.find(l => l.id === listingId);
+        if (!list && typeof window !== 'undefined') {
+          try {
+            const storedListing = localStorage.getItem(`custom_listing_override_${listingId}`);
+            if (storedListing) {
+              list = JSON.parse(storedListing);
+            }
+          } catch (err) {
+            console.warn('Failed to parse stored listing override', err);
+          }
+        }
         if (list) {
           setServiceName(list.name || '');
           setImageUrl(list.imageUrl || '');
@@ -427,7 +476,31 @@ export default function ListingEditorPage() {
     (currentMerchant?.category || '').toLowerCase().includes('restaurant') ||
     Boolean(category.metadata?.isDining);
 
-  const isAccommodation = !isDining && (isHotel || isResortVilla || isCamping || isPgOrHostel ||
+  const isSalonCategory = 
+    (categoryDisplayName || '').toLowerCase().includes('salon') ||
+    (categoryDisplayName || '').toLowerCase().includes('spa') ||
+    (categoryDisplayName || '').toLowerCase().includes('hair') ||
+    (categoryDisplayName || '').toLowerCase().includes('beauty') ||
+    (categoryDisplayName || '').toLowerCase().includes('grooming') ||
+    (categoryDisplayName || '').toLowerCase().includes('wellness') ||
+    (category.category || '').toLowerCase().includes('salon') ||
+    (category.category || '').toLowerCase().includes('spa') ||
+    (currentMerchant?.category || '').toLowerCase().includes('salon') ||
+    (currentMerchant?.category || '').toLowerCase().includes('spa') ||
+    Boolean(category.metadata?.isWellness);
+
+  const isFitnessCategory =
+    (categoryDisplayName || '').toLowerCase().includes('gym') ||
+    (categoryDisplayName || '').toLowerCase().includes('yoga') ||
+    (categoryDisplayName || '').toLowerCase().includes('fitness') ||
+    (categoryDisplayName || '').toLowerCase().includes('crossfit') ||
+    (category.category || '').toLowerCase().includes('gym') ||
+    (category.category || '').toLowerCase().includes('yoga') ||
+    (currentMerchant?.category || '').toLowerCase().includes('gym') ||
+    (currentMerchant?.category || '').toLowerCase().includes('yoga') ||
+    Boolean(category.metadata?.isFitness);
+
+  const isAccommodation = !isDining && !isSalonCategory && !isFitnessCategory && (isHotel || isResortVilla || isCamping || isPgOrHostel ||
     (categoryDisplayName || '').toLowerCase().includes('suite') ||
     (categoryDisplayName || '').toLowerCase().includes('stay') ||
     (currentMerchant?.archetype?.toUpperCase() === 'ACCOMMODATION') ||
@@ -437,10 +510,11 @@ export default function ListingEditorPage() {
     isDining ? 'DINING' :
       isTurfCategory ? 'RENTAL' :
         isAccommodation ? 'ACCOMMODATION' :
-          getArchetypeFromCategory(category?.name) ||
-          getArchetypeFromCategory(category?.category) ||
-          getArchetypeFromCategory(currentMerchant?.category) ||
-          'RENTAL';
+          (isSalonCategory || isFitnessCategory) ? 'APPOINTMENT' :
+            getArchetypeFromCategory(category?.name) ||
+            getArchetypeFromCategory(category?.category) ||
+            getArchetypeFromCategory(currentMerchant?.category) ||
+            'APPOINTMENT';
 
   const handleSaveDetails = () => {
     if (!serviceName.trim()) {
@@ -549,6 +623,15 @@ export default function ListingEditorPage() {
       ...category,
       listings: updatedListings
     };
+
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(`custom_service_override_${serviceId}`, JSON.stringify(updatedCategory));
+        localStorage.setItem(`custom_listing_override_${updatedListing.id}`, JSON.stringify(updatedListing));
+      } catch (err) {
+        console.warn('Failed to save to localStorage', err);
+      }
+    }
 
     updateService(updatedCategory);
     router.push(`/workspace/my-services/${serviceId}`);
@@ -1395,8 +1478,8 @@ export default function ListingEditorPage() {
                     </div>
                   </div>
 
-                  {/* Rent Cadence / Price Unit & Refundable Deposit Inputs (Hidden for Dining since dining uses per reservation) */}
-                  {!isDining && (
+                  {/* Rent Cadence / Price Unit & Refundable Deposit Inputs (Hidden for Dining, Salon & Fitness since they use per session/pass) */}
+                  {!isDining && !isSalonCategory && !isFitnessCategory && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-200 dark:border-white/10">
                       <div>
                         <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
@@ -1454,7 +1537,7 @@ export default function ListingEditorPage() {
                   {/* Promo Banner Tagline Field */}
                   <div className="md:col-span-2 pt-2 border-t border-slate-200 dark:border-white/10">
                     <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-                      {isDining ? 'Dining Table Atmosphere Tagline' : isTurfCategory ? 'Arena / Pitch Banner Tagline' : 'Promotional Getaway Banner Tagline'} <span className="text-slate-400 font-normal">(Shown on bottom card)</span>
+                      {isDining ? 'Dining Table Atmosphere Tagline' : isTurfCategory ? 'Arena / Pitch Banner Tagline' : isSalonCategory ? 'Salon Treatment Tagline' : 'Promotional Getaway Banner Tagline'} <span className="text-slate-400 font-normal">(Shown on bottom card)</span>
                     </label>
                     <input
                       type="text"
@@ -1465,6 +1548,8 @@ export default function ListingEditorPage() {
                           ? "e.g. Candlelit Starlit Dinner, Sunset Bistro Vibes, Royal Heritage Dining"
                           : isTurfCategory 
                             ? "e.g. Premier FIFA 7v7 Astro Arena, Floodlit Night Tournament Pitch" 
+                            : isSalonCategory
+                            ? "e.g. Relax & Revitalize with Certified Master Stylists"
                             : isHotel
                             ? "e.g. Comfortable City Centre Stay, Peaceful Business & Leisure Getaway"
                             : isCamping
@@ -2244,6 +2329,44 @@ export default function ListingEditorPage() {
                       <span>Bibs & Ball Inc.</span>
                     </div>
                   </>
+                ) : isFitnessCategory ? (
+                  <>
+                    <div className="flex items-center gap-1">
+                      <span>🏋️</span>
+                      <span className="truncate">{metadata.doctorName || 'Lead Coach'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>⏱️</span>
+                      <span>{metadata.consultationDuration === 720 ? 'Full Day' : `${metadata.consultationDuration || 60}m`} Session</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>⚡</span>
+                      <span>QR Turnstile Entry</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>🔒</span>
+                      <span>Locker & Shower</span>
+                    </div>
+                  </>
+                ) : isSalonCategory ? (
+                  <>
+                    <div className="flex items-center gap-1">
+                      <span>✂️</span>
+                      <span className="truncate">{metadata.doctorName || metadata.speciality || 'Master Stylist'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>⏱️</span>
+                      <span>{metadata.consultationDuration || 45} Mins Duration</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>💺</span>
+                      <span>{metadata.opdRoomNumber || 'Styling Chair'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>✨</span>
+                      <span>Instant Slot</span>
+                    </div>
+                  </>
                 ) : archetype === 'APPOINTMENT' ? (
                   <>
                     <div className="flex items-center gap-1">
@@ -2382,7 +2505,7 @@ export default function ListingEditorPage() {
                         ₹{basePrice ? Number(basePrice).toLocaleString() : '0'}
                       </span>
                       <span className="text-[10px] text-slate-400">
-                        {isPgOrHostel ? (priceUnit || 'monthly rent (all inclusive)') : isDining ? (priceUnit || 'per reservation') : isTurfCategory ? '/ hour' : archetype === 'ACCOMMODATION' ? (priceUnit || '/ night') : archetype === 'ASSET_RENTAL' ? '/ day' : archetype === 'APPOINTMENT' ? '/ consult' : '/ person'}
+                        {isPgOrHostel ? (priceUnit || 'monthly rent (all inclusive)') : isDining ? (priceUnit || 'per reservation') : isTurfCategory ? '/ hour' : isFitnessCategory ? '/ pass' : archetype === 'ACCOMMODATION' ? (priceUnit || '/ night') : archetype === 'ASSET_RENTAL' ? '/ day' : archetype === 'APPOINTMENT' ? '/ consult' : '/ person'}
                       </span>
                     </div>
                   </div>
@@ -2392,7 +2515,7 @@ export default function ListingEditorPage() {
                     disabled
                     className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#f4511e] text-white text-[11px] font-black uppercase tracking-wider shadow-sm opacity-90 cursor-default"
                   >
-                    {isPgOrHostel ? 'SELECT BED & BOOK →' : isTurfCategory ? 'BOOK SLOT →' : archetype === 'ACCOMMODATION' ? 'BOOK ROOM →' : archetype === 'APPOINTMENT' ? 'BOOK APPOINTMENT →' : archetype === 'DINING' ? 'RESERVE TABLE →' : archetype === 'ASSET_RENTAL' ? 'RENT NOW →' : 'BOOK NOW →'}
+                    {isPgOrHostel ? 'SELECT BED & BOOK →' : isTurfCategory ? 'BOOK SLOT →' : isFitnessCategory ? 'BOOK PASS →' : archetype === 'ACCOMMODATION' ? 'BOOK ROOM →' : archetype === 'APPOINTMENT' ? 'BOOK APPOINTMENT →' : archetype === 'DINING' ? 'RESERVE TABLE →' : archetype === 'ASSET_RENTAL' ? 'RENT NOW →' : 'BOOK NOW →'}
                   </button>
                 </div>
 

@@ -91,6 +91,32 @@ export default function DynamicForm({
       categoryName.toLowerCase().includes('tent')
     );
 
+  const isSalonWellness = 
+    categoryName.toLowerCase().includes('salon') || 
+    categoryName.toLowerCase().includes('spa') || 
+    categoryName.toLowerCase().includes('beauty') || 
+    categoryName.toLowerCase().includes('hair') ||
+    categoryName.toLowerCase().includes('wellness') ||
+    merchantCategory.toLowerCase().includes('salon') ||
+    merchantCategory.toLowerCase().includes('spa') ||
+    merchantCategory.toLowerCase().includes('wellness');
+
+  const isYogaShala =
+    categoryName.toLowerCase().includes('yoga') ||
+    categoryName.toLowerCase().includes('meditation') ||
+    merchantCategory.toLowerCase().includes('yoga') ||
+    merchantCategory.toLowerCase().includes('meditation');
+
+  const isFitnessGym =
+    !isYogaShala && (
+      categoryName.toLowerCase().includes('gym') ||
+      categoryName.toLowerCase().includes('fitness') ||
+      categoryName.toLowerCase().includes('crossfit') ||
+      categoryName.toLowerCase().includes('workout') ||
+      merchantCategory.toLowerCase().includes('gym') ||
+      merchantCategory.toLowerCase().includes('fitness')
+    );
+
   const title = (archetype === 'RENTAL' || archetype === 'FACILITY_HOURLY')
     ? (isCricket 
         ? "Cricket Ground, Pitch & Net Details" 
@@ -110,6 +136,14 @@ export default function DynamicForm({
         ? "Campsite & Tent Stay Setup"
         : isResortVilla
         ? "Resort, Villa & Cottage Details"
+        : baseSchema.title)
+    : archetype === 'APPOINTMENT'
+    ? (isSalonWellness
+        ? "Salon, Spa & Styling Treatment Details"
+        : isYogaShala
+        ? "Yoga Shala & Meditation Batch Specification"
+        : isFitnessGym
+        ? "Gym Floor, Membership & Trainer Setup"
         : baseSchema.title)
     : baseSchema.title;
 
@@ -249,6 +283,205 @@ export default function DynamicForm({
       return field;
     }
     if (archetype === 'DINING') {
+      return field;
+    }
+    if (archetype === 'APPOINTMENT') {
+      if (isSalonWellness) {
+        if (field.name === 'doctorName') {
+          return {
+            ...field,
+            label: "Lead Stylist / Specialist Name",
+            placeholder: "e.g., Alex Rivera (Master Hair Director) or Any Senior Stylist",
+            required: false
+          };
+        }
+        if (field.name === 'qualification') {
+          return {
+            ...field,
+            label: "Experience & Certifications",
+            placeholder: "e.g., Toni&Guy Certified, L'Oréal Color Specialist (8+ yrs exp)",
+            required: false
+          };
+        }
+        if (field.name === 'speciality') {
+          return {
+            ...field,
+            label: "Treatment Category & Discipline",
+            placeholder: "e.g., Creative Haircuts & Styling, Skin Therapy, Swedish Massage",
+            required: true
+          };
+        }
+        if (field.name === 'consultationDuration') {
+          return {
+            ...field,
+            label: "Service Duration (Minutes)",
+            placeholder: "e.g., 45",
+            required: true
+          };
+        }
+        if (field.name === 'opdRoomNumber') {
+          return {
+            ...field,
+            label: "Styling Station / Private Suite",
+            placeholder: "e.g., Styling Chair #3, AC Luxury Spa Suite 1",
+            required: false
+          };
+        }
+        if (field.name === 'maxDailyTokens') {
+          return {
+            ...field,
+            label: "Max Clients / Slots per Day",
+            placeholder: "e.g., 16",
+            required: false
+          };
+        }
+        if (field.name === 'consultationFee') {
+          return {
+            ...field,
+            label: "Treatment Base Fee (₹)",
+            placeholder: "e.g., 899",
+            required: true
+          };
+        }
+        if (field.name === 'opdTimings') {
+          return {
+            ...field,
+            label: "Service Availability Hours",
+            placeholder: "e.g., Mon-Sun: 09:00 AM - 09:00 PM",
+            required: false
+          };
+        }
+      } else if (isYogaShala) {
+        if (field.name === 'doctorName') {
+          return {
+            ...field,
+            label: "Lead Guru / Acharya Name",
+            placeholder: "e.g., Acharya Ananya Sharma or Guru Madhavan Nambiar",
+            required: false
+          };
+        }
+        if (field.name === 'qualification') {
+          return {
+            ...field,
+            label: "Yoga Certifications & Tradition",
+            placeholder: "e.g., Yoga Alliance RYT 500, Hatha & Ashtanga Tradition",
+            required: false
+          };
+        }
+        if (field.name === 'speciality') {
+          return {
+            ...field,
+            label: "Yoga Style / Batch Discipline",
+            placeholder: "e.g., Traditional Hatha Yoga, Vinyasa Power Flow, Sound Healing",
+            required: true
+          };
+        }
+        if (field.name === 'consultationDuration') {
+          return {
+            ...field,
+            label: "Batch Duration (Minutes)",
+            placeholder: "e.g., 60 or 75",
+            required: true
+          };
+        }
+        if (field.name === 'opdRoomNumber') {
+          return {
+            ...field,
+            label: "Yoga Shala / Deck Room",
+            placeholder: "e.g., Sound-Insulated Bamboo Shala, Rooftop Sunrise Deck",
+            required: false
+          };
+        }
+        if (field.name === 'maxDailyTokens') {
+          return {
+            ...field,
+            label: "Max Mat Capacity per Batch",
+            placeholder: "e.g., 16 mats",
+            required: false
+          };
+        }
+        if (field.name === 'consultationFee') {
+          return {
+            ...field,
+            label: "Drop-in Class / Batch Fee (₹)",
+            placeholder: "e.g., 399",
+            required: true
+          };
+        }
+        if (field.name === 'opdTimings') {
+          return {
+            ...field,
+            label: "Batch Schedule Window",
+            placeholder: "e.g., Sunrise 06:00 AM, Morning 07:15 AM, Evening 06:00 PM",
+            required: false
+          };
+        }
+      } else if (isFitnessGym) {
+        if (field.name === 'doctorName') {
+          return {
+            ...field,
+            label: "Lead Coach / Trainer Name",
+            placeholder: "e.g., Vikram Rathore, CSCS or Rahul Shenoy, ACE",
+            required: false
+          };
+        }
+        if (field.name === 'qualification') {
+          return {
+            ...field,
+            label: "Certifications & Experience",
+            placeholder: "e.g., CSCS, K11 Certified, Crossfit Level 2",
+            required: false
+          };
+        }
+        if (field.name === 'speciality') {
+          return {
+            ...field,
+            label: "Membership Plan / Training Focus",
+            placeholder: "e.g., 1 Month Starter, 3 Months Transformation, 1-on-1 PT",
+            required: true
+          };
+        }
+        if (field.name === 'consultationDuration') {
+          return {
+            ...field,
+            label: "Floor Access / PT Duration (Minutes)",
+            placeholder: "e.g., 60 (PT Session) or 720 (Full Day Pass)",
+            required: true
+          };
+        }
+        if (field.name === 'opdRoomNumber') {
+          return {
+            ...field,
+            label: "Floor Section / Area",
+            placeholder: "e.g., Main Weights Floor, Cardio Deck, Olympic Turf Rig",
+            required: false
+          };
+        }
+        if (field.name === 'maxDailyTokens') {
+          return {
+            ...field,
+            label: "Daily Floor Capacity / Active Members",
+            placeholder: "e.g., 100",
+            required: false
+          };
+        }
+        if (field.name === 'consultationFee') {
+          return {
+            ...field,
+            label: "Plan Base Fee (₹)",
+            placeholder: "e.g., 1999 or 4499",
+            required: true
+          };
+        }
+        if (field.name === 'opdTimings') {
+          return {
+            ...field,
+            label: "Gym Floor Operating Hours",
+            placeholder: "e.g., 05:30 AM – 10:00 PM (Monday – Sunday)",
+            required: false
+          };
+        }
+      }
       return field;
     }
     if (archetype === 'ACCOMMODATION') {

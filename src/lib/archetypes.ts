@@ -95,8 +95,11 @@ export const CATEGORY_TO_ARCHETYPE_MAP: Record<string, Archetype> = {
   'salon-spa-appointment': 'APPOINTMENT',
   'spas': 'APPOINTMENT',
   'spa': 'APPOINTMENT',
+  'gym': 'APPOINTMENT',
   'gym-yoga': 'APPOINTMENT',
   'gym-yoga-slot-booking': 'APPOINTMENT',
+  'yoga': 'APPOINTMENT',
+  'yoga-meditation': 'APPOINTMENT',
   'pet-grooming': 'APPOINTMENT',
   'pet-grooming-appointment': 'APPOINTMENT',
   'fitness-classes': 'APPOINTMENT',
@@ -151,7 +154,7 @@ export const getArchetypeFromCategory = (cat?: string): Archetype | null => {
   if (normalized.includes('bus') || normalized.includes('train') || normalized.includes('flight') || normalized.includes('cab')) return 'TRANSPORT';
   if (normalized.includes('villa') || normalized.includes('hotel') || normalized.includes('resort') || normalized.includes('hostel') || normalized.includes('stay') || normalized.includes('camp') || normalized.includes('accommodation') || normalized.includes('room') || normalized.includes('suite') || normalized.includes('cottage') || normalized.includes('deluxe')) return 'ACCOMMODATION';
   if (normalized.includes('turf') || normalized.includes('court') || normalized.includes('pool') || normalized.includes('arena') || normalized.includes('ground') || normalized.includes('pitch')) return 'RENTAL';
-  if (normalized.includes('doctor') || normalized.includes('clinic') || normalized.includes('salon') || normalized.includes('spa') || normalized.includes('gym')) return 'APPOINTMENT';
+  if (normalized.includes('doctor') || normalized.includes('clinic') || normalized.includes('salon') || normalized.includes('spa') || normalized.includes('gym') || normalized.includes('yoga')) return 'APPOINTMENT';
   if (normalized.includes('restaurant') || normalized.includes('dining') || normalized.includes('cafe')) return 'DINING';
   if (normalized.includes('clean') || normalized.includes('electric') || normalized.includes('plumb') || normalized.includes('repair')) return 'HOME_CALL';
   if (normalized.includes('movie') || normalized.includes('concert') || normalized.includes('darshan') || normalized.includes('event')) return 'PASS_ENTRY';

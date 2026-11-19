@@ -2968,10 +2968,22 @@ export const useVendorStore = create<VendorStoreState>()(
       },
       
       updateService: async (updated) => {
-        // Optimistic update
-        set((state) => ({
-          services: state.services.map((s) => (s.id === updated.id ? updated : s))
-        }));
+        // Optimistic update - ensure if service wasn't already in services, it gets appended!
+        set((state) => {
+          const exists = state.services.some((s) => s.id === updated.id);
+          const newServices = exists
+            ? state.services.map((s) => (s.id === updated.id ? updated : s))
+            : [...state.services, updated];
+          
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.setItem(`custom_service_override_${updated.id}`, JSON.stringify(updated));
+            } catch (err) {
+              console.warn('Failed to save service override to localStorage', err);
+            }
+          }
+          return { services: newServices };
+        });
         try {
           const isProd = process.env.NODE_ENV === 'production' || (typeof window !== 'undefined' && window.location.hostname !== 'localhost');
           const baseUrl = isProd ? 'https://bokspot-be.onrender.com/api/v1' : 'http://localhost:9000/api/v1';

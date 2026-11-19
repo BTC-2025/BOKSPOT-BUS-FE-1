@@ -61,7 +61,59 @@ export default function VenueProfilePage() {
     (currentMerchant?.category || '').toLowerCase().includes('salon') ||
     (currentMerchant?.category || '').toLowerCase().includes('spa') ||
     (currentMerchant?.category || '').toLowerCase().includes('wellness') ||
+    (currentMerchant?.category || '').toLowerCase().includes('beauty') ||
+    (currentMerchant?.category || '').toLowerCase().includes('grooming') ||
     currentMerchant?.metadata?.isWellness
+  );
+
+  // Gym, Yoga & Fitness Specific Configurations
+  const isFitnessVendor = Boolean(
+    (currentMerchant?.category || '').toLowerCase().includes('gym') ||
+    (currentMerchant?.category || '').toLowerCase().includes('yoga') ||
+    (currentMerchant?.category || '').toLowerCase().includes('fitness') ||
+    (currentMerchant?.category || '').toLowerCase().includes('crossfit') ||
+    currentMerchant?.metadata?.isFitness
+  );
+
+  const [fitnessTurnstileEnabled, setFitnessTurnstileEnabled] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.fitnessTurnstileEnabled ?? true;
+  });
+  const [fitnessOpenTime, setFitnessOpenTime] = useState<string>(() => {
+    return currentMerchant?.metadata?.fitnessOpenTime || '05:30 AM';
+  });
+  const [fitnessCloseTime, setFitnessCloseTime] = useState<string>(() => {
+    return currentMerchant?.metadata?.fitnessCloseTime || '10:00 PM';
+  });
+  const [fitnessLockerFree, setFitnessLockerFree] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.fitnessLockerFree ?? true;
+  });
+  const [fitnessSteamBath, setFitnessSteamBath] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.fitnessSteamBath ?? true;
+  });
+  const [fitnessHighlights, setFitnessHighlights] = useState<string[]>(() => {
+    return currentMerchant?.metadata?.fitnessHighlights || [
+      '⚡ Instant QR & NFC Turnstile Gate Admission',
+      '🔒 Smart RFID Digital Locker Access',
+      '🚿 Luxury Shower & Steam Bath Included',
+      '🧘 Sound-Insulated Bamboo Yoga Deck',
+      '🥤 In-House Whey Shake & Smoothie Bar'
+    ];
+  });
+  const [customFitnessHighlightInput, setCustomFitnessHighlightInput] = useState('');
+
+  // Accommodation / Stay Specific Configurations (Hotels, Resorts, Villas, Hostels)
+  const isAccommodationVendor = Boolean(
+    !isDiningVendor && !isSalonVendor && !isFitnessVendor && (
+      (currentMerchant?.category || '').toLowerCase().includes('hotel') ||
+      (currentMerchant?.category || '').toLowerCase().includes('resort') ||
+      (currentMerchant?.category || '').toLowerCase().includes('villa') ||
+      (currentMerchant?.category || '').toLowerCase().includes('cottage') ||
+      (currentMerchant?.category || '').toLowerCase().includes('camp') ||
+      (currentMerchant?.category || '').toLowerCase().includes('stay') ||
+      (currentMerchant?.category || '').toLowerCase().includes('hostel') ||
+      (currentMerchant?.category || '').toLowerCase().includes('pg') ||
+      currentMerchant?.archetype?.toUpperCase() === 'ACCOMMODATION'
+    )
   );
   const [salonHomeVisitEnabled, setSalonHomeVisitEnabled] = useState<boolean>(() => {
     return currentMerchant?.metadata?.salonHomeVisitEnabled ?? true;
@@ -775,6 +827,12 @@ export default function VenueProfilePage() {
         hasFitnessGym,
         hasCommercialDryerLaundry,
         hasEvChargingPoint,
+        fitnessTurnstileEnabled,
+        fitnessOpenTime,
+        fitnessCloseTime,
+        fitnessLockerFree,
+        fitnessSteamBath,
+        fitnessHighlights
       }
     } as any);
 
@@ -1025,8 +1083,8 @@ export default function VenueProfilePage() {
           </div>
         </div>
 
-        {/* 2. Check-in / Check-out & Operating Timings (For Daily Stays / Hostels) */}
-        {!isPgProperty && (
+        {/* 2. Check-in / Check-out & Operating Timings (Only For Hotels, Resorts, Villas & Hostels) */}
+        {isAccommodationVendor && !isPgProperty && (
           <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all">
             <div className="flex items-center gap-3 mb-5 pb-3 border-b border-slate-100 dark:border-white/5">
               <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-md shadow-amber-500/25 ring-4 ring-amber-500/15 shrink-0">
@@ -1068,7 +1126,7 @@ export default function VenueProfilePage() {
         )}
 
         {/* 2.5 Restaurant Table Reservation & Dining Configurations */}
-        {(isDiningVendor || true) && (
+        {isDiningVendor && (
           <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all">
             <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100 dark:border-white/5">
               <div className="flex items-center gap-3">
@@ -1490,7 +1548,7 @@ export default function VenueProfilePage() {
         )}
 
         {/* 2.6 Module 3: Restaurant Slot Deals & Promo Coupon Manager */}
-        {(isDiningVendor || true) && (
+        {isDiningVendor && (
           <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all space-y-6">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
               <div className="flex items-center gap-3">
@@ -1709,7 +1767,7 @@ export default function VenueProfilePage() {
         )}
 
         {/* 2.7 Salon, Spa & Doorstep Home Visit Configurations */}
-        {(isSalonVendor || true) && (
+        {isSalonVendor && (
           <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all space-y-6">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
               <div className="flex items-center gap-3">
@@ -1896,6 +1954,174 @@ export default function VenueProfilePage() {
           </div>
         )}
 
+        {/* 2.8 Gym, Yoga & Fitness Studio Turnstile Configurations */}
+        {isFitnessVendor && (
+          <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all space-y-6">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold shadow-md shadow-indigo-500/25 ring-4 ring-indigo-500/15 shrink-0">
+                  <span className="text-lg">🏋️</span>
+                </div>
+                <div>
+                  <h2 className="text-base font-black text-slate-900 dark:text-white">Gym & Yoga Studio Operations</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Manage automated turnstile entrance, continuous shala/gym floor hours, and studio amenities.
+                  </p>
+                </div>
+              </div>
+              <span className="px-3 py-1 rounded-full text-[11px] font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                Fitness & Yoga
+              </span>
+            </div>
+
+            {/* Smart QR / NFC Turnstile Access Toggle */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-base">⚡</span>
+                  <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                    Automated QR Turnstile / Gate Admission
+                  </h4>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Enables digital turnstile passes for instant barrier access upon QR/NFC validation at check-in.
+                </p>
+              </div>
+
+              <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                <input
+                  type="checkbox"
+                  checked={fitnessTurnstileEnabled}
+                  onChange={(e) => setFitnessTurnstileEnabled(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-12 h-6.5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+              </label>
+            </div>
+
+            {/* Gym Floor / Yoga Shala Operating Hours */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                  Early Morning Opening Time
+                </label>
+                <input
+                  type="text"
+                  value={fitnessOpenTime}
+                  onChange={(e) => setFitnessOpenTime(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111927] text-xs font-black text-slate-900 dark:text-white outline-none text-center focus:border-indigo-600"
+                  placeholder="05:30 AM"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                  Night Closing Time
+                </label>
+                <input
+                  type="text"
+                  value={fitnessCloseTime}
+                  onChange={(e) => setFitnessCloseTime(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111927] text-xs font-black text-slate-900 dark:text-white outline-none text-center focus:border-indigo-600"
+                  placeholder="10:00 PM"
+                />
+              </div>
+            </div>
+
+            {/* In-Studio Facilities */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <label className="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-slate-800/40 cursor-pointer hover:border-indigo-500/50 transition-all">
+                <input
+                  type="checkbox"
+                  checked={fitnessLockerFree}
+                  onChange={(e) => setFitnessLockerFree(e.target.checked)}
+                  className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300"
+                />
+                <div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white">🔒 Free Digital Smart Locker Included</div>
+                  <div className="text-[10px] text-slate-400">Members & pass holders receive complimentary secure storage</div>
+                </div>
+              </label>
+
+              <label className="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-slate-800/40 cursor-pointer hover:border-indigo-500/50 transition-all">
+                <input
+                  type="checkbox"
+                  checked={fitnessSteamBath}
+                  onChange={(e) => setFitnessSteamBath(e.target.checked)}
+                  className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300"
+                />
+                <div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white">🧖 Steam Bath & Luxury Showers Included</div>
+                  <div className="text-[10px] text-slate-400">Post-workout hydrotherapy & relaxation suites available</div>
+                </div>
+              </label>
+            </div>
+
+            {/* Studio & Floor Highlights */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                  Gym Equipment, Ambiance & Shala Highlights
+                </label>
+                <span className="text-[10px] font-bold text-slate-400">
+                  {fitnessHighlights.length} enabled
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-3">
+                {fitnessHighlights.map((hl) => (
+                  <span
+                    key={hl}
+                    className="inline-flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300 px-3.5 py-1.5 rounded-xl text-xs font-bold border border-indigo-200 dark:border-indigo-900/40"
+                  >
+                    <span>✓</span> {hl}
+                    <button
+                      type="button"
+                      onClick={() => setFitnessHighlights(fitnessHighlights.filter(h => h !== hl))}
+                      className="hover:text-red-500 ml-1 cursor-pointer font-bold"
+                    >
+                      &times;
+                    </button>
+                  </span>
+                ))}
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={customFitnessHighlightInput}
+                  onChange={(e) => setCustomFitnessHighlightInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const val = customFitnessHighlightInput.trim();
+                      if (val && !fitnessHighlights.includes(val)) {
+                        setFitnessHighlights([...fitnessHighlights, val]);
+                        setCustomFitnessHighlightInput('');
+                      }
+                    }
+                  }}
+                  placeholder="Add facility (e.g. Manduka Mats, Olympic Lifting Deck, Certified Coaches)..."
+                  className="flex-1 px-3.5 py-2 rounded-xl border border-dashed border-slate-300 dark:border-white/20 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-600"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const val = customFitnessHighlightInput.trim();
+                    if (val && !fitnessHighlights.includes(val)) {
+                      setFitnessHighlights([...fitnessHighlights, val]);
+                      setCustomFitnessHighlightInput('');
+                    }
+                  }}
+                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs shrink-0 cursor-pointer transition-all"
+                >
+                  + Add Feature
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 3. Amenities & Facilities */}
         <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all">
           <div className="flex items-center gap-3 mb-5 pb-3 border-b border-slate-100 dark:border-white/5">
@@ -1994,7 +2220,8 @@ export default function VenueProfilePage() {
           </div>
         </div>
 
-        {/* 5. Smart Bag Locker & Luggage Cloakroom Service */}
+        {/* 5. Smart Bag Locker & Luggage Cloakroom Service (Only for Stays & Accommodations) */}
+        {isAccommodationVendor && (
         <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all">
           <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5">
             <div className="flex items-center gap-3">
@@ -2240,6 +2467,7 @@ export default function VenueProfilePage() {
             </div>
           )}
         </div>
+        )}
 
         {/* 6. Pet Policy */}
         <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all space-y-4">

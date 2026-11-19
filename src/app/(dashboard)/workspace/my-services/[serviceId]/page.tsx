@@ -31,6 +31,16 @@ export default function ServiceListingsPage() {
   }
 
   let category = services.find(s => s.id === serviceId);
+  if (!category && typeof window !== 'undefined') {
+    try {
+      const storedOverride = localStorage.getItem(`custom_service_override_${serviceId}`);
+      if (storedOverride) {
+        category = JSON.parse(storedOverride);
+      }
+    } catch (err) {
+      console.warn('Failed to parse stored service override', err);
+    }
+  }
 
   // Fallback: If category not in store but generated via auto-fallback (e.g. svc-dining-*, svc-wellness-*, etc.)
   if (!category && serviceId && currentMerchant) {
@@ -94,10 +104,25 @@ export default function ServiceListingsPage() {
           id: t.id,
           name: t.name,
           price: t.price,
+          originalPrice: t.originalPrice,
+          discountPercentage: t.originalPrice ? Math.round(((t.originalPrice - t.price) / t.originalPrice) * 100) : 0,
           imageUrl: wellnessCfg.heroImage,
           description: `${t.durationMinutes} Mins • ${t.category}`,
           images: wellnessCfg.galleryImages,
-          active: true
+          active: true,
+          metadata: {
+            speciality: t.category,
+            consultationDuration: t.durationMinutes,
+            doctorName: t.genderTarget === 'MEN' ? 'Arun Varma (Lead Hair Director)' : t.genderTarget === 'WOMEN' ? 'Priya Sundaram (Senior Aesthetician)' : 'Any Senior Stylist',
+            qualification: "Toni&Guy Certified / L'Oréal Color Pro (8+ yrs exp)",
+            opdRoomNumber: 'Styling Station #2 (Luxury Suite)',
+            maxDailyTokens: 16,
+            consultationFee: t.price,
+            opdTimings: 'Mon-Sun: 09:00 AM - 09:00 PM',
+            treatmentCategory: t.category,
+            serviceMode: t.serviceMode,
+            genderTarget: t.genderTarget
+          }
         }))
       };
     } else if (rawCat.includes('gym') || rawCat.includes('yoga') || serviceId.includes('fitness')) {

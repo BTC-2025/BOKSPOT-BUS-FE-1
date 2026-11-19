@@ -5,7 +5,8 @@ import { getArchetypeConfig } from '@/lib/businessDictionary';
 import { getArchetypeFromCategory } from '@/lib/archetypes';
 import { 
   Search, Clock, CheckCircle2, ChevronRight, X, Phone, 
-  Activity, FileText, Pill, Stethoscope, ChevronDown, User, HeartPulse, ActivitySquare, TestTube2, AlertCircle, FileDigit, MonitorPlay, Zap, ShieldAlert, Flag, Tag
+  Activity, FileText, Pill, Stethoscope, ChevronDown, User, HeartPulse, ActivitySquare, TestTube2, AlertCircle, FileDigit, MonitorPlay, Zap, ShieldAlert, Flag, Tag,
+  Scissors, MapPin, Sparkles
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -879,8 +880,149 @@ export default function BookingsPage() {
                 </div>
               )}
 
-              {/* 1. DOCTOR / HEALTHCARE OPD QUEUE & EMR TAB */}
-              {(currentMerchant.category?.toLowerCase().includes('doctor') || currentMerchant.archetype === 'Healthcare' || selectedBooking.metadata?.appointmentBooking) && (
+              {/* 1-A. SALON, SPA & DOORSTEP GROOMING MANAGEMENT */}
+              {(currentMerchant.category?.toLowerCase().includes('salon') || 
+                currentMerchant.category?.toLowerCase().includes('spa') || 
+                selectedBooking.category?.toLowerCase().includes('salon') ||
+                selectedBooking.category?.toLowerCase().includes('spa') ||
+                selectedBooking.metadata?.appointmentBooking?.treatmentDetails ||
+                selectedBooking.metadata?.appointmentBooking?.serviceMode) && (() => {
+                const appt = selectedBooking.metadata?.appointmentBooking || {};
+                const isHomeVisit = appt.serviceMode === 'HOME_VISIT';
+                const treatments = Array.isArray(appt.treatmentDetails) ? appt.treatmentDetails : [];
+                const practitioner = appt.practitioner || 'Any Available Professional';
+                const duration = appt.totalDuration || selectedBooking.duration || 60;
+
+                return (
+                  <div className="p-5 rounded-2xl bg-[#ff6325]/10 border border-[#ff6325]/25 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-[#ff6325] font-extrabold text-sm">
+                        <Scissors size={16} />
+                        <span>Salon, Spa & Doorstep Grooming</span>
+                      </div>
+                      <span className={`px-2.5 py-0.5 rounded-full font-black text-[10px] border ${
+                        isHomeVisit 
+                          ? 'bg-purple-500/15 text-purple-400 border-purple-500/30' 
+                          : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                      }`}>
+                        {isHomeVisit ? '🏠 Doorstep Home Visit' : '🏢 In-Salon Chair'}
+                      </span>
+                    </div>
+
+                    {/* Stylist & Slot Meta */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+                      <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand">
+                        <span className="text-[10px] font-bold text-text-muted uppercase block">Assigned Stylist:</span>
+                        <span className="text-xs font-black text-text-primary block mt-0.5 truncate">
+                          {practitioner}
+                        </span>
+                        <span className="text-[10px] text-emerald-400 font-semibold block mt-0.5">
+                          ✓ Assigned & Ready
+                        </span>
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand">
+                        <span className="text-[10px] font-bold text-text-muted uppercase block">Total Duration:</span>
+                        <span className="text-xs font-black text-[#ff6325] block mt-0.5">
+                          ⏱️ {duration} Mins
+                        </span>
+                        <span className="text-[10px] text-text-muted block mt-0.5">
+                          Slot: {appt.slotTime || selectedBooking.time}
+                        </span>
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand sm:col-span-1 col-span-2">
+                        <span className="text-[10px] font-bold text-text-muted uppercase block">Service Mode:</span>
+                        <span className="text-xs font-black text-text-primary block mt-0.5">
+                          {isHomeVisit ? 'Doorstep Specialist Visit' : 'In-Store Chair Reservation'}
+                        </span>
+                        {isHomeVisit && appt.convenienceFee > 0 && (
+                          <span className="text-[10px] text-[#ff6325] font-bold block mt-0.5">
+                            Doorstep Kit Fee: ₹{appt.convenienceFee}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Doorstep Home Address Details (If Home Visit) */}
+                    {isHomeVisit && (appt.homeAddress || selectedBooking.customerAddress) && (
+                      <div className="p-3.5 rounded-xl bg-purple-500/10 border border-purple-500/25 space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-purple-400 flex items-center gap-1">
+                            <MapPin size={12} />
+                            Customer Doorstep Address:
+                          </span>
+                          {appt.homePhone && (
+                            <a 
+                              href={`tel:${appt.homePhone}`}
+                              className="text-[10px] font-bold text-purple-300 hover:text-white flex items-center gap-1 underline"
+                            >
+                              <Phone size={10} /> Call {appt.homePhone}
+                            </a>
+                          )}
+                        </div>
+                        <p className="text-xs font-semibold text-text-primary">
+                          {appt.homeAddress || selectedBooking.customerAddress}
+                        </p>
+                        {appt.homeLandmark && (
+                          <span className="text-[11px] text-text-secondary block">
+                            Landmark: <span className="font-semibold text-text-primary">{appt.homeLandmark}</span>
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Selected Treatments & Services Manifest */}
+                    {treatments.length > 0 && (
+                      <div className="p-3.5 rounded-xl bg-bg-secondary border border-border-brand space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-text-muted flex items-center gap-1">
+                            <Sparkles size={12} className="text-[#ff6325]" />
+                            Booked Services ({treatments.length}):
+                          </span>
+                          <span className="text-[11px] font-mono font-black text-[#ff6325]">
+                            ₹{treatments.reduce((acc: number, t: any) => acc + (t.price || 0), 0).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="divide-y divide-border-brand">
+                          {treatments.map((item: any, idx: number) => (
+                            <div key={idx} className="py-1.5 flex items-center justify-between text-xs">
+                              <div className="min-w-0 pr-2">
+                                <span className="font-bold text-text-primary block truncate">{item.name}</span>
+                                <span className="text-[10px] text-text-muted">⏱️ {item.durationMinutes || 30} mins</span>
+                              </div>
+                              <span className="font-black text-text-primary shrink-0">₹{item.price}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Service Actions */}
+                    <div className="flex items-center gap-3 pt-1">
+                      <button
+                        onClick={() => {
+                          completeBooking(selectedBooking.id);
+                          alert('Salon service marked as completed! Payment & invoice updated.');
+                        }}
+                        className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:from-[#e04e13] hover:to-[#c83f08] text-white font-black text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        ✓ Mark Service Complete
+                      </button>
+                      <button
+                        onClick={() => alert(`Calling Customer ${selectedBooking.customerName} for Salon Appointment Confirmation.`)}
+                        className="px-4 py-2.5 rounded-xl bg-bg-secondary hover:bg-bg-tertiary border border-border-brand text-text-primary font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Phone size={13} />
+                        Call Client
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* 1-B. DOCTOR / HEALTHCARE OPD QUEUE & EMR TAB */}
+              {((currentMerchant.category?.toLowerCase().includes('doctor') || currentMerchant.archetype === 'Healthcare' || (selectedBooking.metadata?.appointmentBooking && !selectedBooking.metadata?.appointmentBooking?.treatmentDetails && !selectedBooking.metadata?.appointmentBooking?.serviceMode && !currentMerchant.category?.toLowerCase().includes('salon') && !currentMerchant.category?.toLowerCase().includes('spa')))) && (
                 <div className="p-5 rounded-2xl bg-blue-500/5 border border-blue-500/20 space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-blue-500 font-extrabold text-sm">
@@ -1364,7 +1506,15 @@ export default function BookingsPage() {
               )}
 
               {/* 7. GYM, YOGA & FITNESS TURNSTILE PUNCH & BATCH ADMISSION */}
-              {(currentMerchant.category?.toLowerCase().includes('gym') || currentMerchant.category?.toLowerCase().includes('yoga') || currentMerchant.category?.toLowerCase().includes('fitness') || selectedBooking.category?.toLowerCase().includes('gym') || selectedBooking.category?.toLowerCase().includes('yoga') || selectedBooking.metadata?.isFitness || selectedBooking.metadata?.fitness) && (
+              {(currentMerchant.category?.toLowerCase().includes('gym') || currentMerchant.category?.toLowerCase().includes('yoga') || currentMerchant.category?.toLowerCase().includes('fitness') || selectedBooking.category?.toLowerCase().includes('gym') || selectedBooking.category?.toLowerCase().includes('yoga') || selectedBooking.metadata?.isFitness || selectedBooking.metadata?.isFitnessBooking || selectedBooking.metadata?.fitness || selectedBooking.metadata?.fitnessBooking) && (() => {
+                const fit = selectedBooking.metadata?.fitness || selectedBooking.metadata?.fitnessBooking || {};
+                const passTitle = fit.passName || selectedBooking.serviceName || 'Workout Batch';
+                const trainer = fit.trainerName || selectedBooking.assignedDoctorName || 'On-Floor Head Coach';
+                const trainerRole = fit.trainerRole || 'Certified Fitness & Strength Coach';
+                const duration = fit.durationMinutes === 720 ? 'Full Day Access' : `${fit.durationMinutes || 60} Mins`;
+                const isCheckedIn = selectedBooking.status === 'CHECKED_IN';
+
+                return (
                 <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-emerald-400 font-extrabold text-sm">
@@ -1372,7 +1522,7 @@ export default function BookingsPage() {
                       <span>Gym Turnstile Punch & Yoga Mat Check-in</span>
                     </div>
                     <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-black text-[10px] border border-emerald-500/30">
-                      {selectedBooking.metadata?.fitness?.passName || 'Fitness Pass'}
+                      {passTitle}
                     </span>
                   </div>
 
@@ -1381,33 +1531,53 @@ export default function BookingsPage() {
                     <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand">
                       <span className="text-[10px] font-bold text-text-muted uppercase block">Workout / Batch:</span>
                       <span className="text-xs font-black text-emerald-400 block mt-0.5 truncate">
-                        {selectedBooking.metadata?.fitness?.passName || selectedBooking.serviceName || 'Workout Batch'}
+                        {passTitle}
                       </span>
                       <span className="text-[10px] text-text-secondary block mt-0.5">
-                        Duration: {selectedBooking.metadata?.fitness?.durationMinutes === 720 ? 'Full Day' : `${selectedBooking.metadata?.fitness?.durationMinutes || 60}m`}
+                        Duration: {duration}
                       </span>
                     </div>
 
                     <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand">
                       <span className="text-[10px] font-bold text-text-muted uppercase block">Coach / Trainer:</span>
-                      <span className="text-xs font-black text-text-primary block mt-0.5">
-                        {selectedBooking.metadata?.fitness?.trainerName || 'Floor Coach'}
+                      <span className="text-xs font-black text-text-primary block mt-0.5 truncate">
+                        {trainer}
                       </span>
-                      <span className="text-[10px] text-text-secondary block mt-0.5">
-                        {selectedBooking.metadata?.fitness?.trainerRole || 'Certified Coach'}
+                      <span className="text-[10px] text-text-secondary block mt-0.5 truncate">
+                        {trainerRole}
                       </span>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand">
+                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand col-span-2 sm:col-span-1">
                       <span className="text-[10px] font-bold text-text-muted uppercase block">Slot & Add-ons:</span>
                       <span className="text-xs font-black text-text-primary block mt-0.5">
-                        {selectedBooking.date} • {selectedBooking.time}
+                        {fit.slotDate || selectedBooking.date} • {fit.slotTime || fit.timeSlot || selectedBooking.time}
                       </span>
                       <span className="text-[10px] text-emerald-400 font-bold block mt-0.5">
-                        {selectedBooking.metadata?.fitness?.lockerIncluded ? '🔒 Digital Locker' : ''}
-                        {selectedBooking.metadata?.fitness?.proteinShakeIncluded ? ' • 🥤 Whey Shake' : ''}
+                        {fit.lockerIncluded ? '🔒 Digital Locker' : '🔒 Locker Included'}
+                        {fit.proteinShakeIncluded ? ' • 🥤 Whey Shake' : ''}
                       </span>
                     </div>
+                  </div>
+
+                  {/* Digital Turnstile QR / Barcode Card */}
+                  <div className="p-3.5 rounded-xl bg-bg-secondary border border-emerald-500/30 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-black text-lg">
+                        ⚡
+                      </div>
+                      <div>
+                        <span className="text-xs font-black text-text-primary block">
+                          Turnstile Gate Pass #{selectedBooking.ref || selectedBooking.id?.slice(-6) || 'PASS-98'}
+                        </span>
+                        <span className="text-[10px] text-text-muted">
+                          Direct NFC / Optical reader barcode admission active
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-xs font-mono font-black text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/30">
+                      SCAN READY
+                    </span>
                   </div>
 
                   {/* Punch In / Turnstile Gate Action */}
@@ -1424,20 +1594,21 @@ export default function BookingsPage() {
                             body: JSON.stringify(updated),
                           });
                         } catch (e) {}
-                        alert(`Turnstile Unlocked! ${selectedBooking.customerName} admitted to ${selectedBooking.metadata?.fitness?.passName || 'Gym Floor'}.`);
+                        alert(`Turnstile Unlocked! ${selectedBooking.customerName} admitted to ${passTitle}.`);
                       }}
                       className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
                     >
                       ⚡ Punch Gym Entry / Mark on Mat
                     </button>
-                    {selectedBooking.status === 'CHECKED_IN' && (
+                    {isCheckedIn && (
                       <span className="px-3 py-2 rounded-xl bg-emerald-500/20 text-emerald-400 font-black text-xs border border-emerald-500/30">
                         ✓ Inside Gym
                       </span>
                     )}
                   </div>
                 </div>
-              )}
+                );
+              })()}
 
               {/* 8. CLINIC & DOCTOR OPD TOKEN DISPATCH CONSOLE */}
               {(currentMerchant.category?.toLowerCase().includes('doc') || currentMerchant.category?.toLowerCase().includes('clinic') || currentMerchant.category?.toLowerCase().includes('dental') || selectedBooking.category?.toLowerCase().includes('doc') || selectedBooking.metadata?.isDoctor || selectedBooking.metadata?.doctor) && (
