@@ -55,6 +55,43 @@ export default function VenueProfilePage() {
   const [slotIntervalMinutes, setSlotIntervalMinutes] = useState<number>(() => {
     return Number(currentMerchant?.metadata?.slotIntervalMinutes) || 30;
   });
+
+  // Salon, Spa & Wellness Specific Configurations
+  const isSalonVendor = Boolean(
+    (currentMerchant?.category || '').toLowerCase().includes('salon') ||
+    (currentMerchant?.category || '').toLowerCase().includes('spa') ||
+    (currentMerchant?.category || '').toLowerCase().includes('wellness') ||
+    currentMerchant?.metadata?.isWellness
+  );
+  const [salonHomeVisitEnabled, setSalonHomeVisitEnabled] = useState<boolean>(() => {
+    return currentMerchant?.metadata?.salonHomeVisitEnabled ?? true;
+  });
+  const [salonHomeMinOrderValue, setSalonHomeMinOrderValue] = useState<number>(() => {
+    return Number(currentMerchant?.metadata?.salonHomeMinOrderValue) || 399;
+  });
+  const [salonHomeConvenienceFee, setSalonHomeConvenienceFee] = useState<number>(() => {
+    return Number(currentMerchant?.metadata?.salonHomeConvenienceFee) || 49;
+  });
+  const [salonSlotInterval, setSalonSlotInterval] = useState<number>(() => {
+    return Number(currentMerchant?.metadata?.salonSlotInterval) || 30;
+  });
+  const [salonOpenTime, setSalonOpenTime] = useState<string>(() => {
+    return currentMerchant?.metadata?.salonOpenTime || '09:00 AM';
+  });
+  const [salonCloseTime, setSalonCloseTime] = useState<string>(() => {
+    return currentMerchant?.metadata?.salonCloseTime || '09:00 PM';
+  });
+  const [salonHighlights, setSalonHighlights] = useState<string[]>(() => {
+    return currentMerchant?.metadata?.salonHighlights || [
+      '100% Sanitized Equipment',
+      'Disposable Single-Use Aprons & Towels',
+      'Private AC Luxury Spa Suites',
+      'Certified Master Stylists & Aestheticians',
+      'Complimentary Herbal Green Tea / Espresso',
+      'Steam & Shower Enclosure'
+    ];
+  });
+  const [customSalonHighlightInput, setCustomSalonHighlightInput] = useState('');
   const [diningFeatures, setDiningFeatures] = useState<string[]>(() => {
     return currentMerchant?.metadata?.diningFeatures || [
       'Air Conditioned Luxury Dining',
@@ -680,6 +717,14 @@ export default function VenueProfilePage() {
       metadata: {
         ...(currentMerchant.metadata || {}),
         isDiningVendor,
+        isSalonVendor,
+        salonHomeVisitEnabled,
+        salonHomeMinOrderValue,
+        salonHomeConvenienceFee,
+        salonSlotInterval,
+        salonOpenTime,
+        salonCloseTime,
+        salonHighlights,
         cuisines,
         costForTwo,
         lunchStartTime,
@@ -820,6 +865,20 @@ export default function VenueProfilePage() {
         localStorage.setItem(`pg_config_${id}`, JSON.stringify(pgConfig));
         if (uname) localStorage.setItem(`pg_config_${uname}`, JSON.stringify(pgConfig));
         localStorage.setItem('pg_config_default', JSON.stringify(pgConfig));
+
+        // Salon, Spa & Wellness config localStorage sync
+        const wellnessCustomConfig = {
+          homeVisitEnabled: salonHomeVisitEnabled,
+          homeMinOrderValue: salonHomeMinOrderValue,
+          homeConvenienceFee: salonHomeConvenienceFee,
+          slotIntervalMinutes: salonSlotInterval,
+          openingHours: `${salonOpenTime} – ${salonCloseTime} (Daily)`,
+          openTimeStr: salonOpenTime.includes('AM') ? salonOpenTime.replace(' AM', '').padStart(5, '0') : `${parseInt(salonOpenTime) + 12}:00`,
+          amenities: salonHighlights
+        };
+        localStorage.setItem('bokspot_wellness_custom_config', JSON.stringify(wellnessCustomConfig));
+        localStorage.setItem(`wellness_config_${id}`, JSON.stringify(wellnessCustomConfig));
+        if (uname) localStorage.setItem(`wellness_config_${uname}`, JSON.stringify(wellnessCustomConfig));
 
         // Dispatch instant events for other components and tabs
         window.dispatchEvent(new CustomEvent('hotel_mystery_toggle', { detail: { enabled: isMysteryModeOptIn, merchantId: id } }));
@@ -1644,6 +1703,194 @@ export default function VenueProfilePage() {
                     No active deals configured yet. Click &quot;Add New Deal&quot; to offer discounts or celebration perks.
                   </p>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 2.7 Salon, Spa & Doorstep Home Visit Configurations */}
+        {(isSalonVendor || true) && (
+          <div className="bg-white dark:bg-[#0f1624] rounded-3xl shadow-sm border border-slate-200/90 dark:border-white/10 p-6 sm:p-8 transition-all space-y-6">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 text-white flex items-center justify-center font-bold shadow-md shadow-pink-500/25 ring-4 ring-pink-500/15 shrink-0">
+                  <span className="text-lg">💈</span>
+                </div>
+                <div>
+                  <h2 className="text-base font-black text-slate-900 dark:text-white">Salon, Spa & Doorstep Home Visits</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Configure salon operating hours, slot intervals, and enable Urban-style doorstep home appointments.
+                  </p>
+                </div>
+              </div>
+              <span className="px-3 py-1 rounded-full text-[11px] font-black bg-pink-500/10 text-pink-600 dark:text-pink-400 border border-pink-500/20">
+                Salon & Wellness
+              </span>
+            </div>
+
+            {/* Doorstep Home Visit Toggle Banner */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-base">🏠</span>
+                  <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                    Enable Doorstep Home Visits (Urban Company Model)
+                  </h4>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Allow customers to book certified stylists to their address with sealed single-use kits.
+                </p>
+              </div>
+
+              <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                <input
+                  type="checkbox"
+                  checked={salonHomeVisitEnabled}
+                  onChange={(e) => setSalonHomeVisitEnabled(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-12 h-6.5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#ff6325]"></div>
+              </label>
+            </div>
+
+            {/* Home Visit Settings Grid */}
+            {salonHomeVisitEnabled && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                    Minimum Order Value for Home Visit (₹)
+                  </label>
+                  <input
+                    type="number"
+                    value={salonHomeMinOrderValue}
+                    onChange={(e) => setSalonHomeMinOrderValue(Number(e.target.value))}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111927] text-xs font-black text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                    placeholder="399"
+                  />
+                  <span className="text-[10px] text-slate-400 mt-1 block">Customers must select services at or above this amount</span>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                    Doorstep Travel & Safety Kit Fee (₹)
+                  </label>
+                  <input
+                    type="number"
+                    value={salonHomeConvenienceFee}
+                    onChange={(e) => setSalonHomeConvenienceFee(Number(e.target.value))}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111927] text-xs font-black text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                    placeholder="49"
+                  />
+                  <span className="text-[10px] text-slate-400 mt-1 block">Waived automatically on orders over ₹999</span>
+                </div>
+              </div>
+            )}
+
+            {/* Timings & Slot Interval Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                  Opening Time
+                </label>
+                <input
+                  type="text"
+                  value={salonOpenTime}
+                  onChange={(e) => setSalonOpenTime(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111927] text-xs font-black text-slate-900 dark:text-white outline-none text-center focus:border-[#ff6325]"
+                  placeholder="09:00 AM"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                  Closing Time
+                </label>
+                <input
+                  type="text"
+                  value={salonCloseTime}
+                  onChange={(e) => setSalonCloseTime(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111927] text-xs font-black text-slate-900 dark:text-white outline-none text-center focus:border-[#ff6325]"
+                  placeholder="09:00 PM"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                  Slot Interval Step
+                </label>
+                <select
+                  value={salonSlotInterval}
+                  onChange={(e) => setSalonSlotInterval(Number(e.target.value))}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111927] text-xs font-black text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                >
+                  <option value={15}>Every 15 Minutes</option>
+                  <option value={30}>Every 30 Minutes (Recommended)</option>
+                  <option value={45}>Every 45 Minutes</option>
+                  <option value={60}>Every 60 Minutes</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Hygiene & Salon Highlights */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                  Salon Ambiance, Hygiene & Safety Highlights
+                </label>
+                <span className="text-[10px] font-bold text-slate-400">
+                  {salonHighlights.length} enabled
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-3">
+                {salonHighlights.map((hl) => (
+                  <span
+                    key={hl}
+                    className="inline-flex items-center gap-1.5 bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 px-3.5 py-1.5 rounded-xl text-xs font-bold border border-rose-200 dark:border-rose-900/40"
+                  >
+                    <span>✓</span> {hl}
+                    <button
+                      type="button"
+                      onClick={() => setSalonHighlights(salonHighlights.filter(h => h !== hl))}
+                      className="hover:text-red-500 ml-1 cursor-pointer font-bold"
+                    >
+                      &times;
+                    </button>
+                  </span>
+                ))}
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={customSalonHighlightInput}
+                  onChange={(e) => setCustomSalonHighlightInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const val = customSalonHighlightInput.trim();
+                      if (val && !salonHighlights.includes(val)) {
+                        setSalonHighlights([...salonHighlights, val]);
+                        setCustomSalonHighlightInput('');
+                      }
+                    }
+                  }}
+                  placeholder="Add salon feature (e.g. Disposable Towels, Ozone Micro-Mist Steam, Bridal Suite)..."
+                  className="flex-1 px-3.5 py-2 rounded-xl border border-dashed border-slate-300 dark:border-white/20 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-bold text-slate-800 dark:text-white outline-none focus:border-[#ff6325]"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const val = customSalonHighlightInput.trim();
+                    if (val && !salonHighlights.includes(val)) {
+                      setSalonHighlights([...salonHighlights, val]);
+                      setCustomSalonHighlightInput('');
+                    }
+                  }}
+                  className="px-4 py-2 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-black text-xs shrink-0 cursor-pointer transition-all"
+                >
+                  + Add Feature
+                </button>
               </div>
             </div>
           </div>

@@ -334,7 +334,13 @@ export default function WorkspacePage() {
         metadata: {
           isWellness: true,
           treatments: wellnessCfg.treatments,
-          specialists: wellnessCfg.specialists
+          specialists: wellnessCfg.specialists,
+          homeVisitEnabled: wellnessCfg.homeVisitEnabled,
+          homeMinOrderValue: wellnessCfg.homeMinOrderValue,
+          homeConvenienceFee: wellnessCfg.homeConvenienceFee,
+          openTimeStr: wellnessCfg.openTimeStr,
+          closeTimeStr: wellnessCfg.closeTimeStr,
+          slotIntervalMinutes: wellnessCfg.slotIntervalMinutes
         },
         listings: wellnessCfg.treatments.map(t => ({
           id: t.id,

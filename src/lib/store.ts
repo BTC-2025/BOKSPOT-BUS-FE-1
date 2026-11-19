@@ -2152,33 +2152,7 @@ export const useVendorStore = create<VendorStoreState>()(
       if (profileData.isMysteryModeOptIn !== undefined) meta.isMysteryModeOptIn = profileData.isMysteryModeOptIn;
       
       const incomingMeta = profileData.metadata || {};
-      if (incomingMeta.isLuggageStorageEnabled !== undefined) {
-        meta.isLuggageStorageEnabled = incomingMeta.isLuggageStorageEnabled;
-      }
-      if (incomingMeta.luggageHourlyRate !== undefined || profileData.luggageHourlyRate !== undefined) {
-        meta.luggageHourlyRate = incomingMeta.luggageHourlyRate ?? profileData.luggageHourlyRate;
-      }
-      if (incomingMeta.luggageDayPassRate !== undefined) {
-        meta.luggageDayPassRate = incomingMeta.luggageDayPassRate;
-      }
-      if (incomingMeta.isMysteryModeOptIn !== undefined) {
-        meta.isMysteryModeOptIn = incomingMeta.isMysteryModeOptIn;
-      }
-      if (incomingMeta.isPgProperty !== undefined) {
-        meta.isPgProperty = incomingMeta.isPgProperty;
-      }
-      if (incomingMeta.pgGenderType !== undefined) {
-        meta.pgGenderType = incomingMeta.pgGenderType;
-      }
-      if (incomingMeta.pgFoodIncluded !== undefined) {
-        meta.pgFoodIncluded = incomingMeta.pgFoodIncluded;
-      }
-      if (incomingMeta.pgGateCurfew !== undefined) {
-        meta.pgGateCurfew = incomingMeta.pgGateCurfew;
-      }
-      if (incomingMeta.pgNoticePeriod !== undefined) {
-        meta.pgNoticePeriod = incomingMeta.pgNoticePeriod;
-      }
+      Object.assign(meta, incomingMeta);
 
       if (Object.keys(meta).length > 0) payload.metadata = meta;
       
