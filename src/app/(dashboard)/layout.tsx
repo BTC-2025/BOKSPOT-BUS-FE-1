@@ -3,16 +3,16 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { 
-  LayoutDashboard, Calendar, BookOpen, Settings, QrCode, 
-  Package, Menu, X, Bell, LogOut, Stethoscope, Dumbbell, Bed, 
+import {
+  LayoutDashboard, Calendar, BookOpen, Settings, QrCode,
+  Package, Menu, X, Bell, LogOut, Stethoscope, Dumbbell, Bed,
   Scissors, Utensils, ShieldAlert, Check, Trash2, Info,
   ChevronDown, Building, Building2, Film, Sparkles, LogOut as LogOutIcon, Laptop, User, Tent,
   Sun, Moon, Users, Mail, Search, UserCog, UserPlus, MapPin, Clock, ShieldCheck, MessageSquare, Calculator, Ticket, CheckCircle, Headset, Camera, Sliders, Luggage
 } from 'lucide-react';
 import { UtilityDrawer } from '@/components/UtilityDrawer';
 import { useState, useEffect, useRef } from 'react';
-import { useVendorStore, PRESET_MERCHANTS, BranchInfo } from '@/lib/store'; 
+import { useVendorStore, PRESET_MERCHANTS, BranchInfo } from '@/lib/store';
 import { getArchetypeConfig } from '@/lib/businessDictionary';
 import OnboardingWizard from './components/OnboardingWizard';
 import { getVerticalFromCategory } from '@/lib/categoryUtils';
@@ -54,13 +54,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [spotlightOpen, setSpotlightOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [spotlightIndex, setSpotlightIndex] = useState(0);
-  
+
 
 
   // Profile Menu state
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
-  
+
   // Vendor Info state
   const [vendorInfoOpen, setVendorInfoOpen] = useState(false);
   const vendorInfoRef = useRef<HTMLDivElement>(null);
@@ -158,7 +158,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
       };
       setNotifications(getMockNotifications());
-      
+
       // Strict Isolation: Sanitize local store bookings so foreign merchant bookings are cleaned up immediately
       const curId = String(currentMerchant.id || '').trim();
       const curName = (currentMerchant.merchantName || '').toLowerCase().trim();
@@ -204,7 +204,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setProfileOpen(false);
       }
-      
+
       if (vendorInfoRef.current && !vendorInfoRef.current.contains(event.target as Node)) {
         setVendorInfoOpen(false);
       }
@@ -336,19 +336,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const effectiveBranchesForNav: BranchInfo[] = (currentMerchant?.branches && currentMerchant.branches.length > 0)
     ? currentMerchant.branches
     : (PRESET_MERCHANTS.find(m => m.id === currentMerchant?.id || m.username.toLowerCase() === currentMerchant?.username?.toLowerCase())?.branches || [
-        {
-          id: `branch-${currentMerchant?.id || 'main'}-1`,
-          name: currentMerchant?.merchantName || 'Main Branch',
-          city: currentMerchant?.city || 'Chennai',
-          category: currentMerchant?.category || 'General Service',
-          businessType: 'Main Facility',
-          address: currentMerchant?.address || `${currentMerchant?.city || 'Chennai'} Location`,
-          gstStatus: (currentMerchant?.gstStatus as any) || 'WITH_GST',
-          gstNumber: currentMerchant?.gstNumber || '33AAAAA0000A1Z5',
-          offeringsSummary: 'Primary Offerings & Services',
-          isMainBranch: true
-        }
-      ]);
+      {
+        id: `branch-${currentMerchant?.id || 'main'}-1`,
+        name: currentMerchant?.merchantName || 'Main Branch',
+        city: currentMerchant?.city || 'Chennai',
+        category: currentMerchant?.category || 'General Service',
+        businessType: 'Main Facility',
+        address: currentMerchant?.address || `${currentMerchant?.city || 'Chennai'} Location`,
+        gstStatus: (currentMerchant?.gstStatus as any) || 'WITH_GST',
+        gstNumber: currentMerchant?.gstNumber || '33AAAAA0000A1Z5',
+        offeringsSummary: 'Primary Offerings & Services',
+        isMainBranch: true
+      }
+    ]);
   const activeBranchForNav = effectiveBranchesForNav.find(b => b.id === (currentMerchant?.activeBranchId || effectiveBranchesForNav[0].id)) || effectiveBranchesForNav[0];
   const activeCategoryForNav = activeBranchForNav.category || currentMerchant?.category || 'Resort Booking';
 
@@ -357,31 +357,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
 
 
-  
-  const allStores = currentMerchant 
+
+  const allStores = currentMerchant
     ? loginRole === 'supervisor'
       ? [currentMerchant]
       : [
-          ...PRESET_MERCHANTS,
-          ...Array.from(new Set(useVendorStore.getState().bookings
-            .map(b => b.merchantName)))
-            .map((name) => {
-              const matchedPreset = PRESET_MERCHANTS.find(pm => pm.merchantName === name);
-              if (matchedPreset) return matchedPreset;
-              const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-              // Find the category for this booking
-              const bookingCat = useVendorStore.getState().bookings.find(b => b.merchantName === name)?.category || currentMerchant.category;
-              return {
-                id: `mer-${slug}`,
-                username: currentMerchant.username,
-                merchantName: name,
-                category: bookingCat,
-                logoLetter: name.charAt(0),
-                aboutText: `Welcome to ${name}. We provide professional bookings and top-tier services.`
-              };
-            })
-            .filter(m => !PRESET_MERCHANTS.some(pm => pm.merchantName === m.merchantName))
-        ]
+        ...PRESET_MERCHANTS,
+        ...Array.from(new Set(useVendorStore.getState().bookings
+          .map(b => b.merchantName)))
+          .map((name) => {
+            const matchedPreset = PRESET_MERCHANTS.find(pm => pm.merchantName === name);
+            if (matchedPreset) return matchedPreset;
+            const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            // Find the category for this booking
+            const bookingCat = useVendorStore.getState().bookings.find(b => b.merchantName === name)?.category || currentMerchant.category;
+            return {
+              id: `mer-${slug}`,
+              username: currentMerchant.username,
+              merchantName: name,
+              category: bookingCat,
+              logoLetter: name.charAt(0),
+              aboutText: `Welcome to ${name}. We provide professional bookings and top-tier services.`
+            };
+          })
+          .filter(m => !PRESET_MERCHANTS.some(pm => pm.merchantName === m.merchantName))
+      ]
     : [];
 
   const CategoryIcon = archetypeConfig.servicesIcon;
@@ -417,7 +417,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (loginRole === 'supervisor') {
       const supName = supervisorId || 'SUPERVISOR';
       // Clean up the email. Instead of T102/arena5@bnxmail.com, just show the actual corporate mail
-      return originalEmail; 
+      return originalEmail;
     }
     return originalEmail;
   };
@@ -455,7 +455,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         type: 'booking',
         icon: BookOpen
       }))
-  ];  const getDynamicNavItems = () => {
+  ]; const getDynamicNavItems = () => {
     const isOwner = loginRole !== 'staff';
     const accessLink = isOwner ? { href: '/workspace/staff-access', icon: Users, label: archetypeConfig.staffRosterLabel } : null;
 
@@ -465,14 +465,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { href: '/home/dashboard-home', icon: LayoutDashboard, label: 'Dashboard Home' },
         { href: '/home/verify-code', icon: QrCode, label: archetypeConfig.scanLabel },
       ];
-    } 
+    }
     // TRACKS TAB (Records & Patients)
     else if (pathname.startsWith('/tracks/bookings') || pathname === '/tracks/customer-directory') {
       return [
         { href: '/tracks/bookings', icon: BookOpen, label: archetypeConfig.bookingTitle },
         { href: '/tracks/customer-directory', icon: User, label: archetypeConfig.customerDirLabel },
       ];
-    } 
+    }
     // WORKSPACE TAB (Management, Schedules, Settings)
     else {
       const currentArch = (currentMerchant?.archetype || '').toLowerCase();
@@ -497,7 +497,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               const val = localStorage.getItem(k);
               if (val !== null) return val === 'true';
             }
-          } catch {}
+          } catch { }
         }
         return currentMerchant?.metadata?.isLuggageStorageEnabled ?? true;
       })();
@@ -507,22 +507,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       ];
 
       if (isCamping) {
-        items.push({ 
-          href: '/workspace/hotel-room-matrix', 
-          icon: Tent, 
-          label: archetypeConfig.gridNavLabel || 'Tent & Pitch Grid' 
+        items.push({
+          href: '/workspace/hotel-room-matrix',
+          icon: Tent,
+          label: archetypeConfig.gridNavLabel || 'Tent & Pitch Grid'
         });
       } else if (isHostel) {
-        items.push({ 
-          href: '/workspace/hotel-room-matrix', 
-          icon: Bed, 
-          label: archetypeConfig.gridNavLabel || 'Dorm & Bed Grid' 
+        items.push({
+          href: '/workspace/hotel-room-matrix',
+          icon: Bed,
+          label: archetypeConfig.gridNavLabel || 'Dorm & Bed Grid'
         });
       } else if (isHotel) {
-        items.push({ 
-          href: '/workspace/hotel-room-matrix', 
-          icon: Building2, 
-          label: archetypeConfig.gridNavLabel || 'Room Grid' 
+        items.push({
+          href: '/workspace/hotel-room-matrix',
+          icon: Building2,
+          label: archetypeConfig.gridNavLabel || 'Room Grid'
         });
       }
 
@@ -550,22 +550,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <>
       {currentMerchant?.isCustomized === false && !currentMerchant.id.startsWith('m-') && <OnboardingWizard />}
       <div className={`flex h-screen flex-col overflow-hidden bg-bg-primary text-text-primary ${themeClass}`}>
-      {/* Top Header (100% width across the top) */}
-      <header className="sticky top-0 z-50 flex h-16 items-center justify-between vendor-navbar backdrop-blur-md pl-6 pr-0 shadow-md border-b border-border-brand/40 shrink-0">
-        {/* Left Column: Logo, Location & Branch Switcher */}
-        <div className="flex-1 flex items-center gap-3.5 sm:gap-4 lg:gap-5">
-          <Link href="/home/dashboard-home" className="flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shrink-0">
-            <img src="/logo.png?v=original_restored" alt="BokSpot Logo" className="h-10 lg:h-12 object-contain" />
-          </Link>
-          
-          {/* Global Branch Switcher Pill (Always visible across all pages) */}
-          {(() => {
-            const presetMatch = PRESET_MERCHANTS.find(m => m.id === currentMerchant?.id || m.username.toLowerCase() === currentMerchant?.username?.toLowerCase());
-            const effectiveBranches: BranchInfo[] = (currentMerchant?.branches && currentMerchant.branches.length > 0)
-              ? currentMerchant.branches
-              : (presetMatch?.branches && presetMatch.branches.length > 0)
-                ? presetMatch.branches
-                : [
+        {/* Top Header (100% width across the top) */}
+        <header className="sticky top-0 z-50 flex h-16 items-center justify-between vendor-navbar backdrop-blur-md pl-6 pr-0 shadow-md border-b border-border-brand/40 shrink-0">
+          {/* Left Column: Logo, Location & Branch Switcher */}
+          <div className="flex-1 flex items-center gap-3.5 sm:gap-4 lg:gap-5">
+            <Link href="/home/dashboard-home" className="flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shrink-0">
+              <img src="/logo.png?v=original_restored" alt="BokSpot Logo" className="h-10 lg:h-12 object-contain" />
+            </Link>
+
+            {/* Global Branch Switcher Pill (Always visible across all pages) */}
+            {(() => {
+              const presetMatch = PRESET_MERCHANTS.find(m => m.id === currentMerchant?.id || m.username.toLowerCase() === currentMerchant?.username?.toLowerCase());
+              const effectiveBranches: BranchInfo[] = (currentMerchant?.branches && currentMerchant.branches.length > 0)
+                ? currentMerchant.branches
+                : (presetMatch?.branches && presetMatch.branches.length > 0)
+                  ? presetMatch.branches
+                  : [
                     {
                       id: `branch-${currentMerchant?.id || 'main'}-1`,
                       name: currentMerchant?.merchantName || 'Main Branch',
@@ -579,689 +579,679 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       isMainBranch: true
                     }
                   ];
-            const activeBranch = effectiveBranches.find(b => b.id === (currentMerchant?.activeBranchId || effectiveBranches[0].id)) || effectiveBranches[0];
+              const activeBranch = effectiveBranches.find(b => b.id === (currentMerchant?.activeBranchId || effectiveBranches[0].id)) || effectiveBranches[0];
 
-            // Clean short label: remove long prefixes like "Sunstone Resort - ", "Sunstone Arena - ", etc.
-            let branchLabel = activeBranch.name || activeBranch.city || 'Chennai';
-            if (branchLabel.includes(' - ')) {
-              branchLabel = branchLabel.split(' - ').pop() || branchLabel;
-            }
-            if (currentMerchant?.merchantName && branchLabel.startsWith(currentMerchant.merchantName)) {
-              branchLabel = branchLabel.replace(currentMerchant.merchantName, '').trim();
-            }
+              // Clean short label: remove long prefixes like "Sunstone Resort - ", "Sunstone Arena - ", etc.
+              let branchLabel = activeBranch.name || activeBranch.city || 'Chennai';
+              if (branchLabel.includes(' - ')) {
+                branchLabel = branchLabel.split(' - ').pop() || branchLabel;
+              }
+              if (currentMerchant?.merchantName && branchLabel.startsWith(currentMerchant.merchantName)) {
+                branchLabel = branchLabel.replace(currentMerchant.merchantName, '').trim();
+              }
 
-            return (
-              <div className="relative hidden sm:inline-block" ref={branchDropdownRef}>
-                <button
-                  type="button"
-                  onClick={() => setBranchDropdownOpen(!branchDropdownOpen)}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-white/25 hover:border-[#ff6325]/70 bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer shadow-md text-xs font-bold tracking-wide"
-                  title={`Active Branch: ${activeBranch.name || activeBranch.city} (${activeBranch.gstStatus === 'WITH_GST' ? `GST: ${activeBranch.gstNumber || currentMerchant?.gstNumber || 'Active'}` : 'Non-GST'})`}
-                >
-                  <Building2 size={13} className="text-[#ff6325] shrink-0" />
-                  <span className="text-white flex items-center gap-1">
-                    <span className="text-white/60 font-medium text-[11.5px]">Branch:</span>
-                    <span className="font-bold text-white text-[11.5px] block">
-                      {(() => {
-                        const raw = branchLabel || 'Main';
-                        return raw.length > 3 ? `${raw.slice(0, 3)}...` : raw;
-                      })()}
+              return (
+                <div className="relative hidden sm:inline-block" ref={branchDropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setBranchDropdownOpen(!branchDropdownOpen)}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-white/25 hover:border-[#ff6325]/70 bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer shadow-md text-xs font-bold tracking-wide"
+                    title={`Active Branch: ${activeBranch.name || activeBranch.city} (${activeBranch.gstStatus === 'WITH_GST' ? `GST: ${activeBranch.gstNumber || currentMerchant?.gstNumber || 'Active'}` : 'Non-GST'})`}
+                  >
+                    <Building2 size={13} className="text-[#ff6325] shrink-0" />
+                    <span className="text-white flex items-center gap-1">
+                      <span className="text-white/60 font-medium text-[11.5px]">Branch:</span>
+                      <span className="font-bold text-white text-[11.5px] block">
+                        {(() => {
+                          const raw = branchLabel || 'Main';
+                          return raw.length > 3 ? `${raw.slice(0, 3)}...` : raw;
+                        })()}
+                      </span>
                     </span>
-                  </span>
-                  <ChevronDown size={12} className={`text-white/80 transition-transform duration-200 shrink-0 ${branchDropdownOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown size={12} className={`text-white/80 transition-transform duration-200 shrink-0 ${branchDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {/* Branch Switcher Dropdown Menu */}
+                  {branchDropdownOpen && (
+                    <div className="branch-dropdown-card absolute left-0 mt-2 w-72 bg-white dark:bg-[#0f1624] border border-slate-200 dark:border-white/15 rounded-2xl shadow-2xl z-50 p-2 divide-y divide-slate-100 dark:divide-white/5 animate-fade-in text-left">
+                      <div className="px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                        <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+                          <MapPin size={12} className="text-[#ff6325]" />
+                          <span>Operating Branches</span>
+                        </span>
+                        <span className="text-slate-400">Tax Mode</span>
+                      </div>
+                      <div className="space-y-1 py-1 max-h-56 overflow-y-auto custom-scrollbar">
+                        {effectiveBranches.map((branch) => {
+                          const isActive = branch.id === activeBranch.id;
+                          return (
+                            <div
+                              key={branch.id}
+                              onClick={() => {
+                                switchBranch(branch.id);
+                                setBranchDropdownOpen(false);
+                              }}
+                              className={`p-2.5 rounded-xl flex items-center justify-between cursor-pointer transition-colors ${isActive
+                                  ? 'bg-[#ff6325]/15 border border-[#ff6325]/40'
+                                  : 'hover:bg-slate-100 dark:hover:bg-white/5'
+                                }`}
+                            >
+                              <div className="flex items-center gap-2.5 pr-2">
+                                <div className="h-7 w-7 rounded-lg bg-[#ff6325]/10 text-[#ff6325] flex items-center justify-center font-bold text-xs shrink-0">
+                                  📍
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className="font-bold text-xs flex items-center gap-1.5 text-slate-900 dark:text-white">
+                                    {branch.name || `${branch.city} Branch`}
+                                    {isActive && <Check size={12} className="text-[#ff6325]" />}
+                                  </span>
+                                  <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                                    {branch.category ? `${branch.category} • ` : ''}{branch.address || `${branch.city} Location`}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="text-right shrink-0">
+                                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${branch.gstStatus === 'WITH_GST' ? 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30' : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'}`}>
+                                  {branch.gstStatus === 'WITH_GST' ? (branch.gstNumber ? 'GST: ' + branch.gstNumber.slice(-4) : 'GST') : 'Nett'}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="pt-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setBranchDropdownOpen(false);
+                            router.push('/workspace/my-services');
+                          }}
+                          className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl bg-[#ff6325]/10 hover:bg-[#ff6325]/20 text-[#ff6325] text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          <span className="text-[#ff6325]">Manage Branches & Locations</span>
+                          <ChevronDown size={13} className="-rotate-90 text-[#ff6325]" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Center Column: Floating Navigation Menu */}
+          <div className="hidden lg:flex flex-none justify-center">
+            <nav className="custom-nav-capsule shadow-lg relative p-[3px] rounded-full">
+              <Link
+                href="/home/dashboard-home"
+                className={`w-20 text-center py-1.5 rounded-full text-[13px] font-extrabold tracking-wide hover:scale-[1.02] active:scale-[0.98] relative z-10 custom-nav-link select-none ${(pathname === '/home/dashboard-home' || pathname === '/home/verify-code')
+                    ? 'custom-nav-link-active !text-[#ff6325]'
+                    : 'custom-nav-link-inactive'
+                  }`}
+              >
+                {(pathname === '/home/dashboard-home' || pathname === '/home/verify-code') && (
+                  <motion.div
+                    layoutId="activeNavIndicatorAdmin"
+                    className="absolute inset-0 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] -z-10 custom-nav-active-bg"
+                    style={{ willChange: 'transform' }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 38, mass: 0.5 }}
+                  />
+                )}
+                <span>Home</span>
+              </Link>
+              <Link
+                href="/workspace/my-services"
+                className={`w-28 text-center py-1.5 rounded-full text-[13px] font-extrabold tracking-wide hover:scale-[1.02] active:scale-[0.98] relative z-10 custom-nav-link select-none ${(!['/home/dashboard-home', '/home/verify-code'].includes(pathname) && !pathname.startsWith('/tracks/bookings') && pathname !== '/tracks/customer-directory')
+                    ? 'custom-nav-link-active !text-[#ff6325]'
+                    : 'custom-nav-link-inactive'
+                  }`}
+              >
+                {(!['/home/dashboard-home', '/home/verify-code'].includes(pathname) && !pathname.startsWith('/tracks/bookings') && pathname !== '/tracks/customer-directory') && (
+                  <motion.div
+                    layoutId="activeNavIndicatorAdmin"
+                    className="absolute inset-0 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] -z-10 custom-nav-active-bg"
+                    style={{ willChange: 'transform' }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 38, mass: 0.5 }}
+                  />
+                )}
+                <span>Workspace</span>
+              </Link>
+              <Link
+                href="/tracks/bookings"
+                className={`w-24 text-center py-1.5 rounded-full text-[13px] font-extrabold tracking-wide hover:scale-[1.02] active:scale-[0.98] relative z-10 custom-nav-link select-none ${(pathname.startsWith('/tracks/bookings') || pathname === '/tracks/customer-directory')
+                    ? 'custom-nav-link-active !text-[#ff6325]'
+                    : 'custom-nav-link-inactive'
+                  }`}
+              >
+                {(pathname.startsWith('/tracks/bookings') || pathname === '/tracks/customer-directory') && (
+                  <motion.div
+                    layoutId="activeNavIndicatorAdmin"
+                    className="absolute inset-0 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] -z-10 custom-nav-active-bg"
+                    style={{ willChange: 'transform' }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 38, mass: 0.5 }}
+                  />
+                )}
+                <span>Bookings</span>
+              </Link>
+            </nav>
+          </div>
+
+          {/* Right Column: Actions (Search, Notification, Profile) + Utility Bit Tool */}
+          <div className="flex-1 h-full flex items-center justify-end">
+            <div className="flex items-center gap-2 pr-3">
+              {/* Spotlight Search Toggle Button */}
+              <button
+                onClick={() => setSpotlightOpen(true)}
+                className="rounded-full px-3 h-8 border border-white/22 hover:border-white/40 bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer flex items-center gap-1.5 shadow-md hover:scale-105 active:scale-95"
+                title="Search Console (⌘K)"
+              >
+                <Search className="h-3.5 w-3.5 text-white" />
+                <span className="text-[10px] font-extrabold tracking-wider uppercase text-white select-none hidden md:inline">Spotlight</span>
+              </button>
+
+              {/* Direct 1-Click Theme Toggle Button */}
+              <button
+                onClick={() => {
+                  const isCurrentlyDark = document.documentElement.classList.contains('dark') || theme === 'dark';
+                  const nextTheme = isCurrentlyDark ? 'light' : 'dark';
+                  setTheme(nextTheme);
+                  if (nextTheme === 'light') {
+                    document.documentElement.classList.add('light');
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    document.body?.classList.add('light');
+                    document.body?.classList.remove('dark');
+                  } else {
+                    document.documentElement.classList.remove('light');
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    document.body?.classList.remove('light');
+                    document.body?.classList.add('dark');
+                  }
+                }}
+                className="custom-nav-icon-container custom-nav-icon-btn w-8 h-8 shadow-md transition-all hover:scale-105 active:scale-95"
+                title="Toggle Light / Dark Mode"
+                aria-label="Toggle theme"
+              >
+                {theme === 'light' ? (
+                  <Moon className="h-3.5 w-3.5 text-blue-300" />
+                ) : (
+                  <Sun className="h-3.5 w-3.5 text-amber-400" />
+                )}
+              </button>
+
+              {/* Stateful Notifications Popover */}
+              <div className="relative" ref={popoverRef}>
+                <button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="custom-nav-icon-container custom-nav-icon-btn w-8 h-8 shadow-md transition-all hover:scale-105 active:scale-95 relative"
+                  aria-label="Notifications"
+                  title="Notifications"
+                >
+                  <Bell className="h-3.5 w-3.5 text-white" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-[#ff6325] shadow-[0_0_8px_rgba(255,99,37,0.8)]" />
+                  )}
                 </button>
 
-                {/* Branch Switcher Dropdown Menu */}
-                {branchDropdownOpen && (
-                  <div className="branch-dropdown-card absolute left-0 mt-2 w-72 bg-white dark:bg-[#0f1624] border border-slate-200 dark:border-white/15 rounded-2xl shadow-2xl z-50 p-2 divide-y divide-slate-100 dark:divide-white/5 animate-fade-in text-left">
-                    <div className="px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center justify-between">
-                      <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
-                        <MapPin size={12} className="text-[#ff6325]" />
-                        <span>Operating Branches</span>
-                      </span>
-                      <span className="text-slate-400">Tax Mode</span>
+                {showNotifications && (
+                  <div className="absolute right-0 mt-3 w-80 rounded-xl border border-border-brand bg-bg-tertiary p-4 shadow-2xl z-50 space-y-3 animate-fade-in notification-dropdown-card">
+                    <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-white">Notifications</span>
+                        {unreadCount > 0 && (
+                          <span className="rounded bg-[#8b6508]/10 text-[#fceea7] text-[9px] font-black px-1.5 py-0.5">{unreadCount} new</span>
+                        )}
+                      </div>
+                      {unreadCount > 0 && (
+                        <button
+                          onClick={markAllAsRead}
+                          className="text-[10px] text-[#fceea7] hover:text-[#8b6508] font-bold transition-colors cursor-pointer"
+                        >
+                          Mark all read
+                        </button>
+                      )}
                     </div>
-                    <div className="space-y-1 py-1 max-h-56 overflow-y-auto custom-scrollbar">
-                      {effectiveBranches.map((branch) => {
-                        const isActive = branch.id === activeBranch.id;
-                        return (
+
+                    <div className="max-h-60 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                      {notifications.length > 0 ? (
+                        notifications.map((n) => (
                           <div
-                            key={branch.id}
-                            onClick={() => {
-                              switchBranch(branch.id);
-                              setBranchDropdownOpen(false);
-                            }}
-                            className={`p-2.5 rounded-xl flex items-center justify-between cursor-pointer transition-colors ${
-                              isActive 
-                                ? 'bg-[#ff6325]/15 border border-[#ff6325]/40' 
-                                : 'hover:bg-slate-100 dark:hover:bg-white/5'
-                            }`}
+                            key={n.id}
+                            className={`group flex items-start gap-2.5 p-2.5 rounded-lg border transition-all ${n.read
+                                ? 'border-transparent bg-transparent opacity-60'
+                                : 'border-white/5 bg-white/[0.01]'
+                              }`}
                           >
-                            <div className="flex items-center gap-2.5 pr-2">
-                              <div className="h-7 w-7 rounded-lg bg-[#ff6325]/10 text-[#ff6325] flex items-center justify-center font-bold text-xs shrink-0">
-                                📍
-                              </div>
-                              <div className="flex flex-col">
-                                <span className="font-bold text-xs flex items-center gap-1.5 text-slate-900 dark:text-white">
-                                  {branch.name || `${branch.city} Branch`}
-                                  {isActive && <Check size={12} className="text-[#ff6325]" />}
-                                </span>
-                                <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                                  {branch.category ? `${branch.category} • ` : ''}{branch.address || `${branch.city} Location`}
-                                </span>
-                              </div>
+                            <div className={`mt-0.5 p-1 rounded bg-white/5 ${n.type === 'warning' ? 'text-amber-400' : n.type === 'success' ? 'text-emerald-400' : 'text-[#fceea7]'
+                              }`}>
+                              <Info size={11} />
                             </div>
-                            <div className="text-right shrink-0">
-                              <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${branch.gstStatus === 'WITH_GST' ? 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30' : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'}`}>
-                                {branch.gstStatus === 'WITH_GST' ? (branch.gstNumber ? 'GST: ' + branch.gstNumber.slice(-4) : 'GST') : 'Nett'}
-                              </span>
+
+                            <div className="flex-1 space-y-0.5">
+                              <p className="text-[10.5px] text-slate-200 leading-snug font-medium">{n.text}</p>
+                              <span className="text-[9px] text-slate-500 block font-semibold">{n.time}</span>
+                            </div>
+
+                            <div className="flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                              {!n.read && (
+                                <button
+                                  onClick={() => markAsRead(n.id)}
+                                  className="text-slate-500 hover:text-[#8b6508] transition-colors cursor-pointer"
+                                  title="Mark read"
+                                >
+                                  <Check size={11} />
+                                </button>
+                              )}
+                              <button
+                                onClick={() => deleteNotification(n.id)}
+                                className="text-slate-500 hover:text-red-400 transition-colors cursor-pointer"
+                                title="Delete notification"
+                              >
+                                <Trash2 size={11} />
+                              </button>
                             </div>
                           </div>
-                        );
-                      })}
+                        ))
+                      ) : (
+                        <div className="text-center py-6 text-slate-500 text-xs font-semibold">
+                          No notifications found
+                        </div>
+                      )}
                     </div>
-                    <div className="pt-2">
+                  </div>
+                )}
+              </div>
+
+              {/* Profile Dropdown */}
+              <div className="relative animate-fade-in" ref={profileRef}>
+                <button
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  className="group custom-nav-btn pl-1.5 pr-3 h-8.5 rounded-full flex items-center gap-2 shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 border border-white/15 bg-white/5 hover:bg-white/10 hover:border-[#ff6325]/40"
+                  aria-label="Toggle profile menu"
+                  title="Partner Profile Settings"
+                >
+                  <div className="h-6 w-6 rounded-full bg-gradient-to-br from-[#ff6325] to-[#1557bf] flex items-center justify-center shrink-0 shadow-sm overflow-hidden text-white font-black text-[11px] ring-1 ring-white/30">
+                    {currentMerchant?.logoUrl ? (
+                      <img src={currentMerchant.logoUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <span>{(loginRole === 'supervisor' ? (supervisorId || 'S') : (currentMerchant?.username || 'P')).charAt(0).toUpperCase()}</span>
+                    )}
+                  </div>
+                  <span className="!text-white text-[12px] font-bold tracking-wide select-none truncate max-w-[130px]">
+                    {loginRole === 'supervisor' ? (supervisorId || 'Supervisor') : (currentMerchant?.username || 'Partner')}
+                  </span>
+                  <ChevronDown className={`h-3 w-3 text-white transition-transform duration-200 ${profileOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {profileOpen && (
+                  <div className="absolute right-0 mt-3 w-[320px] bg-bg-secondary rounded-2xl shadow-2xl border border-border-brand z-50 overflow-hidden animate-fade-in text-left profile-dropdown-card">
+                    {/* Google Style Profile Header */}
+                    <div className="px-6 py-4 flex flex-col items-center min-w-0 text-center bg-bg-secondary">
+                      <div className="relative mb-2">
+                        <div className="h-14 w-14 rounded-full bg-[#0a3161] text-white flex items-center justify-center text-2xl font-bold overflow-hidden shadow-sm">
+                          {currentMerchant?.logoUrl ? (
+                            <img src={currentMerchant.logoUrl} alt="Avatar" className="w-full h-full object-cover" />
+                          ) : (
+                            (currentMerchant?.username || 'P').charAt(0).toUpperCase()
+                          )}
+                        </div>
+                        <label className="absolute bottom-0 right-0 h-5 w-5 rounded-full bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-500 flex items-center justify-center shadow-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors cursor-pointer">
+                          <Camera size={11} strokeWidth={2.5} className="!text-slate-800 dark:!text-white !stroke-slate-800 dark:!stroke-white" />
+                          <input
+                            type="file"
+                            accept="image/png, image/jpeg"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file && currentMerchant) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  const img = new Image();
+                                  img.onload = () => {
+                                    const canvas = document.createElement('canvas');
+                                    const MAX_SIZE = 200;
+                                    let width = img.width;
+                                    let height = img.height;
+                                    if (width > height) {
+                                      if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
+                                    } else {
+                                      if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
+                                    }
+                                    canvas.width = width;
+                                    canvas.height = height;
+                                    const ctx = canvas.getContext('2d');
+                                    ctx?.drawImage(img, 0, 0, width, height);
+                                    const compressed = canvas.toDataURL('image/jpeg', 0.6);
+                                    updateMerchantProfile(currentMerchant.id, {
+                                      ...currentMerchant,
+                                      logoUrl: compressed
+                                    });
+                                  };
+                                  img.src = reader.result as string;
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
+                      <span className="font-extrabold text-[15px] truncate max-w-full text-black dark:text-white capitalize">
+                        {currentMerchant?.username || 'Partner'}
+                      </span>
+                      <span className="text-xs text-slate-500 mt-0.5 truncate max-w-full" title={getBnxMailId()}>
+                        {getBnxMailId()}
+                      </span>
+
+                      <Link
+                        href="/workspace/settings"
+                        onClick={() => setProfileOpen(false)}
+                        className="mt-3 px-4 py-1.5 flex items-center justify-center gap-2 rounded-full border border-slate-300 dark:border-slate-600 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                      >
+                        <UserCog className="h-4 w-4" />
+                        <span>Manage your account</span>
+                      </Link>
+                    </div>
+
+
+
+                    {/* Account & Branch Management Actions matching user screenshot */}
+                    <div className="border-t border-border-brand/40 py-1.5 space-y-0.5">
+                      <Link
+                        href="/workspace/my-services"
+                        onClick={() => setProfileOpen(false)}
+                        className="w-full flex items-center gap-3.5 px-6 py-2 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-slate-200 transition-colors text-left cursor-pointer"
+                      >
+                        <Building2 className="h-4.5 w-4.5 text-slate-500 dark:text-slate-400 shrink-0 stroke-[1.8]" />
+                        <span className="text-[13px] font-medium">Manage Branches</span>
+                      </Link>
+
+                      <Link
+                        href="/workspace/staff-access"
+                        onClick={() => setProfileOpen(false)}
+                        className="w-full flex items-center gap-3.5 px-6 py-2 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-slate-200 transition-colors text-left cursor-pointer"
+                      >
+                        <Users className="h-4.5 w-4.5 text-slate-500 dark:text-slate-400 shrink-0 stroke-[1.8]" />
+                        <span className="text-[13px] font-medium">Manage SubIDs</span>
+                      </Link>
+
                       <button
                         type="button"
                         onClick={() => {
-                          setBranchDropdownOpen(false);
-                          router.push('/workspace/my-services');
+                          setProfileOpen(false);
+                          router.push('/');
                         }}
-                        className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl bg-[#ff6325]/10 hover:bg-[#ff6325]/20 text-[#ff6325] text-xs font-bold transition-colors cursor-pointer"
+                        className="w-full flex items-center gap-3.5 px-6 py-2 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-slate-200 transition-colors text-left cursor-pointer"
                       >
-                        <span className="text-[#ff6325]">Manage Branches & Locations</span>
-                        <ChevronDown size={13} className="-rotate-90 text-[#ff6325]" />
+                        <UserPlus className="h-4.5 w-4.5 text-slate-500 dark:text-slate-400 shrink-0 stroke-[1.8]" />
+                        <span className="text-[13px] font-medium">Add another account</span>
+                      </button>
+                    </div>
+
+                    <div className="border-t border-border-brand/40 py-1">
+                      <button
+                        onClick={() => {
+                          setProfileOpen(false);
+                          handleLogout();
+                        }}
+                        className="w-full flex items-center gap-3.5 px-6 py-2 hover:bg-red-50 dark:hover:bg-red-900/10 text-slate-700 dark:text-slate-200 hover:text-red-600 dark:hover:text-red-400 transition-colors text-left cursor-pointer"
+                      >
+                        <LogOutIcon className="h-4.5 w-4.5 text-slate-500 dark:text-slate-400 shrink-0 stroke-[1.8]" />
+                        <span className="text-[13px] font-medium">Sign out of all accounts</span>
                       </button>
                     </div>
                   </div>
                 )}
               </div>
-            );
-          })()}
-        </div>
-
-        {/* Center Column: Floating Navigation Menu */}
-        <div className="hidden lg:flex flex-none justify-center">
-          <nav className="custom-nav-capsule shadow-lg relative p-[3px] rounded-full">
-            <Link
-              href="/home/dashboard-home"
-              className={`w-20 text-center py-1.5 rounded-full text-[13px] font-extrabold tracking-wide hover:scale-[1.02] active:scale-[0.98] relative z-10 custom-nav-link select-none ${
-                (pathname === '/home/dashboard-home' || pathname === '/home/verify-code')
-                  ? 'custom-nav-link-active !text-[#FF5201]'
-                  : 'custom-nav-link-inactive'
-              }`}
-            >
-              {(pathname === '/home/dashboard-home' || pathname === '/home/verify-code') && (
-                <motion.div
-                  layoutId="activeNavIndicatorAdmin"
-                  className="absolute inset-0 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] -z-10 custom-nav-active-bg"
-                  style={{ willChange: 'transform' }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 38, mass: 0.5 }}
-                />
-              )}
-              <span>Home</span>
-            </Link>
-            <Link
-              href="/workspace/my-services"
-              className={`w-28 text-center py-1.5 rounded-full text-[13px] font-extrabold tracking-wide hover:scale-[1.02] active:scale-[0.98] relative z-10 custom-nav-link select-none ${
-                (!['/home/dashboard-home', '/home/verify-code'].includes(pathname) && !pathname.startsWith('/tracks/bookings') && pathname !== '/tracks/customer-directory')
-                  ? 'custom-nav-link-active !text-[#FF5201]'
-                  : 'custom-nav-link-inactive'
-              }`}
-            >
-              {(!['/home/dashboard-home', '/home/verify-code'].includes(pathname) && !pathname.startsWith('/tracks/bookings') && pathname !== '/tracks/customer-directory') && (
-                <motion.div
-                  layoutId="activeNavIndicatorAdmin"
-                  className="absolute inset-0 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] -z-10 custom-nav-active-bg"
-                  style={{ willChange: 'transform' }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 38, mass: 0.5 }}
-                />
-              )}
-              <span>Workspace</span>
-            </Link>
-            <Link
-              href="/tracks/bookings"
-              className={`w-24 text-center py-1.5 rounded-full text-[13px] font-extrabold tracking-wide hover:scale-[1.02] active:scale-[0.98] relative z-10 custom-nav-link select-none ${
-                (pathname.startsWith('/tracks/bookings') || pathname === '/tracks/customer-directory')
-                  ? 'custom-nav-link-active !text-[#FF5201]'
-                  : 'custom-nav-link-inactive'
-              }`}
-            >
-              {(pathname.startsWith('/tracks/bookings') || pathname === '/tracks/customer-directory') && (
-                <motion.div
-                  layoutId="activeNavIndicatorAdmin"
-                  className="absolute inset-0 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] -z-10 custom-nav-active-bg"
-                  style={{ willChange: 'transform' }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 38, mass: 0.5 }}
-                />
-              )}
-              <span>Bookings</span>
-            </Link>
-          </nav>
-        </div>
-
-        {/* Right Column: Actions (Search, Notification, Profile) + Utility Bit Tool */}
-        <div className="flex-1 h-full flex items-center justify-end">
-          <div className="flex items-center gap-2 pr-3">
-            {/* Spotlight Search Toggle Button */}
-            <button
-              onClick={() => setSpotlightOpen(true)}
-              className="rounded-full px-3 h-8 border border-white/22 hover:border-white/40 bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer flex items-center gap-1.5 shadow-md hover:scale-105 active:scale-95"
-              title="Search Console (⌘K)"
-            >
-              <Search className="h-3.5 w-3.5 text-white" />
-              <span className="text-[10px] font-extrabold tracking-wider uppercase text-white select-none hidden md:inline">Spotlight</span>
-            </button>
-
-          {/* Direct 1-Click Theme Toggle Button */}
-          <button
-            onClick={() => {
-              const isCurrentlyDark = document.documentElement.classList.contains('dark') || theme === 'dark';
-              const nextTheme = isCurrentlyDark ? 'light' : 'dark';
-              setTheme(nextTheme);
-              if (nextTheme === 'light') {
-                document.documentElement.classList.add('light');
-                document.documentElement.classList.remove('dark');
-                document.documentElement.setAttribute('data-theme', 'light');
-                document.body?.classList.add('light');
-                document.body?.classList.remove('dark');
-              } else {
-                document.documentElement.classList.remove('light');
-                document.documentElement.classList.add('dark');
-                document.documentElement.setAttribute('data-theme', 'dark');
-                document.body?.classList.remove('light');
-                document.body?.classList.add('dark');
-              }
-            }}
-            className="custom-nav-icon-container custom-nav-icon-btn w-8 h-8 shadow-md transition-all hover:scale-105 active:scale-95"
-            title="Toggle Light / Dark Mode"
-            aria-label="Toggle theme"
-          >
-            {theme === 'light' ? (
-              <Moon className="h-3.5 w-3.5 text-blue-300" />
-            ) : (
-              <Sun className="h-3.5 w-3.5 text-amber-400" />
-            )}
-          </button>
-
-          {/* Stateful Notifications Popover */}
-          <div className="relative" ref={popoverRef}>
-            <button 
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="custom-nav-icon-container custom-nav-icon-btn w-8 h-8 shadow-md transition-all hover:scale-105 active:scale-95 relative"
-              aria-label="Notifications"
-              title="Notifications"
-            >
-              <Bell className="h-3.5 w-3.5 text-white" />
-              {unreadCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-[#ff6325] shadow-[0_0_8px_rgba(255,99,37,0.8)]" />
-              )}
-            </button>
-
-            {showNotifications && (
-              <div className="absolute right-0 mt-3 w-80 rounded-xl border border-border-brand bg-bg-tertiary p-4 shadow-2xl z-50 space-y-3 animate-fade-in notification-dropdown-card">
-                <div className="flex items-center justify-between border-b border-white/5 pb-2">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-white">Notifications</span>
-                    {unreadCount > 0 && (
-                      <span className="rounded bg-[#8b6508]/10 text-[#fceea7] text-[9px] font-black px-1.5 py-0.5">{unreadCount} new</span>
-                    )}
-                  </div>
-                  {unreadCount > 0 && (
-                    <button 
-                      onClick={markAllAsRead}
-                      className="text-[10px] text-[#fceea7] hover:text-[#8b6508] font-bold transition-colors cursor-pointer"
-                    >
-                      Mark all read
-                    </button>
-                  )}
-                </div>
-
-                <div className="max-h-60 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
-                  {notifications.length > 0 ? (
-                    notifications.map((n) => (
-                      <div 
-                        key={n.id} 
-                        className={`group flex items-start gap-2.5 p-2.5 rounded-lg border transition-all ${
-                          n.read 
-                            ? 'border-transparent bg-transparent opacity-60' 
-                            : 'border-white/5 bg-white/[0.01]'
-                        }`}
-                      >
-                        <div className={`mt-0.5 p-1 rounded bg-white/5 ${
-                          n.type === 'warning' ? 'text-amber-400' : n.type === 'success' ? 'text-emerald-400' : 'text-[#fceea7]'
-                        }`}>
-                          <Info size={11} />
-                        </div>
-                        
-                        <div className="flex-1 space-y-0.5">
-                          <p className="text-[10.5px] text-slate-200 leading-snug font-medium">{n.text}</p>
-                          <span className="text-[9px] text-slate-500 block font-semibold">{n.time}</span>
-                        </div>
-
-                        <div className="flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {!n.read && (
-                            <button 
-                              onClick={() => markAsRead(n.id)}
-                              className="text-slate-500 hover:text-[#8b6508] transition-colors cursor-pointer"
-                              title="Mark read"
-                            >
-                              <Check size={11} />
-                            </button>
-                          )}
-                          <button 
-                            onClick={() => deleteNotification(n.id)}
-                            className="text-slate-500 hover:text-red-400 transition-colors cursor-pointer"
-                            title="Delete notification"
-                          >
-                            <Trash2 size={11} />
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-6 text-slate-500 text-xs font-semibold">
-                      No notifications found
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Profile Dropdown */}
-          <div className="relative animate-fade-in" ref={profileRef}>
-            <button
-              onClick={() => setProfileOpen(!profileOpen)}
-              className="group custom-nav-btn pl-1.5 pr-3 h-8.5 rounded-full flex items-center gap-2 shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 border border-white/15 bg-white/5 hover:bg-white/10 hover:border-[#ff6325]/40"
-              aria-label="Toggle profile menu"
-              title="Partner Profile Settings"
-            >
-              <div className="h-6 w-6 rounded-full bg-gradient-to-br from-[#ff6325] to-[#1557bf] flex items-center justify-center shrink-0 shadow-sm overflow-hidden text-white font-black text-[11px] ring-1 ring-white/30">
-                {currentMerchant?.logoUrl ? (
-                  <img src={currentMerchant.logoUrl} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  <span>{(loginRole === 'supervisor' ? (supervisorId || 'S') : (currentMerchant?.username || 'P')).charAt(0).toUpperCase()}</span>
-                )}
-              </div>
-              <span className="!text-white text-[12px] font-bold tracking-wide select-none truncate max-w-[130px]">
-                {loginRole === 'supervisor' ? (supervisorId || 'Supervisor') : (currentMerchant?.username || 'Partner')}
-              </span>
-              <ChevronDown className={`h-3 w-3 text-white transition-transform duration-200 ${profileOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            {profileOpen && (
-              <div className="absolute right-0 mt-3 w-[320px] bg-bg-secondary rounded-2xl shadow-2xl border border-border-brand z-50 overflow-hidden animate-fade-in text-left profile-dropdown-card">
-                {/* Google Style Profile Header */}
-                <div className="px-6 py-4 flex flex-col items-center min-w-0 text-center bg-bg-secondary">
-                  <div className="relative mb-2">
-                    <div className="h-14 w-14 rounded-full bg-[#0a3161] text-white flex items-center justify-center text-2xl font-bold overflow-hidden shadow-sm">
-                      {currentMerchant?.logoUrl ? (
-                        <img src={currentMerchant.logoUrl} alt="Avatar" className="w-full h-full object-cover" />
-                      ) : (
-                        (currentMerchant?.username || 'P').charAt(0).toUpperCase()
-                      )}
-                    </div>
-                    <label className="absolute bottom-0 right-0 h-5 w-5 rounded-full bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-500 flex items-center justify-center shadow-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors cursor-pointer">
-                      <Camera size={11} strokeWidth={2.5} className="!text-slate-800 dark:!text-white !stroke-slate-800 dark:!stroke-white" />
-                      <input 
-                        type="file" 
-                        accept="image/png, image/jpeg" 
-                        className="hidden" 
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file && currentMerchant) {
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                              const img = new Image();
-                              img.onload = () => {
-                                const canvas = document.createElement('canvas');
-                                const MAX_SIZE = 200;
-                                let width = img.width;
-                                let height = img.height;
-                                if (width > height) {
-                                  if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
-                                } else {
-                                  if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
-                                }
-                                canvas.width = width;
-                                canvas.height = height;
-                                const ctx = canvas.getContext('2d');
-                                ctx?.drawImage(img, 0, 0, width, height);
-                                const compressed = canvas.toDataURL('image/jpeg', 0.6);
-                                updateMerchantProfile(currentMerchant.id, {
-                                  ...currentMerchant,
-                                  logoUrl: compressed
-                                });
-                              };
-                              img.src = reader.result as string;
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        }} 
-                      />
-                    </label>
-                  </div>
-                  <span className="font-extrabold text-[15px] truncate max-w-full text-black dark:text-white capitalize">
-                    {currentMerchant?.username || 'Partner'}
-                  </span>
-                  <span className="text-xs text-slate-500 mt-0.5 truncate max-w-full" title={getBnxMailId()}>
-                    {getBnxMailId()}
-                  </span>
-                  
-                  <Link 
-                    href="/workspace/settings" 
-                    onClick={() => setProfileOpen(false)}
-                    className="mt-3 px-4 py-1.5 flex items-center justify-center gap-2 rounded-full border border-slate-300 dark:border-slate-600 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    <UserCog className="h-4 w-4" />
-                    <span>Manage your account</span>
-                  </Link>
-                </div>
-
-
-
-                {/* Account & Branch Management Actions matching user screenshot */}
-                <div className="border-t border-border-brand/40 py-1.5 space-y-0.5">
-                  <Link
-                    href="/workspace/my-services"
-                    onClick={() => setProfileOpen(false)}
-                    className="w-full flex items-center gap-3.5 px-6 py-2 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-slate-200 transition-colors text-left cursor-pointer"
-                  >
-                    <Building2 className="h-4.5 w-4.5 text-slate-500 dark:text-slate-400 shrink-0 stroke-[1.8]" />
-                    <span className="text-[13px] font-medium">Manage Branches</span>
-                  </Link>
-
-                  <Link
-                    href="/workspace/staff-access"
-                    onClick={() => setProfileOpen(false)}
-                    className="w-full flex items-center gap-3.5 px-6 py-2 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-slate-200 transition-colors text-left cursor-pointer"
-                  >
-                    <Users className="h-4.5 w-4.5 text-slate-500 dark:text-slate-400 shrink-0 stroke-[1.8]" />
-                    <span className="text-[13px] font-medium">Manage SubIDs</span>
-                  </Link>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setProfileOpen(false);
-                      router.push('/');
-                    }}
-                    className="w-full flex items-center gap-3.5 px-6 py-2 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-slate-200 transition-colors text-left cursor-pointer"
-                  >
-                    <UserPlus className="h-4.5 w-4.5 text-slate-500 dark:text-slate-400 shrink-0 stroke-[1.8]" />
-                    <span className="text-[13px] font-medium">Add another account</span>
-                  </button>
-                </div>
-
-                <div className="border-t border-border-brand/40 py-1">
-                  <button 
-                    onClick={() => {
-                      setProfileOpen(false);
-                      handleLogout();
-                    }}
-                    className="w-full flex items-center gap-3.5 px-6 py-2 hover:bg-red-50 dark:hover:bg-red-900/10 text-slate-700 dark:text-slate-200 hover:text-red-600 dark:hover:text-red-400 transition-colors text-left cursor-pointer"
-                  >
-                    <LogOutIcon className="h-4.5 w-4.5 text-slate-500 dark:text-slate-400 shrink-0 stroke-[1.8]" />
-                    <span className="text-[13px] font-medium">Sign out of all accounts</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-          </div>
-          
-          {/* Utility Drawer Button Box (56px wide column matching user booking portal) */}
-          <div className="w-[56px] shrink-0 h-full flex items-center justify-center relative">
-            {/* Perfectly Balanced Vertical Divider Line (Clean, subtle & visible) */}
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-[1px] bg-white/18" />
-            <button
-              onClick={() => {
-                if (utilityDrawerOpen) {
-                  // Closing: reset active tool/tab so next time it opens fresh (clean rail only)
-                  setUtilityDrawerOpen(false);
-                  setActiveUtilityTab(null);
-                } else {
-                  setUtilityDrawerOpen(true);
-                  setActiveUtilityTab(null);
-                }
-              }}
-              className={`relative flex items-center justify-center transition-all cursor-pointer shadow-md custom-nav-icon-container custom-nav-icon-btn w-9 h-9 ${
-                utilityDrawerOpen
-                  ? 'opacity-100 scale-105'
-                  : 'opacity-85 hover:opacity-100 hover:scale-105'
-              }`}
-              title="Bokspot Utilities"
-            >
-              <img src="/utility-icon.png?v=3" alt="Utilities" className="w-[20px] h-[20px] object-contain" />
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Floating Modern Compact Subnav Bar (Slim Height) */}
-      <div 
-        style={{
-          paddingRight: !utilityDrawerOpen 
-            ? '16px' 
-            : activeUtilityTab 
-              ? (activeUtilityTab === 'beta' ? '412px' : '392px') 
-              : '72px'
-        }}
-        className="bg-white/85 dark:bg-[#0c121e]/90 backdrop-blur-2xl flex items-center px-6 py-0 h-10 shrink-0 shadow-[0_1px_8px_rgba(0,0,0,0.03)] border-b border-[#dbe3eb] dark:border-white/10 relative z-40 transition-[padding-right] duration-200 ease-out"
-      >
-        {/* Left side empty space to keep subnav tabs centered */}
-        <div className="flex-1 hidden md:flex items-center justify-start pl-2" />
-        
-        <div className="flex-auto overflow-x-auto custom-scrollbar flex justify-center">
-          <nav className="flex items-center gap-1 mx-auto px-1 w-max p-0.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.03] dark:border-white/[0.04]">
-            {navItems.map((item) => {
-              const active = pathname === item.href;
-            return (
-              <Link 
-                key={item.href} 
-                href={item.href}
-                className={`flex items-center gap-1.5 rounded-lg px-3 py-1 text-[11px] font-bold transition-all whitespace-nowrap active:scale-[0.97] ${
-                  active 
-                    ? 'bg-[#FF5201] !text-white shadow-xs' 
-                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
-                }`}
-              >
-                <item.icon className={`h-3 w-3 ${active ? '!text-white' : 'text-slate-400 group-hover:text-slate-600'}`} />
-                <span className={active ? '!text-white' : ''}>{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
-        </div>
-        
-        {/* Right side icons and links */}
-        <div className="flex-1 hidden md:flex items-center justify-end gap-4 pl-4 pr-3 relative">
-          <Link
-            href="/workspace/contact-us"
-            className="flex items-center justify-center gap-1 text-[11px] font-bold text-slate-700 dark:text-slate-300 hover:text-[#ff6325] dark:hover:text-[#ff6325] transition-colors"
-            title="Support"
-          >
-            <Headset className="h-3.5 w-3.5 text-[#ff6325]" />
-            Support
-          </Link>
-          <Link
-            href="/workspace/settings"
-            className="flex items-center justify-center gap-1 text-[11px] font-bold text-slate-700 dark:text-slate-300 hover:text-[#946c07] dark:hover:text-[#d4af37] transition-colors"
-            title="Settings"
-          >
-            <Settings className="h-3.5 w-3.5" />
-            Settings
-          </Link>
-        </div>
-      </div>
-
-      {/* Main Body Section */}
-      <div className="flex flex-1 overflow-hidden relative">
-        {/* Main Content Workspace - Edge-to-Edge Fluid Console */}
-        <main 
-          style={{
-            marginRight: !utilityDrawerOpen 
-              ? '0px' 
-              : activeUtilityTab 
-                ? (activeUtilityTab === 'beta' ? '400px' : '380px') 
-                : '60px'
-          }}
-          className="flex-1 overflow-y-auto bg-slate-50 dark:bg-[#070b13] px-3 sm:px-4 lg:px-6 py-4 custom-scrollbar transition-all duration-300 flex flex-col justify-between ease-in-out"
-        >
-          <div className="flex-1 pb-4 w-full">
-            {children}
-          </div>
-          {/* Footer containing About Us */}
-          <footer className="mt-auto pt-6 border-t border-border-brand/40 text-text-secondary select-none">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-              <div className="space-y-2">
-                <span className="text-[10px] uppercase font-black tracking-wider text-text-primary">About BokSpot Platform</span>
-                <p className="text-[11px] text-text-secondary/70 leading-relaxed max-w-xl">
-                  BokSpot Console provides next-generation merchant management systems designed to simplify booking experiences, optimize staff shifts, manage user calendars, and build robust customer CRM pipelines with absolute ease and performance. Developed by Beta Softnet.
-                </p>
-              </div>
-              <div className="flex flex-col md:items-end justify-end space-y-1 text-[10px] text-text-secondary/50 font-mono">
-                <p>Platform Version 2.4.0 • Secured Console</p>
-                <p>© 2026 BokSpot. All rights reserved.</p>
-              </div>
             </div>
-          </footer>
-        </main>
-      </div>
 
-      <UtilityDrawer isOpen={utilityDrawerOpen} onClose={() => setUtilityDrawerOpen(false)} isVendor={true} activeTab={activeUtilityTab} setActiveTab={setActiveUtilityTab} />
-
-      {/* Apple Spotlight Search Overlay Modal */}
-      {spotlightOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-500/ backdrop-blur-sm flex justify-center items-start pt-[10vh]">
-          {/* Backdrop Click Dismiss */}
-          <div className="fixed inset-0 -z-10" onClick={() => setSpotlightOpen(false)} />
-          
-          <div className="max-w-2xl w-full mx-4 bg-bg-secondary border border-border-brand rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-fade-in">
-            {/* Search Input Box */}
-            <div className="flex items-center gap-3.5 px-5 py-4 border-b border-border-brand/50 bg-bg-tertiary">
-              <Search className="h-5 w-5 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search tools, bookings, services, staff..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setSpotlightIndex(0);
-                }}
-                className="bg-transparent border-none outline-none text-sm text-text-primary placeholder-slate-500 w-full"
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    setSpotlightIndex(prev => Math.min(prev + 1, (searchQuery.trim() === '' ? searchPages.length : searchResults.length) - 1));
-                  } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    setSpotlightIndex(prev => Math.max(prev - 1, 0));
-                  } else if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const list = searchQuery.trim() === '' ? searchPages : searchResults;
-                    const selected = list[spotlightIndex];
-                    if (selected) {
-                      setSpotlightOpen(false);
-                      window.location.href = selected.href;
-                    }
-                  } else if (e.key === 'Escape') {
-                    setSpotlightOpen(false);
+            {/* Utility Drawer Button Box (56px wide column matching user booking portal) */}
+            <div className="w-[56px] shrink-0 h-full flex items-center justify-center relative">
+              {/* Perfectly Balanced Vertical Divider Line (Clean, subtle & visible) */}
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-[1px] bg-white/18" />
+              <button
+                onClick={() => {
+                  if (utilityDrawerOpen) {
+                    // Closing: reset active tool/tab so next time it opens fresh (clean rail only)
+                    setUtilityDrawerOpen(false);
+                    setActiveUtilityTab(null);
+                  } else {
+                    setUtilityDrawerOpen(true);
+                    setActiveUtilityTab(null);
                   }
                 }}
-              />
-              <button 
-                onClick={() => setSpotlightOpen(false)}
-                className="rounded-lg p-1 hover:bg-white/5 text-slate-400 hover:text-white"
+                className={`relative flex items-center justify-center transition-all cursor-pointer shadow-md custom-nav-icon-container custom-nav-icon-btn w-9 h-9 ${utilityDrawerOpen
+                    ? 'opacity-100 scale-105'
+                    : 'opacity-85 hover:opacity-100 hover:scale-105'
+                  }`}
+                title="Bokspot Utilities"
               >
-                <X className="h-4 w-4" />
+                <img src="/utility-icon.png?v=3" alt="Utilities" className="w-[20px] h-[20px] object-contain" />
               </button>
             </div>
+          </div>
+        </header>
 
-            {/* Results / Suggestions list */}
-            <div className="max-h-[380px] overflow-y-auto p-2 custom-scrollbar">
-              {searchQuery.trim() === '' ? (
-                <div>
-                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-3.5 py-2">Quick suggestions</div>
-                  <div className="space-y-0.5">
-                    {searchPages.map((item, idx) => {
-                      const active = idx === spotlightIndex;
-                      return (
-                        <div
-                          key={item.href}
-                          onClick={() => {
-                            setSpotlightOpen(false);
-                            window.location.href = item.href;
-                          }}
-                          onMouseEnter={() => setSpotlightIndex(idx)}
-                          className={`flex items-center gap-3 px-3.5 py-3 rounded-xl cursor-pointer transition-colors ${
-                            active ? 'bg-primary/10 text-primary border border-primary/20' : 'text-text-secondary hover:bg-white/5 border border-transparent'
-                          }`}
-                        >
-                          <item.icon className={`h-4.5 w-4.5 ${active ? 'text-primary' : 'text-slate-400'}`} />
-                          <div className="flex-1 text-left">
-                            <span className="text-xs font-bold block">{item.label}</span>
-                            <span className="text-[10px] text-slate-500 block">{item.description}</span>
-                          </div>
-                          <span className="text-[9px] uppercase font-bold text-slate-600 bg-white/5 px-2 py-0.5 rounded">Menu Option</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-3.5 py-2">Search results ({searchResults.length})</div>
-                  <div className="space-y-0.5">
-                    {searchResults.map((item, idx) => {
-                      const active = idx === spotlightIndex;
-                      return (
-                        <div
-                          key={item.label + idx}
-                          onClick={() => {
-                            setSpotlightOpen(false);
-                            window.location.href = item.href;
-                          }}
-                          onMouseEnter={() => setSpotlightIndex(idx)}
-                          className={`flex items-center gap-3 px-3.5 py-3 rounded-xl cursor-pointer transition-colors ${
-                            active ? 'bg-primary/10 text-primary border border-primary/20' : 'text-text-secondary hover:bg-white/5 border border-transparent'
-                          }`}
-                        >
-                          <item.icon className={`h-4.5 w-4.5 ${active ? 'text-primary' : 'text-slate-400'}`} />
-                          <div className="flex-1 text-left">
-                            <span className="text-xs font-bold block">{item.label}</span>
-                            <span className="text-[10px] text-slate-500 block">{item.description}</span>
-                          </div>
-                          <span className="text-[9px] uppercase font-bold text-slate-600 bg-white/5 px-2 py-0.5 rounded capitalize">{item.type}</span>
-                        </div>
-                      );
-                    })}
-                    {searchResults.length === 0 && (
-                      <div className="text-center py-10 text-slate-500 text-xs">
-                        No results found for &ldquo;{searchQuery}&rdquo;
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
+        {/* Floating Modern Compact Subnav Bar (Slim Height) */}
+        <div
+          style={{
+            paddingRight: !utilityDrawerOpen
+              ? '16px'
+              : activeUtilityTab
+                ? (activeUtilityTab === 'beta' ? '412px' : '392px')
+                : '72px'
+          }}
+          className="bg-white/85 dark:bg-[#0c121e]/90 backdrop-blur-2xl flex items-center px-6 py-0 h-10 shrink-0 shadow-[0_1px_8px_rgba(0,0,0,0.03)] border-b border-[#dbe3eb] dark:border-white/10 relative z-40 transition-[padding-right] duration-200 ease-out"
+        >
+          {/* Left side empty space to keep subnav tabs centered */}
+          <div className="flex-1 hidden md:flex items-center justify-start pl-2" />
 
-            {/* Keyboard Help Footer */}
-            <div className="bg-bg-tertiary border-t border-border-brand/40 px-4.5 py-2.5 flex items-center justify-between text-[9px] text-slate-500 font-mono">
-              <div className="flex gap-4">
-                <span>↑↓ Navigate</span>
-                <span>↵ Select</span>
-                <span>ESC Close</span>
-              </div>
-              <span>Spotlight Console Search</span>
-            </div>
+          <div className="flex-auto overflow-x-auto custom-scrollbar flex justify-center">
+            <nav className="flex items-center gap-1 mx-auto px-1 w-max p-0.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.03] dark:border-white/[0.04]">
+              {navItems.map((item) => {
+                const active = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1 text-[11px] font-bold transition-all whitespace-nowrap active:scale-[0.97] ${active
+                        ? 'bg-[#ff6325] !text-white shadow-xs'
+                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
+                      }`}
+                  >
+                    <item.icon className={`h-3 w-3 ${active ? '!text-white' : 'text-slate-400 group-hover:text-slate-600'}`} />
+                    <span className={active ? '!text-white' : ''}>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Right side icons and links */}
+          <div className="flex-1 hidden md:flex items-center justify-end gap-4 pl-4 pr-3 relative">
+            <Link
+              href="/workspace/contact-us"
+              className="flex items-center justify-center gap-1 text-[11px] font-bold text-slate-700 dark:text-slate-300 hover:text-[#ff6325] dark:hover:text-[#ff6325] transition-colors"
+              title="Support"
+            >
+              <Headset className="h-3.5 w-3.5 text-[#ff6325]" />
+              Support
+            </Link>
+            <Link
+              href="/workspace/settings"
+              className="flex items-center justify-center gap-1 text-[11px] font-bold text-slate-700 dark:text-slate-300 hover:text-[#946c07] dark:hover:text-[#d4af37] transition-colors"
+              title="Settings"
+            >
+              <Settings className="h-3.5 w-3.5" />
+              Settings
+            </Link>
           </div>
         </div>
-      )}
-      
-    </div>
+
+        {/* Main Body Section */}
+        <div className="flex flex-1 overflow-hidden relative">
+          {/* Main Content Workspace - Edge-to-Edge Fluid Console */}
+          <main
+            style={{
+              marginRight: !utilityDrawerOpen
+                ? '0px'
+                : activeUtilityTab
+                  ? (activeUtilityTab === 'beta' ? '400px' : '380px')
+                  : '60px'
+            }}
+            className="flex-1 overflow-y-auto bg-slate-50 dark:bg-[#070b13] px-3 sm:px-4 lg:px-6 py-4 custom-scrollbar transition-all duration-300 flex flex-col justify-between ease-in-out"
+          >
+            <div className="flex-1 pb-4 w-full">
+              {children}
+            </div>
+            {/* Footer containing About Us */}
+            <footer className="mt-auto pt-6 border-t border-border-brand/40 text-text-secondary select-none">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+                <div className="space-y-2">
+                  <span className="text-[10px] uppercase font-black tracking-wider text-text-primary">About BokSpot Platform</span>
+                  <p className="text-[11px] text-text-secondary/70 leading-relaxed max-w-xl">
+                    BokSpot Console provides next-generation merchant management systems designed to simplify booking experiences, optimize staff shifts, manage user calendars, and build robust customer CRM pipelines with absolute ease and performance. Developed by Beta Softnet.
+                  </p>
+                </div>
+                <div className="flex flex-col md:items-end justify-end space-y-1 text-[10px] text-text-secondary/50 font-mono">
+                  <p>Platform Version 2.4.0 • Secured Console</p>
+                  <p>© 2026 BokSpot. All rights reserved.</p>
+                </div>
+              </div>
+            </footer>
+          </main>
+        </div>
+
+        <UtilityDrawer isOpen={utilityDrawerOpen} onClose={() => setUtilityDrawerOpen(false)} isVendor={true} activeTab={activeUtilityTab} setActiveTab={setActiveUtilityTab} />
+
+        {/* Apple Spotlight Search Overlay Modal */}
+        {spotlightOpen && (
+          <div className="fixed inset-0 z-50 bg-slate-500/ backdrop-blur-sm flex justify-center items-start pt-[10vh]">
+            {/* Backdrop Click Dismiss */}
+            <div className="fixed inset-0 -z-10" onClick={() => setSpotlightOpen(false)} />
+
+            <div className="max-w-2xl w-full mx-4 bg-bg-secondary border border-border-brand rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-fade-in">
+              {/* Search Input Box */}
+              <div className="flex items-center gap-3.5 px-5 py-4 border-b border-border-brand/50 bg-bg-tertiary">
+                <Search className="h-5 w-5 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search tools, bookings, services, staff..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setSpotlightIndex(0);
+                  }}
+                  className="bg-transparent border-none outline-none text-sm text-text-primary placeholder-slate-500 w-full"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      setSpotlightIndex(prev => Math.min(prev + 1, (searchQuery.trim() === '' ? searchPages.length : searchResults.length) - 1));
+                    } else if (e.key === 'ArrowUp') {
+                      e.preventDefault();
+                      setSpotlightIndex(prev => Math.max(prev - 1, 0));
+                    } else if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const list = searchQuery.trim() === '' ? searchPages : searchResults;
+                      const selected = list[spotlightIndex];
+                      if (selected) {
+                        setSpotlightOpen(false);
+                        window.location.href = selected.href;
+                      }
+                    } else if (e.key === 'Escape') {
+                      setSpotlightOpen(false);
+                    }
+                  }}
+                />
+                <button
+                  onClick={() => setSpotlightOpen(false)}
+                  className="rounded-lg p-1 hover:bg-white/5 text-slate-400 hover:text-white"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Results / Suggestions list */}
+              <div className="max-h-[380px] overflow-y-auto p-2 custom-scrollbar">
+                {searchQuery.trim() === '' ? (
+                  <div>
+                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-3.5 py-2">Quick suggestions</div>
+                    <div className="space-y-0.5">
+                      {searchPages.map((item, idx) => {
+                        const active = idx === spotlightIndex;
+                        return (
+                          <div
+                            key={item.href}
+                            onClick={() => {
+                              setSpotlightOpen(false);
+                              window.location.href = item.href;
+                            }}
+                            onMouseEnter={() => setSpotlightIndex(idx)}
+                            className={`flex items-center gap-3 px-3.5 py-3 rounded-xl cursor-pointer transition-colors ${active ? 'bg-primary/10 text-primary border border-primary/20' : 'text-text-secondary hover:bg-white/5 border border-transparent'
+                              }`}
+                          >
+                            <item.icon className={`h-4.5 w-4.5 ${active ? 'text-primary' : 'text-slate-400'}`} />
+                            <div className="flex-1 text-left">
+                              <span className="text-xs font-bold block">{item.label}</span>
+                              <span className="text-[10px] text-slate-500 block">{item.description}</span>
+                            </div>
+                            <span className="text-[9px] uppercase font-bold text-slate-600 bg-white/5 px-2 py-0.5 rounded">Menu Option</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-3.5 py-2">Search results ({searchResults.length})</div>
+                    <div className="space-y-0.5">
+                      {searchResults.map((item, idx) => {
+                        const active = idx === spotlightIndex;
+                        return (
+                          <div
+                            key={item.label + idx}
+                            onClick={() => {
+                              setSpotlightOpen(false);
+                              window.location.href = item.href;
+                            }}
+                            onMouseEnter={() => setSpotlightIndex(idx)}
+                            className={`flex items-center gap-3 px-3.5 py-3 rounded-xl cursor-pointer transition-colors ${active ? 'bg-primary/10 text-primary border border-primary/20' : 'text-text-secondary hover:bg-white/5 border border-transparent'
+                              }`}
+                          >
+                            <item.icon className={`h-4.5 w-4.5 ${active ? 'text-primary' : 'text-slate-400'}`} />
+                            <div className="flex-1 text-left">
+                              <span className="text-xs font-bold block">{item.label}</span>
+                              <span className="text-[10px] text-slate-500 block">{item.description}</span>
+                            </div>
+                            <span className="text-[9px] uppercase font-bold text-slate-600 bg-white/5 px-2 py-0.5 rounded capitalize">{item.type}</span>
+                          </div>
+                        );
+                      })}
+                      {searchResults.length === 0 && (
+                        <div className="text-center py-10 text-slate-500 text-xs">
+                          No results found for &ldquo;{searchQuery}&rdquo;
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Keyboard Help Footer */}
+              <div className="bg-bg-tertiary border-t border-border-brand/40 px-4.5 py-2.5 flex items-center justify-between text-[9px] text-slate-500 font-mono">
+                <div className="flex gap-4">
+                  <span>↑↓ Navigate</span>
+                  <span>↵ Select</span>
+                  <span>ESC Close</span>
+                </div>
+                <span>Spotlight Console Search</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+      </div>
     </>
   );
 }
