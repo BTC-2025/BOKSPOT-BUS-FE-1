@@ -16,7 +16,7 @@ const GROUPED_CATEGORIES = {
     "Football Turf", "Cricket Ground", "Badminton Court", "Tennis Court", "Basketball Court", "Swimming Pool Slots", "Gaming Arena Booking", "Indoor Play Arena"
   ],
   "Health, Wellness & Dining": [
-    "Restaurant Table Reservation", "Salon / Spa Appointment", "Gym / Yoga Slot Booking", "Doctor Appointment"
+    "Restaurant Table Reservation", "Salon / Spa Appointment", "Gym Booking", "Yoga Booking", "Doctor Appointment"
   ],
   "Home & Trade Services": [
     "Electrician Booking", "Plumber Booking", "Cleaning Service", "Technician Service"
