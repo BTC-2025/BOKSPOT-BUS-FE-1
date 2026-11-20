@@ -20,7 +20,7 @@
 }
 
 :root {
-  --primary: #0a3161;           /* Bokspot Navy Blue from logo */
+  --primary: #ff6325;           /* Bokspot Navy Blue from logo */
   --primary-dark: #072346;
   --secondary: #ff6325;         /* Bokspot Bright Orange from logo */
   --secondary-dark: #e04e13;
@@ -46,7 +46,7 @@
 }
 
 .light {
-  --primary: #0a3161;           /* Deep Bokspot Navy */
+  --primary: #ff6325;           /* Deep Bokspot Navy */
   --primary-dark: #061e3d;
   --secondary: #ff6325;         /* Vibrant Bokspot Orange */
   --secondary-dark: #d84d12;
@@ -165,56 +165,77 @@ body {
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* Top Header Navbar - Exact Customer Header Match (Ultra-Luxury Royal Obsidian Glass) */
+/* Top Header Navbar - Clean Crisp White with Swiggy Orange Accent (Bokspot Main Brand) */
 .vendor-navbar {
-  backdrop-filter: blur(32px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(32px) saturate(180%) !important;
-  background: linear-gradient(180deg, #00224f 0%, #001633 100%) !important;
-  border-bottom: 2px solid #ff6325 !important;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.1) inset !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  background: linear-gradient(135deg, #FF6325 0%, #FF5200 60%, #E04E13 100%) !important;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow: 0 4px 20px -2px rgba(252, 128, 25, 0.35), 0 2px 6px rgba(0, 0, 0, 0.12) !important;
 }
 
 .dark .vendor-navbar {
-  background: linear-gradient(180deg, #001838 0%, #000f24 100%) !important;
-  border-bottom: 2px solid #ff6325 !important;
-  box-shadow: 0 6px 32px rgba(0, 0, 0, 0.55), 0 1px 0 rgba(255, 255, 255, 0.08) inset !important;
+  background: linear-gradient(135deg, #E04E13 0%, #CC3F00 50%, #9E2F00 100%) !important;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.45) !important;
 }
 
 .light .vendor-navbar {
-  background: linear-gradient(180deg, #003580 0%, #00224f 100%) !important;
-  border-bottom: 2px solid #ff6325 !important;
-  box-shadow: 0 4px 25px rgba(0, 34, 79, 0.35), 0 1px 0 rgba(255, 255, 255, 0.15) inset !important;
+  background: linear-gradient(135deg, #FF6325 0%, #FF5200 60%, #E04E13 100%) !important;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 0 4px 20px -2px rgba(252, 128, 25, 0.35), 0 2px 6px rgba(0, 0, 0, 0.12) !important;
 }
 
 .vendor-navbar > div > button,
 .vendor-navbar > div > a,
 .vendor-navbar > div > span,
 .vendor-navbar > div > svg {
-  color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+:is(.dark) .vendor-navbar > div > button,
+:is(.dark) .vendor-navbar > div > a,
+:is(.dark) .vendor-navbar > div > span,
+:is(.dark) .vendor-navbar > div > svg {
+  color: #f8fafc !important;
 }
 
 /* Lucide SVGs directly inside the top navbar buttons */
 .vendor-navbar > div:not(.profile-dropdown-card) > button svg {
-  color: #ffffff !important;
+  color: #334155 !important;
+}
+
+:is(.dark) .vendor-navbar > div:not(.profile-dropdown-card) > button svg {
+  color: #f1f5f9 !important;
 }
 
 .vendor-navbar .relative > button {
-  background: rgba(255, 255, 255, 0.06) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
   border-radius: 9999px !important;
-  color: #ffffff !important;
+  color: #0f172a !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .vendor-navbar .relative > button:hover {
-  background: rgba(255, 255, 255, 0.14) !important;
-  border-color: rgba(255, 99, 37, 0.45) !important;
-  box-shadow: 0 0 14px rgba(255, 99, 37, 0.2) !important;
+  background: #fff4ec !important;
+  border-color: rgba(252, 128, 25, 0.5) !important;
+  box-shadow: 0 0 14px rgba(252, 128, 25, 0.2) !important;
 }
 
 .vendor-navbar .relative > button svg,
 .vendor-navbar .relative > button span {
-  color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+:is(.dark) .vendor-navbar .relative > button {
+  background: rgba(30, 41, 59, 0.7) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+:is(.dark) .vendor-navbar .relative > button svg,
+:is(.dark) .vendor-navbar .relative > button span {
+  color: #f8fafc !important;
 }
 
 /* Ensure profile dropdown default text color without overriding intentional inner badge colors like text-white */
@@ -385,9 +406,8 @@ body {
   .bg-purple-600 *:not(input):not(textarea):not(select),
   .bg-amber-600:not(input):not(textarea):not(select),
   .bg-amber-600 *:not(input):not(textarea):not(select),
-  .custom-nav-active-bg,
   .vendor-navbar:not(input):not(textarea):not(select),
-  .vendor-navbar *:not(.profile-dropdown-card):not(.profile-dropdown-card *):not(.notification-dropdown-card):not(.notification-dropdown-card *):not(.branch-dropdown-card):not(.branch-dropdown-card *):not(input):not(textarea):not(select) {
+  .vendor-navbar *:not(.profile-dropdown-card):not(.profile-dropdown-card *):not(.notification-dropdown-card):not(.notification-dropdown-card *):not(.branch-dropdown-card):not(.branch-dropdown-card *):not(.custom-nav-link-active):not(.custom-nav-link-active *):not(input):not(textarea):not(select) {
     color: #ffffff !important;
   }
   
@@ -435,8 +455,8 @@ body {
   
   /* Vendor navbar top-level elements remain crisp white */
   .vendor-navbar > div:not(.branch-dropdown-card):not(.profile-dropdown-card):not(.notification-dropdown-card) button:not(.branch-dropdown-card *):not(.profile-dropdown-card *):not(.notification-dropdown-card *),
-  .vendor-navbar > div:not(.branch-dropdown-card):not(.profile-dropdown-card):not(.notification-dropdown-card) a:not(.branch-dropdown-card *):not(.profile-dropdown-card *):not(.notification-dropdown-card *),
-  .vendor-navbar > div:not(.branch-dropdown-card):not(.profile-dropdown-card):not(.notification-dropdown-card) span:not(.branch-dropdown-card *):not(.profile-dropdown-card *):not(.notification-dropdown-card *),
+  .vendor-navbar > div:not(.branch-dropdown-card):not(.profile-dropdown-card):not(.notification-dropdown-card) a:not(.branch-dropdown-card *):not(.profile-dropdown-card *):not(.notification-dropdown-card *):not(.custom-nav-link-active),
+  .vendor-navbar > div:not(.branch-dropdown-card):not(.profile-dropdown-card):not(.notification-dropdown-card) span:not(.branch-dropdown-card *):not(.profile-dropdown-card *):not(.notification-dropdown-card *):not(.custom-nav-link-active *),
   .vendor-navbar > div:not(.branch-dropdown-card):not(.profile-dropdown-card):not(.notification-dropdown-card) svg:not(.branch-dropdown-card *):not(.profile-dropdown-card *):not(.notification-dropdown-card *) {
     color: #ffffff !important;
   }
@@ -635,14 +655,23 @@ body {
 }
 
 .dark .custom-nav-capsule, .light .custom-nav-capsule, .vendor-navbar .custom-nav-capsule {
-  background: rgba(4, 14, 28, 0.6) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: #f1f5f9 !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 9999px !important;
+}
+
+:is(.dark) .custom-nav-capsule, :is(.dark) .vendor-navbar .custom-nav-capsule {
+  background: rgba(30, 41, 59, 0.8) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 /* Nav action circular button styles matching customer TopNav */
-.vendor-navbar .custom-nav-icon-container {
-  border: 1px solid rgba(255, 255, 255, 0.22) !important;
-  background-color: rgba(255, 255, 255, 0.1) !important;
+.vendor-navbar .custom-nav-icon-container,
+.light .vendor-navbar .custom-nav-icon-container,
+.dark .vendor-navbar .custom-nav-icon-container {
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  background: rgba(255, 255, 255, 0.22) !important;
+  background-color: rgba(255, 255, 255, 0.22) !important;
   border-radius: 9999px !important;
   display: flex !important;
   align-items: center !important;
@@ -652,9 +681,12 @@ body {
   -webkit-backdrop-filter: blur(12px) !important;
 }
 
-.vendor-navbar .custom-nav-icon-container:hover {
-  background-color: rgba(255, 99, 37, 0.3) !important;
-  border-color: rgba(255, 255, 255, 0.4) !important;
+.vendor-navbar .custom-nav-icon-container:hover,
+.light .vendor-navbar .custom-nav-icon-container:hover,
+.dark .vendor-navbar .custom-nav-icon-container:hover {
+  background: rgba(255, 255, 255, 0.32) !important;
+  background-color: rgba(255, 255, 255, 0.32) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
 }
 
 .vendor-navbar .custom-nav-icon-btn {
@@ -662,8 +694,25 @@ body {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  color: #ffffff !important;
+  color: #FFFFFF !important;
   cursor: pointer !important;
+}
+
+.vendor-navbar .custom-nav-icon-container svg,
+.vendor-navbar .custom-nav-icon-btn svg,
+.light .vendor-navbar .custom-nav-icon-container svg,
+.dark .vendor-navbar .custom-nav-icon-container svg {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+}
+
+:is(.dark) .vendor-navbar .custom-nav-icon-container {
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  background-color: rgba(255, 255, 255, 0.22) !important;
+}
+
+:is(.dark) .vendor-navbar .custom-nav-icon-btn {
+  color: #FFFFFF !important;
 }
 
 .vendor-navbar .utility-divider-line {
@@ -678,24 +727,36 @@ body {
 }
 
 .dark .custom-nav-link-inactive, .light .custom-nav-link-inactive, .vendor-navbar .custom-nav-link-inactive {
-  color: rgba(255, 255, 255, 0.72) !important;
+  color: #475569 !important;
 }
+
+:is(.dark) .vendor-navbar .custom-nav-link-inactive {
+  color: #cbd5e1 !important;
+}
+
 .dark .custom-nav-link-inactive:hover, .light .custom-nav-link-inactive:hover, .vendor-navbar .custom-nav-link-inactive:hover {
-  color: #ffffff !important;
-  background: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF !important;
+  background: transparent !important;
 }
 
 /* Active Nav Link */
-.dark .custom-nav-link-active, .light .custom-nav-link-active, .vendor-navbar .custom-nav-link-active {
-  color: #ffffff !important;
+.dark .custom-nav-link-active,
+.light .custom-nav-link-active,
+.vendor-navbar .custom-nav-link-active,
+.vendor-navbar .custom-nav-link.custom-nav-link-active,
+.vendor-navbar .custom-nav-link-active span,
+.vendor-navbar a.custom-nav-link-active {
+  color: #FF5201 !important;
   font-weight: 900 !important;
 }
 
 /* Active indicator background */
-.vendor-navbar .custom-nav-active-bg {
-  background: linear-gradient(135deg, #ff6325 0%, #ea580c 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.35) !important;
-  box-shadow: 0 4px 16px rgba(255, 99, 37, 0.45), 0 1px 0 rgba(255, 255, 255, 0.3) inset !important;
+.vendor-navbar .custom-nav-active-bg,
+.vendor-navbar nav .custom-nav-active-bg,
+.custom-nav-active-bg {
+  background: #FFFFFF !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
   border-radius: 9999px !important;
 }
 
@@ -741,11 +802,11 @@ body {
 
 .light body,
 .light .bg-bg-primary {
-  background-color: #f1f4f9 !important;
+  background-color: #FFFFFF !important;
 }
 
 .light main {
-  background-color: #f1f4f9 !important;
+  background-color: #FFFFFF !important;
 }
 
 /* Card elevated shadows in light mode */
@@ -937,4 +998,145 @@ body::-webkit-scrollbar,
 
 :is(.dark) .launcher-labs-description {
   color: #94a3b8 !important;
+}
+
+
+/* Bokspot Theme Orange Header for Vendor App */
+.vendor-navbar {
+  color: #ffffff !important;
+}
+
+.vendor-navbar > div > button,
+.vendor-navbar > div > a:not(.custom-nav-link-active),
+.vendor-navbar > div > span:not(.custom-nav-link-active *),
+.vendor-navbar > div > svg {
+  color: #ffffff !important;
+}
+
+.vendor-navbar > div:not(.profile-dropdown-card) > button svg {
+  color: #ffffff !important;
+}
+
+.vendor-navbar .relative > button {
+  background: rgba(255, 255, 255, 0.18) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 9999px !important;
+  color: #ffffff !important;
+}
+
+.vendor-navbar .relative > button:hover {
+  background: rgba(255, 255, 255, 0.28) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.vendor-navbar .relative > button svg,
+.vendor-navbar .relative > button span {
+  color: #ffffff !important;
+}
+
+.vendor-navbar .custom-nav-capsule,
+.vendor-navbar .vendor-nav-capsule {
+  background: rgba(0, 0, 0, 0.22) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+}
+
+.vendor-navbar .vendor-nav-link {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+.vendor-navbar .vendor-nav-link.active,
+.vendor-navbar .vendor-nav-link[data-active="true"] {
+  background: #FFFFFF !important;
+  color: #FF5201 !important;
+  font-weight: 900 !important;
+}
+
+
+/* =========================================================================
+   CLEAN SOLID SWIGGY ORANGE HEADER SYSTEM (VENDOR APP)
+   ========================================================================= */
+.vendor-navbar,
+.light .vendor-navbar,
+.dark .vendor-navbar {
+  background: #FF5201 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.14) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Branch Selector & Header Action Pills */
+.vendor-navbar .relative > button,
+.light .vendor-navbar .relative > button,
+.dark .vendor-navbar .relative > button {
+  background: rgba(255, 255, 255, 0.22) !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  color: #FFFFFF !important;
+  box-shadow: none !important;
+}
+
+.vendor-navbar .relative > button:hover {
+  background: rgba(255, 255, 255, 0.32) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.vendor-navbar .relative > button span,
+.vendor-navbar .relative > button svg {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+}
+
+/* Vendor Navigation Capsule */
+.vendor-navbar .custom-nav-capsule,
+.vendor-navbar .vendor-nav-capsule {
+  background: rgba(255, 255, 255, 0.22) !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  box-shadow: none !important;
+}
+
+.vendor-navbar .vendor-nav-link {
+  color: #FFFFFF !important;
+  opacity: 0.9 !important;
+  font-weight: 700 !important;
+}
+
+.vendor-navbar .vendor-nav-link:hover {
+  opacity: 1 !important;
+}
+
+.vendor-navbar .vendor-nav-link.active,
+.vendor-navbar .vendor-nav-link[data-active="true"] {
+  background: #FFFFFF !important;
+  color: #FF5201 !important;
+  font-weight: 900 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12) !important;
+  border-radius: 9999px !important;
+}
+
+.vendor-navbar .custom-nav-capsule .custom-nav-link-active,
+.vendor-navbar .custom-nav-capsule .custom-nav-link.custom-nav-link-active {
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #FF5201 !important;
+}
+
+.vendor-navbar .custom-nav-capsule .custom-nav-link-active span {
+  color: #FF5201 !important;
+  font-weight: 900 !important;
+}
+
+.vendor-navbar > div:not(.profile-dropdown-card) > button svg {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+}
+
+
+/* =========================================================================
+   CLEAN PURE WHITE APPLICATION BACKGROUND (VENDOR PORTAL)
+   ========================================================================= */
+.light body,
+.light .bg-bg-primary,
+.light main {
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
 }
