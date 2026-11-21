@@ -684,15 +684,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <nav className="custom-nav-capsule shadow-lg relative p-[3px] rounded-full">
               <Link
                 href="/home/dashboard-home"
-                className={`w-20 text-center py-1.5 rounded-full text-[13px] font-extrabold tracking-wide hover:scale-[1.02] active:scale-[0.98] relative z-10 custom-nav-link select-none ${(pathname === '/home/dashboard-home' || pathname === '/home/verify-code')
-                    ? 'custom-nav-link-active !text-[#ff6325]'
+                className={`w-20 text-center py-1.5 rounded-full text-[13px] font-bold tracking-wide hover:scale-[1.02] active:scale-[0.98] relative z-10 custom-nav-link select-none ${(pathname === '/home/dashboard-home' || pathname === '/home/verify-code')
+                    ? 'custom-nav-link-active !text-white'
                     : 'custom-nav-link-inactive'
                   }`}
               >
                 {(pathname === '/home/dashboard-home' || pathname === '/home/verify-code') && (
                   <motion.div
                     layoutId="activeNavIndicatorAdmin"
-                    className="absolute inset-0 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] -z-10 custom-nav-active-bg"
+                    className="absolute inset-0 rounded-full bg-white/26 shadow-[0_1px_4px_rgba(0,0,0,0.08)] -z-10 custom-nav-active-bg"
                     style={{ willChange: 'transform' }}
                     transition={{ type: 'spring', stiffness: 500, damping: 38, mass: 0.5 }}
                   />
@@ -701,15 +701,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Link>
               <Link
                 href="/workspace/my-services"
-                className={`w-28 text-center py-1.5 rounded-full text-[13px] font-extrabold tracking-wide hover:scale-[1.02] active:scale-[0.98] relative z-10 custom-nav-link select-none ${(!['/home/dashboard-home', '/home/verify-code'].includes(pathname) && !pathname.startsWith('/tracks/bookings') && pathname !== '/tracks/customer-directory')
-                    ? 'custom-nav-link-active !text-[#ff6325]'
+                className={`w-28 text-center py-1.5 rounded-full text-[13px] font-bold tracking-wide hover:scale-[1.02] active:scale-[0.98] relative z-10 custom-nav-link select-none ${(!['/home/dashboard-home', '/home/verify-code'].includes(pathname) && !pathname.startsWith('/tracks/bookings') && pathname !== '/tracks/customer-directory')
+                    ? 'custom-nav-link-active !text-white'
                     : 'custom-nav-link-inactive'
                   }`}
               >
                 {(!['/home/dashboard-home', '/home/verify-code'].includes(pathname) && !pathname.startsWith('/tracks/bookings') && pathname !== '/tracks/customer-directory') && (
                   <motion.div
                     layoutId="activeNavIndicatorAdmin"
-                    className="absolute inset-0 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] -z-10 custom-nav-active-bg"
+                    className="absolute inset-0 rounded-full bg-white/26 shadow-[0_1px_4px_rgba(0,0,0,0.08)] -z-10 custom-nav-active-bg"
                     style={{ willChange: 'transform' }}
                     transition={{ type: 'spring', stiffness: 500, damping: 38, mass: 0.5 }}
                   />
@@ -718,15 +718,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Link>
               <Link
                 href="/tracks/bookings"
-                className={`w-24 text-center py-1.5 rounded-full text-[13px] font-extrabold tracking-wide hover:scale-[1.02] active:scale-[0.98] relative z-10 custom-nav-link select-none ${(pathname.startsWith('/tracks/bookings') || pathname === '/tracks/customer-directory')
-                    ? 'custom-nav-link-active !text-[#ff6325]'
+                className={`w-24 text-center py-1.5 rounded-full text-[13px] font-bold tracking-wide hover:scale-[1.02] active:scale-[0.98] relative z-10 custom-nav-link select-none ${(pathname.startsWith('/tracks/bookings') || pathname === '/tracks/customer-directory')
+                    ? 'custom-nav-link-active !text-white'
                     : 'custom-nav-link-inactive'
                   }`}
               >
                 {(pathname.startsWith('/tracks/bookings') || pathname === '/tracks/customer-directory') && (
                   <motion.div
                     layoutId="activeNavIndicatorAdmin"
-                    className="absolute inset-0 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] -z-10 custom-nav-active-bg"
+                    className="absolute inset-0 rounded-full bg-white/26 shadow-[0_1px_4px_rgba(0,0,0,0.08)] -z-10 custom-nav-active-bg"
                     style={{ willChange: 'transform' }}
                     transition={{ type: 'spring', stiffness: 500, damping: 38, mass: 0.5 }}
                   />

@@ -994,17 +994,17 @@ body {
 .vendor-navbar .custom-nav-link.custom-nav-link-active,
 .vendor-navbar .custom-nav-link-active span,
 .vendor-navbar a.custom-nav-link-active {
-  color: #ff6325 !important;
-  font-weight: 900 !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
 }
 
 /* Active indicator background */
 .vendor-navbar .custom-nav-active-bg,
 .vendor-navbar nav .custom-nav-active-bg,
 .custom-nav-active-bg {
-  background: #FFFFFF !important;
+  background: rgba(255, 255, 255, 0.26) !important;
   border: none !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08) !important;
   border-radius: 9999px !important;
 }
 
@@ -1349,8 +1349,8 @@ body::-webkit-scrollbar,
 /* Vendor Navigation Capsule */
 .vendor-navbar .custom-nav-capsule,
 .vendor-navbar .vendor-nav-capsule {
-  background: rgba(255, 255, 255, 0.22) !important;
-  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  background: rgba(0, 0, 0, 0.22) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
   box-shadow: none !important;
 }
 
@@ -1366,10 +1366,10 @@ body::-webkit-scrollbar,
 
 .vendor-navbar .vendor-nav-link.active,
 .vendor-navbar .vendor-nav-link[data-active="true"] {
-  background: #FFFFFF !important;
-  color: #ff6325 !important;
-  font-weight: 900 !important;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12) !important;
+  background: rgba(255, 255, 255, 0.26) !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08) !important;
   border-radius: 9999px !important;
 }
 
@@ -1377,12 +1377,12 @@ body::-webkit-scrollbar,
 .vendor-navbar .custom-nav-capsule .custom-nav-link.custom-nav-link-active {
   background: transparent !important;
   box-shadow: none !important;
-  color: #ff6325 !important;
+  color: #FFFFFF !important;
 }
 
 .vendor-navbar .custom-nav-capsule .custom-nav-link-active span {
-  color: #ff6325 !important;
-  font-weight: 900 !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
 }
 
 .vendor-navbar>div:not(.profile-dropdown-card)>button svg {
