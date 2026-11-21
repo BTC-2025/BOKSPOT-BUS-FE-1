@@ -9,7 +9,7 @@ import {
   CloudSun, Keyboard, FileText, MapPin, ShieldCheck, Mail, Send, CheckCircle2, Bookmark,
   History, Tag, Globe, ArrowUpDown, Delete
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { useVendorStore } from '../lib/store';
 
 interface UtilityDrawerProps {
@@ -75,6 +75,18 @@ export function UtilityDrawer({
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+
+  // Virtual Keyboard states (matching Bit-Tool / BNX tools)
+  const keyboardDragControls = useDragControls();
+  const [keyboardInput, setKeyboardInput] = useState('');
+  const [isShiftActive, setIsShiftActive] = useState(false);
+  const [isCapsActive, setIsCapsActive] = useState(false);
+  const [isKeyboardDragging, setIsKeyboardDragging] = useState(false);
+
+  const handleKeyPress = (char: string) => {
+    setKeyboardInput((prev) => prev + char);
+    if (isShiftActive) setIsShiftActive(false);
+  };
 
   // Beta Ecosystem states
   const [betaSubTab, setBetaSubTab] = useState<'favorites' | 'recent'>('favorites');
@@ -384,28 +396,30 @@ export function UtilityDrawer({
   }, [isOpen, activeTab]);
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          ref={drawerRef}
-          initial={{ x: '100%' }}
-          animate={{ x: 0 }}
-          exit={{ x: '100%' }}
-          transition={{ type: 'spring', damping: 26, stiffness: 220 }}
-          onWheel={stopScrollPropagation}
-          className="fixed right-0 top-16 bottom-0 z-[10000] flex flex-row overflow-hidden shadow-2xl pointer-events-auto bg-white dark:bg-[#0a0f1d] overscroll-contain"
-        >
-          {/* Slide-out Left Content Panel (320px) */}
-          <AnimatePresence>
-            {activeTab && (
-              <motion.div
-                key="utility-content-panel"
-                initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: activeTab === 'beta' ? 340 : 320 }}
-                exit={{ opacity: 0, width: 0 }}
-                transition={{ type: 'spring', damping: 28, stiffness: 240 }}
-                className="h-full bg-white dark:bg-[#0b0e14] border-l border-slate-200/80 dark:border-white/10 flex flex-col overflow-hidden select-none shrink-0 overscroll-contain"
-              >
+    <>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            key="utility-drawer-container"
+            ref={drawerRef}
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 26, stiffness: 220 }}
+            onWheel={stopScrollPropagation}
+            className="fixed right-0 top-16 bottom-0 z-[10000] flex flex-row overflow-hidden shadow-2xl pointer-events-auto bg-white dark:bg-[#0a0f1d] overscroll-contain"
+          >
+            {/* Slide-out Left Content Panel: strictly for non-keyboard tools */}
+            <AnimatePresence>
+              {activeTab && activeTab !== 'keyboard' && (
+                <motion.div
+                  key="utility-content-panel"
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: activeTab === 'beta' ? 340 : 320 }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ type: 'spring', damping: 28, stiffness: 240 }}
+                  className="h-full bg-white dark:bg-[#0b0e14] border-l border-slate-200/80 dark:border-white/10 flex flex-col overflow-hidden select-none shrink-0 overscroll-contain"
+                >
                 <div key={activeTab} className="h-full w-full flex flex-col overflow-hidden animate-fade-in">
                 {/* 1. CALENDAR TAB POPUP */}
                 {activeTab === 'calendar' && (
@@ -1215,50 +1229,7 @@ export function UtilityDrawer({
                   </div>
                 )}
 
-                {/* 6. Keyboard Shortcuts & Input Tools Panel (KEYBOARD from bit-tool.com) */}
-                {activeTab === 'keyboard' && (
-                  <div className="flex-1 flex flex-col h-full bg-white dark:bg-[#0c121e] text-slate-800 dark:text-slate-100 font-sans select-none">
-                    {/* Header: KEYBOARD with top subtle border and close X */}
-                    <div className="h-10 px-4 bg-white dark:bg-[#0c121e] border-b border-[#dbe3eb] dark:border-white/10 flex items-center justify-between shrink-0">
-                      <span className="text-xs font-semibold tracking-wider text-[#0a1120] dark:text-white uppercase font-sans">
-                        KEYBOARD
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setActiveTab(null)}
-                        className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
-                        title="Close"
-                      >
-                        <X size={15} className="stroke-[1.75]" />
-                      </button>
-                    </div>
-
-                    {/* Dedicated Business View Center Body matching screenshot */}
-                    <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
-                      {/* BokSpot themed rounded squircle badge with building icon */}
-                      <div className="w-20 h-20 rounded-[28px] bg-[#0a3161]/10 dark:bg-white/5 border border-[#0a3161]/15 flex items-center justify-center mb-6 shadow-xs">
-                        <span className="text-3xl select-none" role="img" aria-label="Building">
-                          🏢
-                        </span>
-                      </div>
-
-                      {/* Title: Keyboard with BokSpot theme navy */}
-                      <h2 className="text-2xl font-semibold text-[#0a3161] dark:text-white font-sans tracking-tight mb-3">
-                        Keyboard
-                      </h2>
-
-                      {/* Description */}
-                      <p className="text-sm text-slate-600 dark:text-slate-400 max-w-xs leading-relaxed mb-6 font-normal">
-                        This is the dedicated business view for <span className="font-medium text-[#ff6325] dark:text-[#ff6325]">Keyboard</span>. Full feature integration is coming soon.
-                      </p>
-
-                      {/* Pill Badge: Path: /dashboard */}
-                      <div className="px-5 py-2.5 rounded-2xl bg-[#0a3161]/5 dark:bg-white/5 border border-[#0a3161]/15 dark:border-white/5 text-xs font-medium text-[#0a3161] dark:text-slate-300 font-sans shadow-2xs">
-                        Path: /dashboard
-                      </div>
-                    </div>
-                  </div>
-                )}
+                {/* 6. Keyboard Shortcuts & Input Tools Panel (Rendered independently outside the drawer panel) */}
 
                 {/* 7. BETA APP LAUNCHER PANEL (Exact match to Beta Ecosystem screenshot) */}
                 {activeTab === 'beta' && (
@@ -2019,7 +1990,318 @@ export function UtilityDrawer({
           </div>
         </motion.div>
       )}
-    </AnimatePresence>
+      </AnimatePresence>
+
+      {/* Floating Virtual Keyboard - Can drag anywhere across the screen, rendered independently without drawer side panel */}
+      <AnimatePresence>
+        {activeTab === 'keyboard' && (
+          <motion.div
+            key="floating-virtual-keyboard"
+            drag
+            dragControls={keyboardDragControls}
+            dragListener={false}
+            dragMomentum={false}
+            onDragStart={() => {
+              setIsKeyboardDragging(true);
+            }}
+            onDragEnd={() => {
+              setIsKeyboardDragging(false);
+            }}
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.16 }}
+            className={`fixed z-[10005] bottom-10 right-20 sm:right-28 w-[95vw] sm:w-[620px] max-w-[620px] bg-white dark:bg-[#0c121e] rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] overflow-hidden select-none flex flex-col font-sans ${
+              isKeyboardDragging ? 'cursor-grabbing' : ''
+            }`}
+          >
+            {/* Draggable Header - Explicit drag control handle */}
+            <div
+              onPointerDown={(e) => {
+                keyboardDragControls.start(e);
+                setIsKeyboardDragging(true);
+              }}
+              onPointerUp={() => {
+                setIsKeyboardDragging(false);
+              }}
+              className={`keyboard-drag-header h-12 px-5 bg-white dark:bg-[#0c121e] flex items-center justify-between select-none touch-none ${
+                isKeyboardDragging ? 'keyboard-dragging-active' : ''
+              }`}
+            >
+              <div className="flex items-center gap-2.5 pointer-events-none select-none">
+                <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-[#2563eb] flex items-center justify-center">
+                  <Keyboard size={17} />
+                </div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white font-sans tracking-tight">
+                  Virtual Keyboard
+                </h3>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab(null)}
+                  className="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer"
+                  title="Close Keyboard"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+
+            {/* Virtual Keyboard Keys - Clean matching user screenshot */}
+            <div className="px-5 pb-5 pt-1 bg-white dark:bg-[#0c121e] flex flex-col gap-2">
+              {(() => {
+                const isUpper = (isCapsActive && !isShiftActive) || (!isCapsActive && isShiftActive);
+
+                return (
+                  <>
+                    {/* Row 1: Esc, Numbers, Backspace */}
+                    <div className="flex items-center gap-1 w-full">
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab(null)}
+                        className="h-9 px-2.5 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 text-xs font-bold text-slate-700 dark:text-slate-200 transition-all shadow-2xs cursor-pointer select-none"
+                      >
+                        Esc
+                      </button>
+                      {[
+                        { main: '1', shift: '!' },
+                        { main: '2', shift: '@' },
+                        { main: '3', shift: '#' },
+                        { main: '4', shift: '$' },
+                        { main: '5', shift: '%' },
+                        { main: '6', shift: '^' },
+                        { main: '7', shift: '&' },
+                        { main: '8', shift: '*' },
+                        { main: '9', shift: '(' },
+                        { main: '0', shift: ')' },
+                        { main: '-', shift: '_' },
+                        { main: '=', shift: '+' },
+                      ].map((k) => (
+                        <button
+                          key={k.main}
+                          type="button"
+                          onClick={() => handleKeyPress(isShiftActive ? k.shift : k.main)}
+                          className="h-9 flex-1 min-w-[24px] rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 flex flex-col items-center justify-center transition-all shadow-2xs cursor-pointer select-none"
+                        >
+                          <span className="text-[8px] text-slate-400 font-semibold leading-none">{k.shift}</span>
+                          <span className="text-[11px] font-bold text-slate-800 dark:text-white leading-none mt-0.5">{k.main}</span>
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => setKeyboardInput((prev) => prev.slice(0, -1))}
+                        className="h-9 px-2.5 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 text-xs font-bold text-slate-800 dark:text-slate-100 transition-all shadow-2xs cursor-pointer select-none"
+                      >
+                        Backspace
+                      </button>
+                    </div>
+
+                    {/* Row 2: Tab, QWERTY, Brackets */}
+                    <div className="flex items-center gap-1 w-full">
+                      <button
+                        type="button"
+                        onClick={() => handleKeyPress('  ')}
+                        className="h-9 px-3 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 text-xs font-bold text-slate-700 dark:text-slate-200 transition-all shadow-2xs cursor-pointer select-none"
+                      >
+                        Tab
+                      </button>
+                      {['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'].map((letter) => (
+                        <button
+                          key={letter}
+                          type="button"
+                          onClick={() => handleKeyPress(isUpper ? letter : letter.toLowerCase())}
+                          className="h-9 flex-1 min-w-[24px] rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 flex items-center justify-center text-xs font-bold text-slate-800 dark:text-white transition-all shadow-2xs cursor-pointer select-none"
+                        >
+                          {isUpper ? letter : letter.toLowerCase()}
+                        </button>
+                      ))}
+                      {[
+                        { main: '[', shift: '{' },
+                        { main: ']', shift: '}' },
+                      ].map((k) => (
+                        <button
+                          key={k.main}
+                          type="button"
+                          onClick={() => handleKeyPress(isShiftActive ? k.shift : k.main)}
+                          className="h-9 flex-1 min-w-[24px] rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 flex flex-col items-center justify-center transition-all shadow-2xs cursor-pointer select-none"
+                        >
+                          <span className="text-[8px] text-slate-400 font-semibold leading-none">{k.shift}</span>
+                          <span className="text-[11px] font-bold text-slate-800 dark:text-white leading-none mt-0.5">{k.main}</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Row 3: Caps Lock, ASDF, Symbols, Enter */}
+                    <div className="flex items-center gap-1 w-full">
+                      <button
+                        type="button"
+                        onClick={() => setIsCapsActive(!isCapsActive)}
+                        className={`h-9 px-3 rounded-full border text-xs font-bold transition-all shadow-2xs cursor-pointer select-none ${
+                          isCapsActive
+                            ? 'bg-[#0A3161] text-white border-[#0A3161] shadow-xs'
+                            : 'border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] text-slate-800 dark:text-slate-100 active:scale-95'
+                        }`}
+                      >
+                        Caps Lock
+                      </button>
+                      {['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'].map((letter) => (
+                        <button
+                          key={letter}
+                          type="button"
+                          onClick={() => handleKeyPress(isUpper ? letter : letter.toLowerCase())}
+                          className="h-9 flex-1 min-w-[24px] rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 flex items-center justify-center text-xs font-bold text-slate-800 dark:text-white transition-all shadow-2xs cursor-pointer select-none"
+                        >
+                          {isUpper ? letter : letter.toLowerCase()}
+                        </button>
+                      ))}
+                      {[
+                        { main: ';', shift: ':' },
+                        { main: "'", shift: '"' },
+                      ].map((k) => (
+                        <button
+                          key={k.main}
+                          type="button"
+                          onClick={() => handleKeyPress(isShiftActive ? k.shift : k.main)}
+                          className="h-9 flex-1 min-w-[24px] rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 flex flex-col items-center justify-center transition-all shadow-2xs cursor-pointer select-none"
+                        >
+                          <span className="text-[8px] text-slate-400 font-semibold leading-none">{k.shift}</span>
+                          <span className="text-[11px] font-bold text-slate-800 dark:text-white leading-none mt-0.5">{k.main}</span>
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => handleKeyPress('\n')}
+                        className="h-9 px-4 rounded-2xl bg-[#2563eb] hover:bg-blue-600 active:bg-blue-700 active:scale-95 text-white font-bold text-xs transition-all shadow-md cursor-pointer select-none"
+                      >
+                        Enter
+                      </button>
+                    </div>
+
+                    {/* Row 4: Shift, ZXCV, Symbols, Shift */}
+                    <div className="flex items-center gap-1 w-full">
+                      <button
+                        type="button"
+                        onClick={() => setIsShiftActive(!isShiftActive)}
+                        className={`h-9 px-3 rounded-full border text-xs font-bold transition-all shadow-2xs cursor-pointer select-none flex items-center gap-1 ${
+                          isShiftActive
+                            ? 'bg-[#0A3161] text-white border-[#0A3161] shadow-xs'
+                            : 'border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] text-slate-800 dark:text-slate-100 active:scale-95'
+                        }`}
+                      >
+                        <span>↑</span>
+                        <span>Shift</span>
+                      </button>
+                      {['Z', 'X', 'C', 'V', 'B', 'N', 'M'].map((letter) => (
+                        <button
+                          key={letter}
+                          type="button"
+                          onClick={() => handleKeyPress(isUpper ? letter : letter.toLowerCase())}
+                          className="h-9 flex-1 min-w-[24px] rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 flex items-center justify-center text-xs font-bold text-slate-800 dark:text-white transition-all shadow-2xs cursor-pointer select-none"
+                        >
+                          {isUpper ? letter : letter.toLowerCase()}
+                        </button>
+                      ))}
+                      {[
+                        { main: ',', shift: '<' },
+                        { main: '.', shift: '>' },
+                        { main: '/', shift: '?' },
+                      ].map((k) => (
+                        <button
+                          key={k.main}
+                          type="button"
+                          onClick={() => handleKeyPress(isShiftActive ? k.shift : k.main)}
+                          className="h-9 flex-1 min-w-[24px] rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 flex flex-col items-center justify-center transition-all shadow-2xs cursor-pointer select-none"
+                        >
+                          <span className="text-[8px] text-slate-400 font-semibold leading-none">{k.shift}</span>
+                          <span className="text-[11px] font-bold text-slate-800 dark:text-white leading-none mt-0.5">{k.main}</span>
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => setIsShiftActive(!isShiftActive)}
+                        className={`h-9 px-3 rounded-full border text-xs font-bold transition-all shadow-2xs cursor-pointer select-none flex items-center gap-1 ${
+                          isShiftActive
+                            ? 'bg-[#0A3161] text-white border-[#0A3161] shadow-xs'
+                            : 'border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] text-slate-800 dark:text-slate-100 active:scale-95'
+                        }`}
+                      >
+                        <span>↑</span>
+                        <span>Shift</span>
+                      </button>
+                    </div>
+
+                    {/* Row 5: Ctrl, Alt, Space, Alt, Ctrl, Arrows */}
+                    <div className="flex items-center gap-1 w-full">
+                      <button
+                        type="button"
+                        className="h-9 px-2.5 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 text-xs font-bold text-slate-700 dark:text-slate-300 transition-all shadow-2xs cursor-pointer select-none"
+                      >
+                        Ctrl
+                      </button>
+                      <button
+                        type="button"
+                        className="h-9 px-2.5 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 text-xs font-bold text-slate-700 dark:text-slate-300 transition-all shadow-2xs cursor-pointer select-none"
+                      >
+                        Alt
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleKeyPress(' ')}
+                        className="h-9 flex-1 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-98 text-xs font-bold text-slate-700 dark:text-slate-200 transition-all shadow-2xs cursor-pointer select-none flex items-center justify-center tracking-wide"
+                      >
+                        Space
+                      </button>
+                      <button
+                        type="button"
+                        className="h-9 px-2.5 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 text-xs font-bold text-slate-700 dark:text-slate-300 transition-all shadow-2xs cursor-pointer select-none"
+                      >
+                        Alt
+                      </button>
+                      <button
+                        type="button"
+                        className="h-9 px-2.5 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 text-xs font-bold text-slate-700 dark:text-slate-300 transition-all shadow-2xs cursor-pointer select-none"
+                      >
+                        Ctrl
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleKeyPress('◀')}
+                        className="h-9 w-8 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 text-xs font-bold text-slate-700 dark:text-slate-300 transition-all shadow-2xs flex items-center justify-center cursor-pointer select-none"
+                      >
+                        ◄
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleKeyPress('▼')}
+                        className="h-9 w-8 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 text-xs font-bold text-slate-700 dark:text-slate-300 transition-all shadow-2xs flex items-center justify-center cursor-pointer select-none"
+                      >
+                        ▼
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleKeyPress('▲')}
+                        className="h-9 w-8 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 text-xs font-bold text-slate-700 dark:text-slate-300 transition-all shadow-2xs flex items-center justify-center cursor-pointer select-none"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleKeyPress('▶')}
+                        className="h-9 w-8 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 text-xs font-bold text-slate-700 dark:text-slate-300 transition-all shadow-2xs flex items-center justify-center cursor-pointer select-none"
+                      >
+                        ►
+                      </button>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 

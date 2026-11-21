@@ -1096,7 +1096,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               marginRight: !utilityDrawerOpen
                 ? '0px'
                 : activeUtilityTab
-                  ? (activeUtilityTab === 'beta' ? '400px' : '380px')
+                  ? (activeUtilityTab === 'keyboard' ? '60px' : activeUtilityTab === 'beta' ? '400px' : '380px')
                   : '60px'
             }}
             className="flex-1 overflow-y-auto bg-slate-50 dark:bg-[#070b13] px-3 sm:px-4 lg:px-6 py-4 custom-scrollbar transition-all duration-300 flex flex-col justify-between ease-in-out"
