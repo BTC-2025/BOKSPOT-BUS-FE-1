@@ -684,7 +684,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <nav className="custom-nav-capsule shadow-lg relative p-[3px] rounded-full">
               <Link
                 href="/home/dashboard-home"
-                className={`w-20 text-center py-1.5 rounded-full text-[13px] font-bold tracking-wide hover:scale-[1.02] active:scale-[0.98] relative z-10 custom-nav-link select-none ${(pathname === '/home/dashboard-home' || pathname === '/home/verify-code')
+                className={`px-3.5 py-1 rounded-full text-[13px] font-semibold tracking-normal hover:scale-[1.02] active:scale-[0.98] relative z-10 custom-nav-link select-none ${(pathname === '/home/dashboard-home' || pathname === '/home/verify-code')
                     ? 'custom-nav-link-active !text-white'
                     : 'custom-nav-link-inactive'
                   }`}
@@ -701,7 +701,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Link>
               <Link
                 href="/workspace/my-services"
-                className={`w-28 text-center py-1.5 rounded-full text-[13px] font-bold tracking-wide hover:scale-[1.02] active:scale-[0.98] relative z-10 custom-nav-link select-none ${(!['/home/dashboard-home', '/home/verify-code'].includes(pathname) && !pathname.startsWith('/tracks/bookings') && pathname !== '/tracks/customer-directory')
+                className={`px-3.5 py-1 rounded-full text-[13px] font-semibold tracking-normal hover:scale-[1.02] active:scale-[0.98] relative z-10 custom-nav-link select-none ${(!['/home/dashboard-home', '/home/verify-code'].includes(pathname) && !pathname.startsWith('/tracks/bookings') && pathname !== '/tracks/customer-directory')
                     ? 'custom-nav-link-active !text-white'
                     : 'custom-nav-link-inactive'
                   }`}
@@ -718,7 +718,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Link>
               <Link
                 href="/tracks/bookings"
-                className={`w-24 text-center py-1.5 rounded-full text-[13px] font-bold tracking-wide hover:scale-[1.02] active:scale-[0.98] relative z-10 custom-nav-link select-none ${(pathname.startsWith('/tracks/bookings') || pathname === '/tracks/customer-directory')
+                className={`px-3.5 py-1 rounded-full text-[13px] font-semibold tracking-normal hover:scale-[1.02] active:scale-[0.98] relative z-10 custom-nav-link select-none ${(pathname.startsWith('/tracks/bookings') || pathname === '/tracks/customer-directory')
                     ? 'custom-nav-link-active !text-white'
                     : 'custom-nav-link-inactive'
                   }`}
