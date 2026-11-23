@@ -1037,7 +1037,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           style={{
             paddingRight: !utilityDrawerOpen
               ? '16px'
-              : activeUtilityTab
+              : activeUtilityTab && activeUtilityTab !== 'keyboard'
                 ? (activeUtilityTab === 'beta' ? '412px' : '392px')
                 : '72px'
           }}

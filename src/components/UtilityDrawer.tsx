@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   X, Calculator, Sparkles, Plus, Trash2, ArrowLeftRight,
-  ChevronLeft, ChevronRight, ExternalLink, Check, User,
+  ChevronLeft, ChevronRight, ChevronUp, ChevronDown, ExternalLink, Check, User,
   Search, MoreVertical, Lightbulb, CheckSquare, Trash,
   CalendarDays, Settings, RotateCcw, Share2, Edit3, Sliders,
   CloudSun, Keyboard, FileText, MapPin, ShieldCheck, Mail, Send, CheckCircle2, Bookmark,
@@ -82,10 +82,70 @@ export function UtilityDrawer({
   const [isShiftActive, setIsShiftActive] = useState(false);
   const [isCapsActive, setIsCapsActive] = useState(false);
   const [isKeyboardDragging, setIsKeyboardDragging] = useState(false);
+  const lastActiveElementRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
+
+  // Track the most recently focused input/textarea across the page
+  useEffect(() => {
+    const handleFocusIn = (e: FocusEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target &&
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') &&
+        !target.closest('.keyboard-floating-window')
+      ) {
+        lastActiveElementRef.current = target as HTMLInputElement | HTMLTextAreaElement;
+      }
+    };
+    document.addEventListener('focusin', handleFocusIn);
+    return () => document.removeEventListener('focusin', handleFocusIn);
+  }, []);
+
+  const triggerInputEvent = (element: HTMLInputElement | HTMLTextAreaElement, newValue: string) => {
+    const prototype = Object.getPrototypeOf(element);
+    const valueSetter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set;
+    if (valueSetter) {
+      valueSetter.call(element, newValue);
+    } else {
+      element.value = newValue;
+    }
+    element.dispatchEvent(new Event('input', { bubbles: true }));
+    element.dispatchEvent(new Event('change', { bubbles: true }));
+  };
 
   const handleKeyPress = (char: string) => {
+    const target = lastActiveElementRef.current;
+    if (target && document.body.contains(target)) {
+      target.focus();
+      const start = target.selectionStart ?? target.value.length;
+      const end = target.selectionEnd ?? target.value.length;
+      const currentVal = target.value;
+      const nextVal = currentVal.substring(0, start) + char + currentVal.substring(end);
+      triggerInputEvent(target, nextVal);
+      target.selectionStart = target.selectionEnd = start + char.length;
+    }
+
     setKeyboardInput((prev) => prev + char);
     if (isShiftActive) setIsShiftActive(false);
+  };
+
+  const handleBackspace = () => {
+    const target = lastActiveElementRef.current;
+    if (target && document.body.contains(target)) {
+      target.focus();
+      const start = target.selectionStart ?? target.value.length;
+      const end = target.selectionEnd ?? target.value.length;
+      const currentVal = target.value;
+      if (start === end && start > 0) {
+        const nextVal = currentVal.substring(0, start - 1) + currentVal.substring(end);
+        triggerInputEvent(target, nextVal);
+        target.selectionStart = target.selectionEnd = start - 1;
+      } else if (start !== end) {
+        const nextVal = currentVal.substring(0, start) + currentVal.substring(end);
+        triggerInputEvent(target, nextVal);
+        target.selectionStart = target.selectionEnd = start;
+      }
+    }
+    setKeyboardInput((prev) => prev.slice(0, -1));
   };
 
   // Beta Ecosystem states
@@ -2007,11 +2067,18 @@ export function UtilityDrawer({
             onDragEnd={() => {
               setIsKeyboardDragging(false);
             }}
+            onMouseDown={(e) => {
+              // Prevent keyboard buttons from taking focus away from page inputs
+              const target = e.target as HTMLElement;
+              if (target && !target.closest('input') && !target.closest('textarea')) {
+                e.preventDefault();
+              }
+            }}
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.16 }}
-            className={`fixed z-[10005] bottom-10 right-20 sm:right-28 w-[95vw] sm:w-[620px] max-w-[620px] bg-white dark:bg-[#0c121e] rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] overflow-hidden select-none flex flex-col font-sans ${
+            className={`keyboard-floating-window fixed z-[10005] bottom-10 right-20 sm:right-28 w-[95vw] sm:w-[620px] max-w-[620px] bg-white dark:bg-[#0c121e] rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] overflow-hidden select-none flex flex-col font-sans ${
               isKeyboardDragging ? 'cursor-grabbing' : ''
             }`}
           >
@@ -2085,13 +2152,29 @@ export function UtilityDrawer({
                           onClick={() => handleKeyPress(isShiftActive ? k.shift : k.main)}
                           className="h-9 flex-1 min-w-[24px] rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 flex flex-col items-center justify-center transition-all shadow-2xs cursor-pointer select-none"
                         >
-                          <span className="text-[8px] text-slate-400 font-semibold leading-none">{k.shift}</span>
-                          <span className="text-[11px] font-bold text-slate-800 dark:text-white leading-none mt-0.5">{k.main}</span>
+                          <span
+                            className={`text-[9px] leading-none transition-colors ${
+                              isShiftActive
+                                ? 'text-[#0A3161] dark:text-blue-400 font-extrabold'
+                                : 'text-slate-400 dark:text-slate-500 font-semibold'
+                            }`}
+                          >
+                            {k.shift}
+                          </span>
+                          <span
+                            className={`text-[11px] leading-none mt-0.5 transition-colors ${
+                              isShiftActive
+                                ? 'text-slate-400 dark:text-slate-500 font-medium'
+                                : 'text-slate-800 dark:text-white font-bold'
+                            }`}
+                          >
+                            {k.main}
+                          </span>
                         </button>
                       ))}
                       <button
                         type="button"
-                        onClick={() => setKeyboardInput((prev) => prev.slice(0, -1))}
+                        onClick={handleBackspace}
                         className="h-9 px-2.5 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 text-xs font-bold text-slate-800 dark:text-slate-100 transition-all shadow-2xs cursor-pointer select-none"
                       >
                         Backspace
@@ -2114,7 +2197,7 @@ export function UtilityDrawer({
                           onClick={() => handleKeyPress(isUpper ? letter : letter.toLowerCase())}
                           className="h-9 flex-1 min-w-[24px] rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 flex items-center justify-center text-xs font-bold text-slate-800 dark:text-white transition-all shadow-2xs cursor-pointer select-none"
                         >
-                          {isUpper ? letter : letter.toLowerCase()}
+                          {letter}
                         </button>
                       ))}
                       {[
@@ -2127,8 +2210,24 @@ export function UtilityDrawer({
                           onClick={() => handleKeyPress(isShiftActive ? k.shift : k.main)}
                           className="h-9 flex-1 min-w-[24px] rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 flex flex-col items-center justify-center transition-all shadow-2xs cursor-pointer select-none"
                         >
-                          <span className="text-[8px] text-slate-400 font-semibold leading-none">{k.shift}</span>
-                          <span className="text-[11px] font-bold text-slate-800 dark:text-white leading-none mt-0.5">{k.main}</span>
+                          <span
+                            className={`text-[9px] leading-none transition-colors ${
+                              isShiftActive
+                                ? 'text-[#0A3161] dark:text-blue-400 font-extrabold'
+                                : 'text-slate-400 dark:text-slate-500 font-semibold'
+                            }`}
+                          >
+                            {k.shift}
+                          </span>
+                          <span
+                            className={`text-[11px] leading-none mt-0.5 transition-colors ${
+                              isShiftActive
+                                ? 'text-slate-400 dark:text-slate-500 font-medium'
+                                : 'text-slate-800 dark:text-white font-bold'
+                            }`}
+                          >
+                            {k.main}
+                          </span>
                         </button>
                       ))}
                     </div>
@@ -2140,7 +2239,7 @@ export function UtilityDrawer({
                         onClick={() => setIsCapsActive(!isCapsActive)}
                         className={`h-9 px-3 rounded-full border text-xs font-bold transition-all shadow-2xs cursor-pointer select-none ${
                           isCapsActive
-                            ? 'bg-[#0A3161] text-white border-[#0A3161] shadow-xs'
+                            ? 'bg-[#0A3161]/15 text-[#0A3161] border-[#0A3161]/40 dark:bg-[#0A3161]/30 dark:text-blue-300 dark:border-blue-400/50 shadow-xs'
                             : 'border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] text-slate-800 dark:text-slate-100 active:scale-95'
                         }`}
                       >
@@ -2153,7 +2252,7 @@ export function UtilityDrawer({
                           onClick={() => handleKeyPress(isUpper ? letter : letter.toLowerCase())}
                           className="h-9 flex-1 min-w-[24px] rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 flex items-center justify-center text-xs font-bold text-slate-800 dark:text-white transition-all shadow-2xs cursor-pointer select-none"
                         >
-                          {isUpper ? letter : letter.toLowerCase()}
+                          {letter}
                         </button>
                       ))}
                       {[
@@ -2166,14 +2265,30 @@ export function UtilityDrawer({
                           onClick={() => handleKeyPress(isShiftActive ? k.shift : k.main)}
                           className="h-9 flex-1 min-w-[24px] rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 flex flex-col items-center justify-center transition-all shadow-2xs cursor-pointer select-none"
                         >
-                          <span className="text-[8px] text-slate-400 font-semibold leading-none">{k.shift}</span>
-                          <span className="text-[11px] font-bold text-slate-800 dark:text-white leading-none mt-0.5">{k.main}</span>
+                          <span
+                            className={`text-[9px] leading-none transition-colors ${
+                              isShiftActive
+                                ? 'text-[#0A3161] dark:text-blue-400 font-extrabold'
+                                : 'text-slate-400 dark:text-slate-500 font-semibold'
+                            }`}
+                          >
+                            {k.shift}
+                          </span>
+                          <span
+                            className={`text-[11px] leading-none mt-0.5 transition-colors ${
+                              isShiftActive
+                                ? 'text-slate-400 dark:text-slate-500 font-medium'
+                                : 'text-slate-800 dark:text-white font-bold'
+                            }`}
+                          >
+                            {k.main}
+                          </span>
                         </button>
                       ))}
                       <button
                         type="button"
                         onClick={() => handleKeyPress('\n')}
-                        className="h-9 px-4 rounded-2xl bg-[#2563eb] hover:bg-blue-600 active:bg-blue-700 active:scale-95 text-white font-bold text-xs transition-all shadow-md cursor-pointer select-none"
+                        className="h-9 px-4 rounded-full bg-[#0A3161] hover:brightness-110 active:brightness-95 active:scale-95 text-white font-bold text-xs transition-all shadow-xs cursor-pointer select-none"
                       >
                         Enter
                       </button>
@@ -2186,7 +2301,7 @@ export function UtilityDrawer({
                         onClick={() => setIsShiftActive(!isShiftActive)}
                         className={`h-9 px-3 rounded-full border text-xs font-bold transition-all shadow-2xs cursor-pointer select-none flex items-center gap-1 ${
                           isShiftActive
-                            ? 'bg-[#0A3161] text-white border-[#0A3161] shadow-xs'
+                            ? 'bg-[#0A3161]/15 text-[#0A3161] border-[#0A3161]/40 dark:bg-[#0A3161]/30 dark:text-blue-300 dark:border-blue-400/50 shadow-xs'
                             : 'border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] text-slate-800 dark:text-slate-100 active:scale-95'
                         }`}
                       >
@@ -2200,7 +2315,7 @@ export function UtilityDrawer({
                           onClick={() => handleKeyPress(isUpper ? letter : letter.toLowerCase())}
                           className="h-9 flex-1 min-w-[24px] rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 flex items-center justify-center text-xs font-bold text-slate-800 dark:text-white transition-all shadow-2xs cursor-pointer select-none"
                         >
-                          {isUpper ? letter : letter.toLowerCase()}
+                          {letter}
                         </button>
                       ))}
                       {[
@@ -2214,8 +2329,24 @@ export function UtilityDrawer({
                           onClick={() => handleKeyPress(isShiftActive ? k.shift : k.main)}
                           className="h-9 flex-1 min-w-[24px] rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 flex flex-col items-center justify-center transition-all shadow-2xs cursor-pointer select-none"
                         >
-                          <span className="text-[8px] text-slate-400 font-semibold leading-none">{k.shift}</span>
-                          <span className="text-[11px] font-bold text-slate-800 dark:text-white leading-none mt-0.5">{k.main}</span>
+                          <span
+                            className={`text-[9px] leading-none transition-colors ${
+                              isShiftActive
+                                ? 'text-[#0A3161] dark:text-blue-400 font-extrabold'
+                                : 'text-slate-400 dark:text-slate-500 font-semibold'
+                            }`}
+                          >
+                            {k.shift}
+                          </span>
+                          <span
+                            className={`text-[11px] leading-none mt-0.5 transition-colors ${
+                              isShiftActive
+                                ? 'text-slate-400 dark:text-slate-500 font-medium'
+                                : 'text-slate-800 dark:text-white font-bold'
+                            }`}
+                          >
+                            {k.main}
+                          </span>
                         </button>
                       ))}
                       <button
@@ -2223,7 +2354,7 @@ export function UtilityDrawer({
                         onClick={() => setIsShiftActive(!isShiftActive)}
                         className={`h-9 px-3 rounded-full border text-xs font-bold transition-all shadow-2xs cursor-pointer select-none flex items-center gap-1 ${
                           isShiftActive
-                            ? 'bg-[#0A3161] text-white border-[#0A3161] shadow-xs'
+                            ? 'bg-[#0A3161]/15 text-[#0A3161] border-[#0A3161]/40 dark:bg-[#0A3161]/30 dark:text-blue-300 dark:border-blue-400/50 shadow-xs'
                             : 'border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] text-slate-800 dark:text-slate-100 active:scale-95'
                         }`}
                       >
@@ -2268,30 +2399,30 @@ export function UtilityDrawer({
                       <button
                         type="button"
                         onClick={() => handleKeyPress('◀')}
-                        className="h-9 w-8 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 text-xs font-bold text-slate-700 dark:text-slate-300 transition-all shadow-2xs flex items-center justify-center cursor-pointer select-none"
+                        className="h-9 w-8 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 text-slate-700 dark:text-slate-300 transition-all shadow-2xs flex items-center justify-center cursor-pointer select-none"
                       >
-                        ◄
+                        <ChevronLeft size={16} strokeWidth={2.5} />
                       </button>
                       <button
                         type="button"
                         onClick={() => handleKeyPress('▼')}
-                        className="h-9 w-8 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 text-xs font-bold text-slate-700 dark:text-slate-300 transition-all shadow-2xs flex items-center justify-center cursor-pointer select-none"
+                        className="h-9 w-8 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 text-slate-700 dark:text-slate-300 transition-all shadow-2xs flex items-center justify-center cursor-pointer select-none"
                       >
-                        ▼
+                        <ChevronDown size={16} strokeWidth={2.5} />
                       </button>
                       <button
                         type="button"
                         onClick={() => handleKeyPress('▲')}
-                        className="h-9 w-8 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 text-xs font-bold text-slate-700 dark:text-slate-300 transition-all shadow-2xs flex items-center justify-center cursor-pointer select-none"
+                        className="h-9 w-8 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 text-slate-700 dark:text-slate-300 transition-all shadow-2xs flex items-center justify-center cursor-pointer select-none"
                       >
-                        ▲
+                        <ChevronUp size={16} strokeWidth={2.5} />
                       </button>
                       <button
                         type="button"
                         onClick={() => handleKeyPress('▶')}
-                        className="h-9 w-8 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 text-xs font-bold text-slate-700 dark:text-slate-300 transition-all shadow-2xs flex items-center justify-center cursor-pointer select-none"
+                        className="h-9 w-8 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d2b] hover:bg-slate-50 dark:hover:bg-[#20293d] active:scale-95 text-slate-700 dark:text-slate-300 transition-all shadow-2xs flex items-center justify-center cursor-pointer select-none"
                       >
-                        ►
+                        <ChevronRight size={16} strokeWidth={2.5} />
                       </button>
                     </div>
                   </>
