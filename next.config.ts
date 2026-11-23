@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    root: 'E:\\BOKSPOT\\BOKSPOT-BUS-FE-1',
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
