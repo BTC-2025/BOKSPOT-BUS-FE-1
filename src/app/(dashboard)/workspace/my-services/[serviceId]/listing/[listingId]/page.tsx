@@ -516,7 +516,7 @@ export default function ListingEditorPage() {
             getArchetypeFromCategory(currentMerchant?.category) ||
             'APPOINTMENT';
 
-  const handleSaveDetails = () => {
+  const handleSaveDetails = async () => {
     if (!serviceName.trim()) {
       alert("Please enter a Listing Name");
       setStep(1);
@@ -621,19 +621,25 @@ export default function ListingEditorPage() {
 
     const updatedCategory = {
       ...category,
-      listings: updatedListings
+      listings: updatedListings,
+      metadata: {
+        ...(category.metadata || {}),
+        listings: updatedListings
+      }
     };
 
     if (typeof window !== 'undefined') {
       try {
         localStorage.setItem(`custom_service_override_${serviceId}`, JSON.stringify(updatedCategory));
         localStorage.setItem(`custom_listing_override_${updatedListing.id}`, JSON.stringify(updatedListing));
+        // Direct event dispatch to notify listening windows/tabs instantly
+        window.dispatchEvent(new Event('storage'));
       } catch (err) {
         console.warn('Failed to save to localStorage', err);
       }
     }
 
-    updateService(updatedCategory);
+    await updateService(updatedCategory);
     router.push(`/workspace/my-services/${serviceId}`);
   };
 

@@ -9,6 +9,7 @@ import { getWellnessConfig } from '@/lib/wellnessData';
 import { getFitnessConfig } from '@/lib/fitnessData';
 import { getClinicConfig } from '@/lib/clinicalData';
 import { getHomeServiceConfig } from '@/lib/homeServicesData';
+import { getSportCategoryConfig } from '@/lib/sportsData';
 import {
   Plus, Trash2, Edit, X, Package, List, Building2, MapPin,
   Check, ChevronDown, Sparkles, Activity, Layers, Search,
@@ -262,12 +263,77 @@ export default function WorkspacePage() {
     }
   }
 
-  // Dynamic Auto-Fallback for Lifestyle & Dining / Wellness / Fitness / Clinic / Home Services Branches
+  // Dynamic Auto-Fallback for Lifestyle & Dining / Wellness / Fitness / Clinic / Home Services / Sports Branches
   if (merchantServices.length === 0) {
     const rawCat = (activeBranch.category || currentMerchant.category || '').toLowerCase();
     
+    // 0. Sports & Turf Fallback
+    const sportCfg = getSportCategoryConfig(rawCat);
+    if (sportCfg) {
+      const fallbackSportService: CatalogService = {
+        id: `svc-${sportCfg.slug}-${activeBranch.id}`,
+        name: `${sportCfg.categoryName} Master Units`,
+        merchant: activeBranch.name || currentMerchant.merchantName || sportCfg.merchantName,
+        price: sportCfg.defaultPrice,
+        duration: 60,
+        category: sportCfg.categoryName,
+        active: true,
+        branchId: activeBranch.id,
+        rating: 5.0,
+        bookingsCount: 320,
+        imageUrl: sportCfg.heroImage,
+        description: `Professional ${sportCfg.categoryName} court and unit management. Configure court surfaces, hourly tariffs, and equipment add-ons.`,
+        city: activeBranch.city || currentMerchant.city || 'Chennai',
+        metadata: {
+          isFacility: true,
+          branchId: activeBranch.id,
+          branchName: activeBranch.name,
+          merchantName: activeBranch.name || currentMerchant.merchantName || sportCfg.merchantName,
+          originalCategory: sportCfg.categoryName,
+          amenities: sportCfg.amenities,
+          mandatoryRule: sportCfg.mandatoryRule,
+          supervisorTitle: sportCfg.supervisorTitle,
+          includedGear: sportCfg.includedGear,
+          listings: sportCfg.units.map(u => ({
+            id: u.id,
+            name: u.name,
+            price: u.price,
+            imageUrl: u.imageUrl,
+            description: u.description,
+            images: [u.imageUrl],
+            metadata: {
+              imageUrl: u.imageUrl,
+              surface: u.surface,
+              badge: u.badge,
+              addons: sportCfg.addons,
+              mandatoryRule: sportCfg.mandatoryRule,
+              equipmentAddons: sportCfg.includedGear,
+              refereeOrManager: sportCfg.supervisorTitle
+            }
+          }))
+        },
+        listings: sportCfg.units.map(u => ({
+          id: u.id,
+          name: u.name,
+          price: u.price,
+          imageUrl: u.imageUrl,
+          description: u.description,
+          images: [u.imageUrl],
+          metadata: {
+            imageUrl: u.imageUrl,
+            surface: u.surface,
+            badge: u.badge,
+            addons: sportCfg.addons,
+            mandatoryRule: sportCfg.mandatoryRule,
+            equipmentAddons: sportCfg.includedGear,
+            refereeOrManager: sportCfg.supervisorTitle
+          }
+        }))
+      };
+      merchantServices = [fallbackSportService];
+    }
     // 1. Dining Fallback
-    if (rawCat.includes('dining') || rawCat.includes('restaurant')) {
+    else if (rawCat.includes('dining') || rawCat.includes('restaurant')) {
       const diningCfg = getDiningConfig(currentMerchant.id || 'grand-temple-dine');
       const fallbackDiningService: CatalogService = {
         id: `svc-dining-${activeBranch.id}`,

@@ -10,6 +10,7 @@ import { getWellnessConfig } from '@/lib/wellnessData';
 import { getFitnessConfig } from '@/lib/fitnessData';
 import { getClinicConfig } from '@/lib/clinicalData';
 import { getHomeServiceConfig } from '@/lib/homeServicesData';
+import { getSportCategoryConfig } from '@/lib/sportsData';
 
 export default function ServiceListingsPage() {
   const router = useRouter();
@@ -47,7 +48,70 @@ export default function ServiceListingsPage() {
     const rawCat = (currentMerchant.category || '').toLowerCase();
     const branchId = currentMerchant.activeBranchId || 'main-branch';
 
-    if (rawCat.includes('dining') || rawCat.includes('restaurant') || serviceId.includes('dining')) {
+    const sportCfg = getSportCategoryConfig(rawCat);
+    if (sportCfg || serviceId.includes('turf') || serviceId.includes('sport') || rawCat.includes('turf') || rawCat.includes('football')) {
+      const activeSportCfg = sportCfg || getSportCategoryConfig('football-turf')!;
+      category = {
+        id: serviceId,
+        name: `${activeSportCfg.categoryName} Master Units`,
+        merchant: currentMerchant.merchantName || activeSportCfg.merchantName,
+        price: activeSportCfg.defaultPrice,
+        duration: 60,
+        category: activeSportCfg.categoryName,
+        active: true,
+        branchId,
+        rating: 5.0,
+        bookingsCount: 320,
+        imageUrl: activeSportCfg.heroImage,
+        description: `Professional ${activeSportCfg.categoryName} court and unit management. Configure court surfaces, hourly tariffs, and equipment add-ons.`,
+        city: currentMerchant.city || 'Chennai',
+        metadata: {
+          isFacility: true,
+          branchId,
+          merchantName: currentMerchant.merchantName || activeSportCfg.merchantName,
+          originalCategory: activeSportCfg.categoryName,
+          amenities: activeSportCfg.amenities,
+          mandatoryRule: activeSportCfg.mandatoryRule,
+          supervisorTitle: activeSportCfg.supervisorTitle,
+          includedGear: activeSportCfg.includedGear,
+          listings: activeSportCfg.units.map(u => ({
+            id: u.id,
+            name: u.name,
+            price: u.price,
+            imageUrl: u.imageUrl,
+            description: u.description,
+            images: [u.imageUrl],
+            metadata: {
+              imageUrl: u.imageUrl,
+              surface: u.surface,
+              badge: u.badge,
+              addons: activeSportCfg.addons,
+              mandatoryRule: activeSportCfg.mandatoryRule,
+              equipmentAddons: activeSportCfg.includedGear,
+              refereeOrManager: activeSportCfg.supervisorTitle
+            }
+          }))
+        },
+        listings: activeSportCfg.units.map(u => ({
+          id: u.id,
+          name: u.name,
+          price: u.price,
+          imageUrl: u.imageUrl,
+          description: u.description,
+          images: [u.imageUrl],
+          active: true,
+          metadata: {
+            imageUrl: u.imageUrl,
+            surface: u.surface,
+            badge: u.badge,
+            addons: activeSportCfg.addons,
+            mandatoryRule: activeSportCfg.mandatoryRule,
+            equipmentAddons: activeSportCfg.includedGear,
+            refereeOrManager: activeSportCfg.supervisorTitle
+          }
+        }))
+      };
+    } else if (rawCat.includes('dining') || rawCat.includes('restaurant') || serviceId.includes('dining')) {
       const diningCfg = getDiningConfig(currentMerchant.id || 'grand-temple-dine');
       category = {
         id: serviceId,

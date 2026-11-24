@@ -3052,6 +3052,7 @@ export const useVendorStore = create<VendorStoreState>()(
             images: serviceImages,
             metadata: { 
               ...(updated.metadata || {}),
+              merchantId: get().currentMerchant?.id || updated.merchantId,
               merchantName: get().currentMerchant?.merchantName || updated.merchant,
               facilityName: get().currentMerchant?.merchantName || updated.merchant,
               branchName: updated.branchName || updated.metadata?.branchName,
