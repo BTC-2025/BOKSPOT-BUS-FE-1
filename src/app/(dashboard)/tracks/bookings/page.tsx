@@ -433,6 +433,11 @@ export default function BookingsPage() {
                         Visit Pass
                       </span>
                     )}
+                    {(b.metadata?.isYogaBooking || b.metadata?.yogaBooking || b.category?.toLowerCase().includes('yoga') || b.serviceName?.toLowerCase().includes('yoga') || b.serviceName?.toLowerCase().includes('sadhana')) && (
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-500/15 text-amber-500 border border-amber-500/30 shrink-0">
+                        🧘 Mat {b.metadata?.yogaBooking?.matSpot || 'M-01'}
+                      </span>
+                    )}
                     {(b.metadata?.isDiningBooking || b.metadata?.diningBooking || b.category?.toLowerCase().includes('dining') || b.serviceName?.toLowerCase().includes('table')) && (
                       <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-orange-500/15 text-[#ff6325] border border-orange-500/30 shrink-0">
                         🍽️ Table
@@ -879,6 +884,85 @@ export default function BookingsPage() {
                   </div>
                 </div>
               )}
+
+              {/* 1-A. SALON, SPA & DOORSTEP GROOMING MANAGEMENT */}
+              {(selectedBooking.metadata?.isYogaBooking || selectedBooking.metadata?.yogaBooking || selectedBooking.category?.toLowerCase().includes('yoga') || selectedBooking.serviceName?.toLowerCase().includes('yoga')) && (() => {
+                const yoga = selectedBooking.metadata?.yogaBooking || {};
+                return (
+                  <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/25 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-[#ff6325] font-extrabold text-sm">
+                        <span>🧘</span>
+                        <span>Yoga Shala Mat & Batch Reservation</span>
+                      </div>
+                      <span className="px-2.5 py-0.5 rounded-full font-black text-[10px] border bg-[#ff6325]/15 text-[#ff6325] border-[#ff6325]/30">
+                        Reserved Mat {yoga.matSpot || 'M-01'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+                      <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand">
+                        <span className="text-[10px] font-bold text-text-muted uppercase block">Batch & Style:</span>
+                        <span className="text-xs font-black text-text-primary block mt-0.5 truncate">
+                          {yoga.batchTitle || selectedBooking.serviceName}
+                        </span>
+                        <span className="text-[10px] text-amber-500 font-semibold block mt-0.5">
+                          Timing: {yoga.slotTime || selectedBooking.time}
+                        </span>
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand">
+                        <span className="text-[10px] font-bold text-text-muted uppercase block">Acharya / Guru:</span>
+                        <span className="text-xs font-black text-[#ff6325] block mt-0.5">
+                          {yoga.guru || 'Senior Shala Acharya'}
+                        </span>
+                        <span className="text-[10px] text-text-muted block mt-0.5">
+                          Duration: {yoga.durationMinutes || 75} Mins
+                        </span>
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand sm:col-span-1 col-span-2">
+                        <span className="text-[10px] font-bold text-text-muted uppercase block">Studio Perks & Add-on:</span>
+                        <span className="text-xs font-black text-emerald-500 block mt-0.5">
+                          {yoga.herbalBrew ? '✓ Ayurvedic Brew Included' : '✓ Pre-sanitized Cork Mat'}
+                        </span>
+                        {yoga.eyePillowAddon && (
+                          <span className="text-[10px] text-amber-400 font-bold block mt-0.5">
+                            + Lavender Eye Pillow (+₹120)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-1">
+                      <button
+                        onClick={async () => {
+                          checkInBooking(selectedBooking.id);
+                          const updated = { ...selectedBooking, status: 'CHECKED_IN' };
+                          setLiveBookings(prev => prev.map(item => item.id === selectedBooking.id ? updated : item));
+                          try {
+                            await fetch('/api/v1/bookings/sync', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify(updated),
+                            });
+                          } catch (e) {}
+                          alert(`Practitioner ${selectedBooking.customerName || 'Guest'} checked in to Mat ${yoga.matSpot || 'M-01'}!`);
+                        }}
+                        className="flex-1 py-2.5 rounded-xl bg-[#ff6325] hover:bg-[#e04e13] text-white font-black text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        ✓ Mark Mat Check-In
+                      </button>
+                      <button
+                        onClick={() => alert(`Calling Practitioner ${selectedBooking.customerName || 'Guest'}.`)}
+                        className="px-4 py-2.5 rounded-xl bg-bg-secondary hover:bg-bg-tertiary border border-border-brand text-text-primary font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Phone size={13} /> Call
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* 1-A. SALON, SPA & DOORSTEP GROOMING MANAGEMENT */}
               {(currentMerchant.category?.toLowerCase().includes('salon') || 
