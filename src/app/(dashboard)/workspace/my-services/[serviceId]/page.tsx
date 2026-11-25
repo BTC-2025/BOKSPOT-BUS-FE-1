@@ -35,13 +35,15 @@ export default function ServiceListingsPage() {
     setMounted(true);
   }, []);
 
-  if (!mounted || !currentMerchant) {
+  if (!currentMerchant) {
     return (
       <div className="flex h-full min-h-[500px] items-center justify-center">
-        <div className="h-16 w-16 rounded-full border-4 border-[#ff6325] border-t-transparent animate-spin" />
+        <div className="h-10 w-10 rounded-full border-2 border-[#ff6325] border-t-transparent animate-spin" />
       </div>
     );
   }
+
+  const activeMerchant = currentMerchant;
 
   let category = services.find(s => s.id === serviceId);
   if (!category && typeof window !== 'undefined') {

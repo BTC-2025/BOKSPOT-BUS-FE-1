@@ -23,69 +23,70 @@ export default function DashboardPage() {
   // Slot matrix is derived dynamically from real catalog services and live bookings below
 
 
-  // ── Live Bookings Poller ────────────────────────────────────────────────────
+  // ── Optimized Live Bookings Poller (Throttled & Non-Blocking) ───────────────
   useEffect(() => {
     let cancelled = false;
     const poll = async () => {
+      // Skip polling when page is hidden or background tab
+      if (typeof document !== 'undefined' && document.hidden) return;
       try {
-        let res = await fetch(`/api/v1/bookings/sync?t=${Date.now()}`, { cache: 'no-store' });
-        if (!res.ok) {
-          res = await fetch(`http://localhost:9000/api/v1/bookings/sync?t=${Date.now()}`, { cache: 'no-store' });
-        }
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2500);
+        const res = await fetch(`/api/v1/bookings/sync?t=${Date.now()}`, { 
+          cache: 'no-store', 
+          signal: controller.signal 
+        });
+        clearTimeout(timeoutId);
         if (res.ok) {
           const all: any = await res.json();
           const dataArr = all?.data || all;
-          if (!cancelled) setLiveBookings(Array.isArray(dataArr) ? dataArr : []);
-        }
-      } catch (err) {
-        try {
-          const resDirect = await fetch(`http://localhost:9000/api/v1/bookings/sync?t=${Date.now()}`, { cache: 'no-store' });
-          if (resDirect.ok) {
-            const allDirect = await resDirect.json();
-            const dataArrDirect = allDirect?.data || allDirect;
-            if (!cancelled) setLiveBookings(Array.isArray(dataArrDirect) ? dataArrDirect : []);
+          if (!cancelled && Array.isArray(dataArr) && dataArr.length > 0) {
+            setLiveBookings(dataArr);
           }
-        } catch {}
+        }
+      } catch {
+        // Silently pass without blocking or freezing UI
       }
     };
     poll();
-    const id = setInterval(poll, 3000);
+    // Throttled to 30 seconds interval instead of aggressive 3s
+    const id = setInterval(poll, 30000);
     return () => { cancelled = true; clearInterval(id); };
   }, []);
 
   useEffect(() => { setMounted(true); }, []);
 
-  if (!currentMerchant || !mounted) {
+  if (!currentMerchant) {
     return (
       <div className="flex h-full min-h-[500px] items-center justify-center">
-        <div className="flex flex-col items-center gap-4 animate-pulse">
-          <div className="h-14 w-14 rounded-full border-4 border-[#ff6325] border-t-transparent animate-spin" />
-          <p className="text-[#0a3161] dark:text-[#ff6325] font-black tracking-widest uppercase text-xs">Initializing Executive Console...</p>
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-10 w-10 rounded-full border-2 border-[#ff6325] border-t-transparent animate-spin" />
         </div>
       </div>
     );
   }
 
   // Active Branch Resolution
-  const presetMatch = PRESET_MERCHANTS.find(m => m.id === currentMerchant?.id || m.username.toLowerCase() === currentMerchant?.username?.toLowerCase());
-  const effectiveBranches = (currentMerchant.branches && currentMerchant.branches.length > 0)
-    ? currentMerchant.branches
+  const activeMerchant = currentMerchant || PRESET_MERCHANTS[0];
+  const presetMatch = PRESET_MERCHANTS.find(m => m.id === activeMerchant?.id || m.username.toLowerCase() === activeMerchant?.username?.toLowerCase());
+  const effectiveBranches = (activeMerchant?.branches && activeMerchant.branches.length > 0)
+    ? activeMerchant.branches
     : (presetMatch?.branches && presetMatch.branches.length > 0)
       ? presetMatch.branches
       : [
         {
           id: 'branch-main-1',
-          name: currentMerchant?.merchantName || 'Main Branch',
-          city: currentMerchant?.city || 'Chennai',
-          category: currentMerchant?.category || 'General Service',
+          name: activeMerchant?.merchantName || 'Main Branch',
+          city: activeMerchant?.city || 'Chennai',
+          category: activeMerchant?.category || 'General Service',
           businessType: 'Main Facility',
-          address: currentMerchant?.address || 'Chennai Location',
+          address: activeMerchant?.address || 'Chennai Location',
           gstStatus: 'WITH_GST',
-          gstNumber: currentMerchant?.gstNumber || '33AAAAA0000A1Z5'
+          gstNumber: activeMerchant?.gstNumber || '33AAAAA0000A1Z5'
         }
       ];
 
-  const activeBranch = effectiveBranches.find(b => b.id === (currentMerchant.activeBranchId || effectiveBranches[0].id)) || effectiveBranches[0];
+  const activeBranch = effectiveBranches.find(b => b.id === (activeMerchant?.activeBranchId || effectiveBranches[0].id)) || effectiveBranches[0];
 
   // Comprehensive check for Sports / Turf across active branch and merchant profile
   const isTurfBranch = (() => {
@@ -105,7 +106,13 @@ export default function DashboardPage() {
     const bCat = (activeBranch.category || '').toLowerCase();
     const bName = (activeBranch.name || '').toLowerCase();
     const mCat = (currentMerchant.category || '').toLowerCase();
-    return bCat.includes('yoga') || bCat.includes('meditation') || bName.includes('yoga') || bName.includes('shala') || mCat.includes('yoga') || mCat.includes('meditation');
+    const hasYogaService = (services || []).some((s: any) => {
+      const sCat = (s.category || '').toLowerCase();
+      const sName = (s.name || '').toLowerCase();
+      return sCat.includes('yoga') || sCat.includes('meditation') || sCat.includes('shala') ||
+             sName.includes('yoga') || sName.includes('meditation') || sName.includes('shala');
+    });
+    return hasYogaService || bCat.includes('yoga') || bCat.includes('meditation') || bName.includes('yoga') || bName.includes('shala') || mCat.includes('yoga') || mCat.includes('meditation');
   })();
 
   const isGymBranch = (() => {
@@ -113,6 +120,16 @@ export default function DashboardPage() {
     const bName = (activeBranch.name || '').toLowerCase();
     const mCat = (currentMerchant.category || '').toLowerCase();
     return !isYogaBranch && (bCat.includes('gym') || bCat.includes('fitness') || bName.includes('gym') || mCat.includes('gym') || mCat.includes('fitness'));
+  })();
+
+  // Display Branch Name cleaned of legacy Gym mismatch if this branch hosts Yoga services
+  const branchDisplayName = (() => {
+    const rawName = activeBranch.name || currentMerchant.merchantName || 'Merchant Dashboard';
+    if (isYogaBranch && /gym/i.test(rawName)) {
+      return rawName.replace(/gym floor & membership booking/i, 'Yoga Shala & Meditation Batches')
+                    .replace(/gym/i, 'Yoga Shala');
+    }
+    return rawName;
   })();
 
   // Active Category & Archetype aligned with active branch
@@ -430,7 +447,7 @@ export default function DashboardPage() {
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2.5 mb-1.5">
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#0a3161] dark:text-white truncate">
-                  {activeBranch.name || currentMerchant.merchantName || 'Merchant Dashboard'}
+                  {branchDisplayName}
                 </h1>
 
                 {/* GST Badge */}

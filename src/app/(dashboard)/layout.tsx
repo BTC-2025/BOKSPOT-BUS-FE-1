@@ -350,7 +350,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       }
     ]);
   const activeBranchForNav = effectiveBranchesForNav.find(b => b.id === (currentMerchant?.activeBranchId || effectiveBranchesForNav[0].id)) || effectiveBranchesForNav[0];
-  const activeCategoryForNav = activeBranchForNav.category || currentMerchant?.category || 'Resort Booking';
+  const hasYogaServices = (services || []).some((s: any) =>
+    (s.category || '').toLowerCase().includes('yoga') ||
+    (s.name || '').toLowerCase().includes('yoga') ||
+    (s.type || '').toLowerCase().includes('yoga')
+  );
+  const activeCategoryForNav = hasYogaServices 
+    ? 'Yoga' 
+    : (activeBranchForNav.category || currentMerchant?.category || 'Resort Booking');
 
   const baseConfig = getArchetypeConfig(activeCategoryForNav || currentMerchant?.archetype || 'Service');
   const archetypeConfig = { ...baseConfig, ...(currentMerchant?.customDictionary || {}) };
@@ -642,11 +649,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 </div>
                                 <div className="flex flex-col">
                                   <span className="font-bold text-xs flex items-center gap-1.5 text-slate-900 dark:text-white">
-                                    {branch.name || `${branch.city} Branch`}
+                                    {(hasYogaServices && branch.name?.toLowerCase().includes('gym')) 
+                                      ? branch.name.replace(/Gym Floor & Membership Booking/gi, 'Yoga Shala & Meditation Batches') 
+                                      : (branch.name || `${branch.city} Branch`)}
                                     {isActive && <Check size={12} className="text-[#ff6325]" />}
                                   </span>
                                   <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                                    {branch.category ? `${branch.category} • ` : ''}{branch.address || `${branch.city} Location`}
+                                    {(hasYogaServices && branch.category?.toLowerCase().includes('gym')) 
+                                      ? 'Yoga • ' 
+                                      : (branch.category ? `${branch.category} • ` : '')}
+                                    {branch.address || `${branch.city} Location`}
                                   </span>
                                 </div>
                               </div>

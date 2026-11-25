@@ -11,7 +11,7 @@ import {
 import { useState, useEffect } from 'react';
 
 export default function BookingsPage() {
-  const { currentMerchant, bookings, staffAccounts, loginRole, currentStaff, checkInBooking, completeBooking, savePrescription, assignStaffToBooking } = useVendorStore();
+  const { currentMerchant, bookings, services, staffAccounts, loginRole, currentStaff, checkInBooking, completeBooking, savePrescription, assignStaffToBooking } = useVendorStore();
   const [mounted, setMounted] = useState(false);
 
   // States
@@ -67,8 +67,15 @@ export default function BookingsPage() {
   const curId = String(currentMerchant?.id || '').trim();
   const curName = (currentMerchant?.merchantName || '').toLowerCase().trim();
   const activeBranch = effectiveBranches.find(b => b.id === (currentMerchant?.activeBranchId || effectiveBranches[0].id)) || effectiveBranches[0];
+  const hasYogaServices = (services || []).some((s: any) =>
+    (s.category || '').toLowerCase().includes('yoga') ||
+    (s.name || '').toLowerCase().includes('yoga') ||
+    (s.type || '').toLowerCase().includes('yoga')
+  );
   const isTurfBranch = Boolean(activeBranch.category?.toLowerCase().includes('turf') || activeBranch.name?.toLowerCase().includes('turf'));
-  const activeBranchCategory = activeBranch.category || (isTurfBranch ? 'Football Turf' : (currentMerchant?.category || 'Resort Booking'));
+  const activeBranchCategory = hasYogaServices
+    ? 'Yoga'
+    : (activeBranch.category || (isTurfBranch ? 'Football Turf' : (currentMerchant?.category || 'Resort Booking')));
 
   const baseConfig = getArchetypeConfig(activeBranchCategory || currentMerchant?.archetype || 'Service');
   const archetypeConfig = { ...baseConfig, ...(currentMerchant?.customDictionary || {}) };
@@ -350,7 +357,11 @@ export default function BookingsPage() {
             {archetypeConfig.bookingHeaderDesc || 'Manage your bookings and records.'}
           </p>
           <div className="mt-2 text-xs font-mono text-slate-500 flex items-center gap-2">
-            <span>Merchant: <strong className="text-slate-800 dark:text-slate-200">{currentMerchant.merchantName}</strong> ({currentMerchant.id?.substring(0,8)}...)</span>
+            <span>Merchant: <strong className="text-slate-800 dark:text-slate-200">
+              {(hasYogaServices && currentMerchant.merchantName?.toLowerCase().includes('gym'))
+                ? currentMerchant.merchantName.replace(/Gym Floor & Membership Booking/gi, 'Yoga Shala & Meditation Batches')
+                : currentMerchant.merchantName}
+            </strong> ({currentMerchant.id?.substring(0,8)}...)</span>
             <span>•</span>
             <span>Live Sync: <strong className="text-emerald-600 font-bold">{liveBookings.length}</strong> items</span>
             <button 

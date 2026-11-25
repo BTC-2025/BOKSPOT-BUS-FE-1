@@ -128,34 +128,35 @@ export default function WorkspacePage() {
     return ALL_PRESET_CATEGORIES.filter(c => c.toLowerCase().includes(query));
   }, [bookingTypeCategory, ALL_PRESET_CATEGORIES]);
 
-  if (!currentMerchant || !mounted) {
+  if (!currentMerchant) {
     return (
       <div className="flex h-full min-h-[500px] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-12 w-12 rounded-full border-4 border-[#ff6325] border-t-transparent animate-spin" />
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Loading Catalog...</p>
+          <div className="h-10 w-10 rounded-full border-2 border-[#ff6325] border-t-transparent animate-spin" />
         </div>
       </div>
     );
   }
 
+  const activeMerchant = currentMerchant;
+
   // Branches
-  const presetMatch = PRESET_MERCHANTS.find(m => m.id === currentMerchant?.id || m.username.toLowerCase() === currentMerchant?.username?.toLowerCase());
-  const effectiveBranches: BranchInfo[] = (currentMerchant?.branches && currentMerchant.branches.length > 0)
-    ? currentMerchant.branches
+  const presetMatch = PRESET_MERCHANTS.find(m => m.id === activeMerchant?.id || m.username.toLowerCase() === activeMerchant?.username?.toLowerCase());
+  const effectiveBranches: BranchInfo[] = (activeMerchant?.branches && activeMerchant.branches.length > 0)
+    ? activeMerchant.branches
     : (presetMatch?.branches && presetMatch.branches.length > 0)
       ? presetMatch.branches
       : [
         {
-          id: `branch-main-${currentMerchant.id || 'default'}`,
-          name: `${currentMerchant.city || 'Main'} Branch`,
-          city: currentMerchant.city || 'Chennai',
-          category: currentMerchant.category || 'General Service',
-          businessType: currentMerchant.category || 'Service Facility',
-          address: currentMerchant.address || `${currentMerchant.city || 'Chennai'} Location`,
-          gstStatus: (currentMerchant.gstStatus as any) || 'WITHOUT_GST',
-          gstNumber: currentMerchant.gstNumber || '',
-          offeringsSummary: currentMerchant.category || 'Primary Offerings',
+          id: `branch-main-${activeMerchant.id || 'default'}`,
+          name: `${activeMerchant.city || 'Main'} Branch`,
+          city: activeMerchant.city || 'Chennai',
+          category: activeMerchant.category || 'General Service',
+          businessType: activeMerchant.category || 'Service Facility',
+          address: activeMerchant.address || `${activeMerchant.city || 'Chennai'} Location`,
+          gstStatus: (activeMerchant.gstStatus as any) || 'WITHOUT_GST',
+          gstNumber: activeMerchant.gstNumber || '',
+          offeringsSummary: activeMerchant.category || 'Primary Offerings',
           isMainBranch: true
         }
       ];
