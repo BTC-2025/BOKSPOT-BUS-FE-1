@@ -648,7 +648,8 @@ export default function ListingEditorPage() {
       }
     }
 
-    await updateService(updatedCategory);
+    // Trigger update in background without blocking UI navigation
+    updateService(updatedCategory);
     router.push(`/workspace/my-services/${serviceId}`);
   };
 
