@@ -1974,7 +1974,15 @@ export default function ListingEditorPage() {
 
               <div>
                 <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2">
-                  {isDining ? 'Table Ambiance Highlights & Dining Policy' : isTurfCategory ? 'Pitch Highlights & Ground Rules' : 'Unit Highlights & Layout'}
+                  {isDining
+                    ? 'Table Ambiance Highlights & Dining Policy'
+                    : isTurfCategory
+                    ? 'Pitch Highlights & Ground Rules'
+                    : isYogaCategory
+                    ? 'Yoga Shala Atmosphere & Class Flow'
+                    : isFitnessCategory
+                    ? 'Gym Floor Rules & Equipment Overview'
+                    : 'Unit Highlights & Layout'}
                 </label>
                 <textarea
                   value={description}
@@ -1982,18 +1990,22 @@ export default function ListingEditorPage() {
                   placeholder={
                     isTurfCategory
                       ? "e.g. FIFA certified 50mm monofilament turf, high-intensity LED floodlights, professional dugout, complimentary match bibs and ball, shower facilities..."
-                      : isHotel
-                        ? "e.g. Well-ventilated modern room featuring comfortable bedding, clean attached washroom with 24/7 hot water, work desk, high-speed WiFi, and daily housekeeping..."
-                        : isCamping
-                          ? "e.g. Weatherproof pitched dome tent with foam sleeping mats, clean sleeping bags, campfire setup, shared washrooms, and starry night outdoor BBQ..."
-                          : isDining ? "e.g. Intimate candlelit setting on the 5th floor open-air rooftop with panoramic city views, live acoustic music, and dedicated steward service..." : "e.g. Spacious beachfront villa featuring private plunge pool, king-size bed, sunset sea views, complimentary breakfast, and signature bath amenities..."
+                      : isYogaCategory
+                        ? "e.g. Bamboo wooden flooring sanctuary with Tibetan singing bowls, pranayama breathwork, sound healing meditation, and post-practice tea ritual..."
+                        : isFitnessCategory
+                          ? "e.g. State-of-the-art strength machines, free weights zone, cardio suite, steam room, and certified floor trainers..."
+                          : isHotel
+                            ? "e.g. Well-ventilated modern room featuring comfortable bedding, clean attached washroom with 24/7 hot water, work desk, high-speed WiFi, and daily housekeeping..."
+                            : isCamping
+                              ? "e.g. Weatherproof pitched dome tent with foam sleeping mats, clean sleeping bags, campfire setup, shared washrooms, and starry night outdoor BBQ..."
+                              : isDining ? "e.g. Intimate candlelit setting on the 5th floor open-air rooftop with panoramic city views, live acoustic music, and dedicated steward service..." : "e.g. Spacious beachfront villa featuring private plunge pool, king-size bed, sunset sea views, complimentary breakfast, and signature bath amenities..."
                   }
                   rows={3}
                   className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-medium text-xs focus:border-[#ff6325] focus:bg-white dark:focus:bg-[#131d2e] outline-none transition-all shadow-xs"
                 />
               </div>
 
-              {/* Complimentary / Included Gear or Inclusions (Hotels, Turfs & Camps only - PG handles this cleanly in Step 4) */}
+              {/* Complimentary / Included Gear or Inclusions (Hotels, Turfs, Camps, Yoga only - PG handles this cleanly in Step 4) */}
               {!isPgOrHostel && (
                 <div>
                   <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2">
@@ -2001,6 +2013,10 @@ export default function ListingEditorPage() {
                       ? '🍽️ Complimentary Table Amenities & Inclusions'
                       : isTurfCategory
                       ? '⚽ Complimentary / Included Playing Gear'
+                      : isYogaCategory
+                      ? '🧘 Studio Inclusions & Shala Protocols'
+                      : isFitnessCategory
+                      ? '🏋️ Complimentary Gym Inclusions'
                       : isHotel
                         ? '🎁 Complimentary Welcome Pack & Free Inclusions'
                         : 'Included Amenities / Welcome Gear'}
@@ -2012,6 +2028,10 @@ export default function ListingEditorPage() {
                     placeholder={
                       isTurfCategory
                         ? "e.g. 2 Match Balls (Size 5), 14 Team Bibs (Neon Green & Orange), Goalkeeper Gloves"
+                        : isYogaCategory
+                        ? "e.g. Natural Bamboo Flooring, Pre-Sanitized Eco Cork Mats & Blocks, Tibetan Bowls, Ayurvedic Tea"
+                        : isFitnessCategory
+                        ? "e.g. Locker Access, Shower & Steam Bath, RO Water Dispenser, Workout Towel"
                         : isHotel
                           ? "e.g. RO Drinking Water, High-Speed WiFi, Clean Towels & Bath Soap, Electric Kettle"
                           : isCamping
@@ -2030,11 +2050,23 @@ export default function ListingEditorPage() {
                 <div className="flex items-center justify-between mb-3 bg-slate-50 dark:bg-white/[0.03] p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10">
                   <div>
                     <span className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider block">
-                      {isDining ? 'Signature Food & Menu Pre-order Dishes' : isTurfCategory ? 'Optional Turf Add-ons' : 'Optional Unit Add-ons'}
+                      {isDining
+                        ? 'Signature Food & Menu Pre-order Dishes'
+                        : isTurfCategory
+                        ? 'Optional Turf Add-ons'
+                        : isYogaCategory
+                        ? 'Optional Shala / Wellness Add-ons'
+                        : isFitnessCategory
+                        ? 'Optional Fitness Add-ons'
+                        : 'Optional Unit Add-ons'}
                     </span>
                     <span className="text-[11px] text-slate-500 dark:text-slate-400">
                       {isTurfCategory
                         ? 'Match Referee, Mineral Water Dispenser, Extra Match Ball, Video Recording'
+                        : isYogaCategory
+                        ? 'Reserve Studio Cork Mat (+₹60), Organic Lavender Eye Pillow (+₹120), Herbal Detox Brew'
+                        : isFitnessCategory
+                        ? 'Personal Trainer Session, Whey Protein Shake, Pre-Workout Drink, Locker Rental'
                         : isHotel
                           ? 'Homely 3 Meals (Breakfast/Lunch/Dinner), Extra Pillow & Blanket, Covered Parking'
                           : isCamping
@@ -2066,9 +2098,13 @@ export default function ListingEditorPage() {
                               placeholder={
                                 isTurfCategory
                                   ? "Add-on item (e.g. Match Referee / Video Recording / Energy Drinks)"
-                                  : archetype === 'APPOINTMENT'
-                                    ? "Add-on service (e.g. Blood Sugar Test / ECG / Diet Plan)"
-                                    : "Add-on item (e.g. Extra Bed / Candlelight Dinner / Airport Pickup)"
+                                  : isYogaCategory
+                                    ? "Add-on item (e.g. Reserve Studio Cork Mat / Organic Eye Pillow / Herbal Brew)"
+                                    : isFitnessCategory
+                                      ? "Add-on item (e.g. Personal Trainer / Whey Protein Shake / Locker)"
+                                      : archetype === 'APPOINTMENT'
+                                        ? "Add-on service (e.g. Consultation / Diagnostic Test / Therapy)"
+                                        : "Add-on item (e.g. Extra Bed / Candlelight Dinner / Airport Pickup)"
                               }
                               value={addon.name}
                               onChange={(e) => {
