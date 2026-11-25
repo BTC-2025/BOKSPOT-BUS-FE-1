@@ -489,18 +489,27 @@ export default function ListingEditorPage() {
     (currentMerchant?.category || '').toLowerCase().includes('spa') ||
     Boolean(category.metadata?.isWellness);
 
-  const isFitnessCategory =
-    (categoryDisplayName || '').toLowerCase().includes('gym') ||
+  const isYogaCategory =
     (categoryDisplayName || '').toLowerCase().includes('yoga') ||
-    (categoryDisplayName || '').toLowerCase().includes('fitness') ||
-    (categoryDisplayName || '').toLowerCase().includes('crossfit') ||
-    (category.category || '').toLowerCase().includes('gym') ||
+    (categoryDisplayName || '').toLowerCase().includes('meditation') ||
     (category.category || '').toLowerCase().includes('yoga') ||
-    (currentMerchant?.category || '').toLowerCase().includes('gym') ||
+    (category.category || '').toLowerCase().includes('meditation') ||
     (currentMerchant?.category || '').toLowerCase().includes('yoga') ||
-    Boolean(category.metadata?.isFitness);
+    (currentMerchant?.category || '').toLowerCase().includes('meditation');
 
-  const isAccommodation = !isDining && !isSalonCategory && !isFitnessCategory && (isHotel || isResortVilla || isCamping || isPgOrHostel ||
+  const isFitnessCategory =
+    !isYogaCategory && (
+      (categoryDisplayName || '').toLowerCase().includes('gym') ||
+      (categoryDisplayName || '').toLowerCase().includes('fitness') ||
+      (categoryDisplayName || '').toLowerCase().includes('crossfit') ||
+      (category.category || '').toLowerCase().includes('gym') ||
+      (category.category || '').toLowerCase().includes('fitness') ||
+      (currentMerchant?.category || '').toLowerCase().includes('gym') ||
+      (currentMerchant?.category || '').toLowerCase().includes('fitness') ||
+      Boolean(category.metadata?.isFitness)
+    );
+
+  const isAccommodation = !isDining && !isSalonCategory && !isFitnessCategory && !isYogaCategory && (isHotel || isResortVilla || isCamping || isPgOrHostel ||
     (categoryDisplayName || '').toLowerCase().includes('suite') ||
     (categoryDisplayName || '').toLowerCase().includes('stay') ||
     (currentMerchant?.archetype?.toUpperCase() === 'ACCOMMODATION') ||
@@ -510,7 +519,7 @@ export default function ListingEditorPage() {
     isDining ? 'DINING' :
       isTurfCategory ? 'RENTAL' :
         isAccommodation ? 'ACCOMMODATION' :
-          (isSalonCategory || isFitnessCategory) ? 'APPOINTMENT' :
+          (isSalonCategory || isFitnessCategory || isYogaCategory) ? 'APPOINTMENT' :
             getArchetypeFromCategory(category?.name) ||
             getArchetypeFromCategory(category?.category) ||
             getArchetypeFromCategory(currentMerchant?.category) ||
@@ -717,7 +726,15 @@ export default function ListingEditorPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2 space-y-2">
                   <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                    {isDining ? 'Table / Seating Unit Title' : isTurfCategory ? 'Pitch / Court / Unit Title' : 'Unit / Listing Title'} <span className="text-red-500">*</span>
+                    {isDining
+                      ? 'Table / Seating Unit Title'
+                      : isTurfCategory
+                      ? 'Pitch / Court / Unit Title'
+                      : isYogaCategory
+                      ? 'Batch Discipline & Title'
+                      : isFitnessCategory
+                      ? 'Pass / Membership Title'
+                      : 'Unit / Listing Title'} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -728,6 +745,10 @@ export default function ListingEditorPage() {
                         ? "e.g. Cozy Couple Table (2 Seater), Prime Family Booth (4 Seater), Royal PDR"
                         : isTurfCategory
                         ? "e.g. 7-a-side Main Astro Turf A, 5s Cage Pitch B, Box Cricket Arena"
+                        : isYogaCategory
+                        ? "e.g. Traditional Hatha Yoga Sunrise Batch, Sunset Sound Bath & Meditation"
+                        : isFitnessCategory
+                        ? "e.g. Full Day Open Gym & Steam Pass, Monthly Unlimited Access"
                         : isHotel
                           ? "e.g. Deluxe AC Room, Executive Suite, Standard Non-AC Room"
                           : isCamping
@@ -1370,7 +1391,17 @@ export default function ListingEditorPage() {
                 {/* 1. Original Rate (Rack Price / MRP) */}
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                    {isDining ? 'Standard Table Deposit / Minimum Spend (₹)' : isTurfCategory ? 'Original Hourly Slot Rate (₹)' : archetype === 'ACCOMMODATION' ? 'Original Rate / Rack Price (₹)' : 'Original Price / MRP (₹)'} <span className="text-red-500">*</span>
+                    {isDining
+                      ? 'Standard Table Deposit / Minimum Spend (₹)'
+                      : isTurfCategory
+                      ? 'Original Hourly Slot Rate (₹)'
+                      : isYogaCategory
+                      ? 'Single Drop-in Session Fee (₹)'
+                      : isFitnessCategory
+                      ? 'Standard Pass / Membership Fee (₹)'
+                      : archetype === 'ACCOMMODATION'
+                      ? 'Original Rate / Rack Price (₹)'
+                      : 'Original Price / MRP (₹)'} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-400 text-sm">₹</span>
@@ -1388,14 +1419,32 @@ export default function ListingEditorPage() {
                           setBasePrice('');
                         }
                       }}
-                      placeholder={isDining ? "e.g. 0 (Free Table) or 200 (Deposit)" : isTurfCategory ? "e.g. 1500 or 1200" : "e.g. 16111 or 15000"}
+                      placeholder={
+                        isDining
+                          ? "e.g. 0 (Free Table) or 200 (Deposit)"
+                          : isTurfCategory
+                          ? "e.g. 1500 or 1200"
+                          : isYogaCategory
+                          ? "e.g. 450 or 399"
+                          : isFitnessCategory
+                          ? "e.g. 299 or 499"
+                          : "e.g. 16111 or 15000"
+                      }
                       min="0"
                       className="w-full pl-9 pr-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#162033] text-slate-900 dark:text-white font-black text-sm focus:border-[#ff6325] focus:bg-white dark:focus:bg-[#131d2e] outline-none transition-all shadow-xs"
                       required
                     />
                   </div>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                    {isDining ? 'Reservation deposit or cover charge payable to hold table.' : isTurfCategory ? 'Standard hourly court/pitch tariff before discount.' : 'Your standard rack tariff before applying discount.'}
+                    {isDining
+                      ? 'Reservation deposit or cover charge payable to hold table.'
+                      : isTurfCategory
+                      ? 'Standard hourly court/pitch tariff before discount.'
+                      : isYogaCategory
+                      ? 'Standard per-class drop-in fee before applying offer.'
+                      : isFitnessCategory
+                      ? 'Standard entry pass rate before discount.'
+                      : 'Your standard rack tariff before applying discount.'}
                   </p>
                 </div>
 
@@ -1453,7 +1502,7 @@ export default function ListingEditorPage() {
                           </span>
                         )}
                         <span className="text-xs text-slate-500 dark:text-slate-300 font-bold">
-                          {priceUnit || (isDining ? 'per reservation / table deposit' : isTurfCategory ? '/ hour' : isAccommodation ? '/ night' : '/ service')}
+                          {priceUnit || (isDining ? 'per reservation / table deposit' : isTurfCategory ? '/ hour' : isYogaCategory ? '/ drop-in class' : isFitnessCategory ? '/ pass' : isAccommodation ? '/ night' : '/ service')}
                         </span>
                       </div>
                       <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
@@ -1484,8 +1533,8 @@ export default function ListingEditorPage() {
                     </div>
                   </div>
 
-                  {/* Rent Cadence / Price Unit & Refundable Deposit Inputs (Hidden for Dining, Salon & Fitness since they use per session/pass) */}
-                  {!isDining && !isSalonCategory && !isFitnessCategory && (
+                  {/* Rent Cadence / Price Unit & Refundable Deposit Inputs (Hidden for Dining, Salon, Fitness & Yoga since they use per session/pass) */}
+                  {!isDining && !isSalonCategory && !isFitnessCategory && !isYogaCategory && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-200 dark:border-white/10">
                       <div>
                         <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
@@ -1543,7 +1592,15 @@ export default function ListingEditorPage() {
                   {/* Promo Banner Tagline Field */}
                   <div className="md:col-span-2 pt-2 border-t border-slate-200 dark:border-white/10">
                     <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-                      {isDining ? 'Dining Table Atmosphere Tagline' : isTurfCategory ? 'Arena / Pitch Banner Tagline' : isSalonCategory ? 'Salon Treatment Tagline' : 'Promotional Getaway Banner Tagline'} <span className="text-slate-400 font-normal">(Shown on bottom card)</span>
+                      {isDining
+                        ? 'Dining Table Atmosphere Tagline'
+                        : isTurfCategory
+                        ? 'Arena / Pitch Banner Tagline'
+                        : isYogaCategory
+                        ? 'Yoga Shala Atmosphere Tagline'
+                        : isSalonCategory
+                        ? 'Salon Treatment Tagline'
+                        : 'Promotional Getaway Banner Tagline'} <span className="text-slate-400 font-normal">(Shown on bottom card)</span>
                     </label>
                     <input
                       type="text"
@@ -1554,6 +1611,8 @@ export default function ListingEditorPage() {
                           ? "e.g. Candlelit Starlit Dinner, Sunset Bistro Vibes, Royal Heritage Dining"
                           : isTurfCategory 
                             ? "e.g. Premier FIFA 7v7 Astro Arena, Floodlit Night Tournament Pitch" 
+                            : isYogaCategory
+                            ? "e.g. Silent Bamboo Sanctuary, Post-Practice Ayurvedic Herbal Brew Included"
                             : isSalonCategory
                             ? "e.g. Relax & Revitalize with Certified Master Stylists"
                             : isHotel
