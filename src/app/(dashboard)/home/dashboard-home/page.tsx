@@ -101,11 +101,25 @@ export default function DashboardPage() {
       sportsKeywords.some(kw => mCat.includes(kw));
   })();
 
+  const isYogaBranch = (() => {
+    const bCat = (activeBranch.category || '').toLowerCase();
+    const bName = (activeBranch.name || '').toLowerCase();
+    const mCat = (currentMerchant.category || '').toLowerCase();
+    return bCat.includes('yoga') || bCat.includes('meditation') || bName.includes('yoga') || bName.includes('shala') || mCat.includes('yoga') || mCat.includes('meditation');
+  })();
+
+  const isGymBranch = (() => {
+    const bCat = (activeBranch.category || '').toLowerCase();
+    const bName = (activeBranch.name || '').toLowerCase();
+    const mCat = (currentMerchant.category || '').toLowerCase();
+    return !isYogaBranch && (bCat.includes('gym') || bCat.includes('fitness') || bName.includes('gym') || mCat.includes('gym') || mCat.includes('fitness'));
+  })();
+
   // Active Category & Archetype aligned with active branch
-  const activeBranchCategory = activeBranch.category || (isTurfBranch ? 'Football Turf' : (currentMerchant.category || 'Resort Booking'));
+  const activeBranchCategory = activeBranch.category || (isTurfBranch ? 'Football Turf' : isYogaBranch ? 'Yoga Shala & Meditation Batches' : isGymBranch ? 'Gym Floor & Membership Booking' : (currentMerchant.category || 'Resort Booking'));
   const curArch = isTurfBranch ? 'RENTAL' : (getArchetypeFromCategory(activeBranchCategory) || 'ACCOMMODATION');
 
-  const baseConfig = getArchetypeConfig(isTurfBranch ? 'FacilityHourly' : (activeBranchCategory || currentMerchant?.archetype || 'Service'));
+  const baseConfig = getArchetypeConfig(isTurfBranch ? 'FacilityHourly' : isYogaBranch ? 'Yoga' : isGymBranch ? 'Gym' : (activeBranchCategory || currentMerchant?.archetype || 'Service'));
   const archetypeConfig = { ...baseConfig, ...(currentMerchant?.customDictionary || {}) };
 
   const isValidForMerchant = (b: any) => {
@@ -536,7 +550,7 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block leading-none">
-                      {isTurfBranch ? 'MATCHES' : 'RESERVATIONS'}
+                      {isTurfBranch ? 'MATCHES' : isYogaBranch ? 'BATCHES' : isGymBranch ? 'ADMISSIONS' : 'RESERVATIONS'}
                     </span>
                     <h3 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-1 leading-none">
                       {allMerchantBookings.length}
@@ -577,7 +591,7 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block leading-none">
-                      {isTurfBranch ? 'PLAYERS' : 'GUESTS'}
+                      {isTurfBranch ? 'PLAYERS' : isYogaBranch ? 'PRACTITIONERS' : isGymBranch ? 'MEMBERS' : 'GUESTS'}
                     </span>
                     <h3 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-1 leading-none">
                       {occupancy}
@@ -789,10 +803,10 @@ export default function DashboardPage() {
                 </span>
                 <div>
                   <h3 className="text-sm font-black text-[#0a3161] dark:text-white">
-                    {isTurfBranch ? 'Live Slot & Pitch Grid' : 'Live Suite & Room Inventory'}
+                    {isTurfBranch ? 'Live Slot & Pitch Grid' : isYogaBranch ? 'Shala Floor & Mat Grid' : isGymBranch ? 'Live Gym Floor & Locker Grid' : 'Live Suite & Room Inventory'}
                   </h3>
                   <p className="text-[11px] text-slate-400">
-                    {isTurfBranch ? 'Pitches & Court Availability' : 'Suites & Cottages Availability'}
+                    {isTurfBranch ? 'Pitches & Court Availability' : isYogaBranch ? 'Shala Mat Spots & Batches' : isGymBranch ? 'Floor & Equipment Capacity' : 'Suites & Cottages Availability'}
                   </p>
                 </div>
               </div>
@@ -841,13 +855,13 @@ export default function DashboardPage() {
               )) : (
                 <div className="p-6 text-center rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-dashed border-slate-200 dark:border-white/10">
                   <p className="text-xs font-bold text-slate-600 dark:text-slate-300">
-                    {isTurfBranch ? 'No active pitch or court units yet' : 'No active inventory units yet'}
+                    {isTurfBranch ? 'No active pitch or court units yet' : isYogaBranch ? 'No active yoga batches configured yet' : isGymBranch ? 'No active gym plans or floor shifts yet' : 'No active inventory units yet'}
                   </p>
                   <p className="text-[11px] text-slate-400 mt-1">
-                    {isTurfBranch ? 'Add your court units or pitch slots in My Services' : 'Add your catalog services or room units in My Services'}
+                    {isTurfBranch ? 'Add your court units or pitch slots in My Services' : isYogaBranch ? 'Add your daily batches and memberships in My Services' : isGymBranch ? 'Add your floor shifts and memberships in My Services' : 'Add your catalog services or room units in My Services'}
                   </p>
                   <button onClick={() => router.push('/workspace/my-services')} className="mt-3 px-3 py-1.5 rounded-xl bg-[#ff6325] hover:bg-[#e04e13] text-white text-[11px] font-bold shadow-sm transition-all cursor-pointer">
-                    {isTurfBranch ? '+ Add Pitch / Court Unit' : '+ Add First Service / Unit'}
+                    {isTurfBranch ? '+ Add Pitch / Court Unit' : isYogaBranch ? '+ Add Yoga Batch' : isGymBranch ? '+ Add Gym Plan' : '+ Add First Service / Unit'}
                   </button>
                 </div>
               )}
@@ -876,7 +890,11 @@ export default function DashboardPage() {
             <p className="text-xs text-white/70 mb-5 relative z-10">
               {isTurfBranch 
                 ? 'Instant offline booking assignment for walk-in players, teams, or pitch checks.' 
-                : 'Instant offline reservation for walk-in guests, banquet events, or room check-ins.'}
+                : isYogaBranch
+                  ? 'Instant offline admission for walk-in practitioners, trial sessions, or shala pass check-ins.'
+                  : isGymBranch
+                    ? 'Instant offline admission for walk-in gym members, day passes, or PT trials.'
+                    : 'Instant offline reservation for walk-in guests, banquet events, or room check-ins.'}
             </p>
 
             <div className="space-y-2.5 relative z-10">
@@ -885,7 +903,7 @@ export default function DashboardPage() {
                 className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-[#ff6325] hover:bg-[#e04e13] text-white font-black text-xs transition-all shadow-lg shadow-[#ff6325]/30 cursor-pointer active:scale-95"
               >
                 <span className="flex items-center gap-2">
-                  <Plus size={15} /> {isTurfBranch ? 'Book Walk-in Slot' : 'Book Walk-in Guest'}
+                  <Plus size={15} /> {isTurfBranch ? 'Book Walk-in Slot' : isYogaBranch ? 'Admit Walk-in Practitioner' : isGymBranch ? 'Admit Walk-in Member' : 'Book Walk-in Guest'}
                 </span>
                 <ChevronRight size={14} />
               </button>
@@ -895,7 +913,7 @@ export default function DashboardPage() {
                 className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs transition-all border border-white/15 cursor-pointer active:scale-95"
               >
                 <span className="flex items-center gap-2">
-                  <QrCode size={15} className="text-amber-400" /> Scan QR / Verify Ticket
+                  <QrCode size={15} className="text-amber-400" /> {isYogaBranch || isGymBranch ? 'Scan Turnstile / Pass QR' : 'Scan QR / Verify Ticket'}
                 </span>
                 <ChevronRight size={14} />
               </button>
@@ -904,7 +922,7 @@ export default function DashboardPage() {
                 onClick={() => router.push('/workspace/my-services')}
                 className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-white/90 font-bold text-xs transition-all border border-white/10 cursor-pointer"
               >
-                <span>{isTurfBranch ? 'Edit Pitch & Turf Pricing' : 'Edit Suite & Villa Tariff'}</span>
+                <span>{isTurfBranch ? 'Edit Pitch & Turf Pricing' : isYogaBranch ? 'Edit Yoga Batches & Passes' : isGymBranch ? 'Edit Gym Membership Plans' : 'Edit Suite & Villa Tariff'}</span>
                 <ChevronRight size={14} />
               </button>
             </div>

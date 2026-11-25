@@ -7,12 +7,6 @@ import { ArrowLeft, Clock, Package, AlertTriangle, Tag, Users, CheckSquare, Info
 import DynamicForm from '@/components/DynamicForm';
 import { getArchetypeFromCategory, Archetype } from '@/lib/archetypes';
 import { compressImage } from '@/lib/imageUtils';
-import { getEntertainmentCategoryConfig } from '@/lib/entertainmentData';
-import { getDiningConfig } from '@/lib/diningData';
-import { getWellnessConfig } from '@/lib/wellnessData';
-import { getFitnessConfig } from '@/lib/fitnessData';
-import { getClinicConfig } from '@/lib/clinicalData';
-import { getHomeServiceConfig } from '@/lib/homeServicesData';
 
 export default function ListingEditorPage() {
   const router = useRouter();
@@ -93,209 +87,32 @@ export default function ListingEditorPage() {
     if (cat) return cat;
 
     if (!cat && serviceId && currentMerchant) {
-      const rawCat = (currentMerchant.category || '').toLowerCase();
+      const rawCat = (currentMerchant.category || 'Service').trim();
       const branchId = currentMerchant.activeBranchId || 'main-branch';
+      const isYoga = rawCat.toLowerCase().includes('yoga');
+      const isGym = rawCat.toLowerCase().includes('gym') || rawCat.toLowerCase().includes('fitness');
 
-      if (rawCat.includes('dining') || rawCat.includes('restaurant') || serviceId.includes('dining')) {
-        const diningCfg = getDiningConfig(currentMerchant.id || 'grand-temple-dine');
-        return {
-          id: serviceId,
-          name: `${diningCfg.name} Table Reservations`,
-          merchant: currentMerchant.merchantName || diningCfg.name,
-          price: diningCfg.tableTypes[0]?.depositAmount || 0,
-          duration: 90,
-          category: 'Restaurant Table Reservation',
-          active: true,
+      return {
+        id: serviceId,
+        name: currentMerchant.merchantName || rawCat,
+        merchant: currentMerchant.merchantName || 'Service Provider',
+        price: isYoga ? 350 : isGym ? 299 : 500,
+        duration: 60,
+        category: rawCat,
+        active: true,
+        branchId,
+        rating: 5.0,
+        bookingsCount: 0,
+        imageUrl: 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=1200&q=80',
+        description: `Active bookable units and passes for ${rawCat}.`,
+        city: currentMerchant.city || 'Chennai',
+        metadata: {
           branchId,
-          rating: diningCfg.rating,
-          bookingsCount: 380,
-          imageUrl: diningCfg.heroImage,
-          description: `Cozy dining tables, celebration setups, session time slots, and chef specialty pre-orders.`,
-          city: currentMerchant.city || 'Chennai',
-          metadata: {
-            isDining: true,
-            tableTypes: diningCfg.tableTypes,
-            timeSlots: diningCfg.timeSlots,
-            popularMenu: diningCfg.popularMenu
-          },
-          listings: diningCfg.tableTypes.map(t => ({
-            id: t.id,
-            name: t.name,
-            price: t.depositAmount,
-            imageUrl: diningCfg.heroImage,
-            description: `${t.capacity} • Zone: ${t.zone}`,
-            images: diningCfg.galleryImages,
-            active: true,
-            metadata: {
-              tableCapacity: t.capacity,
-              minGuests: t.minGuests,
-              maxGuests: t.maxGuests,
-              seatingZone: t.zone === 'AC_INDOOR' ? 'AC Main Hall' : t.zone === 'ROOFTOP' ? 'Romantic Rooftop' : t.zone === 'PRIVATE_DINING' ? 'Private Dining Suite' : 'Garden Patio',
-              sessionDurationMinutes: 90,
-              minSpend: t.depositAmount > 0 ? t.depositAmount * 2 : 0,
-              priceUnit: 'per reservation / table deposit',
-              totalUnits: 1
-            }
-          }))
-        } as CatalogService;
-      } else if (rawCat.includes('salon') || rawCat.includes('spa') || serviceId.includes('wellness')) {
-        const wellnessCfg = getWellnessConfig(currentMerchant.id || 'style-studio');
-        return {
-          id: serviceId,
-          name: `${wellnessCfg.name} Treatments`,
-          merchant: currentMerchant.merchantName || wellnessCfg.name,
-          price: wellnessCfg.treatments[0]?.price || 499,
-          duration: 45,
-          category: 'Salon / Spa Appointment',
-          active: true,
-          branchId,
-          rating: wellnessCfg.rating,
-          bookingsCount: 290,
-          imageUrl: wellnessCfg.heroImage,
-          description: `Hair styling, beard grooming, facial rejuvenation and spa therapy slots.`,
-          city: currentMerchant.city || 'Chennai',
-          metadata: {
-            isWellness: true,
-            treatments: wellnessCfg.treatments,
-            specialists: wellnessCfg.specialists
-          },
-          listings: wellnessCfg.treatments.map(t => ({
-            id: t.id,
-            name: t.name,
-            price: t.price,
-            originalPrice: t.originalPrice,
-            discountPercentage: t.originalPrice ? Math.round(((t.originalPrice - t.price) / t.originalPrice) * 100) : 0,
-            imageUrl: wellnessCfg.heroImage,
-            description: `${t.durationMinutes} Mins • ${t.category}`,
-            images: wellnessCfg.galleryImages,
-            active: true,
-            metadata: {
-              speciality: t.category,
-              consultationDuration: t.durationMinutes,
-              doctorName: t.genderTarget === 'MEN' ? 'Arun Varma (Lead Hair Director)' : t.genderTarget === 'WOMEN' ? 'Priya Sundaram (Senior Aesthetician)' : 'Any Senior Stylist',
-              qualification: "Toni&Guy Certified / L'Oréal Color Pro (8+ yrs exp)",
-              opdRoomNumber: 'Styling Station #2 (Luxury Suite)',
-              maxDailyTokens: 16,
-              consultationFee: t.price,
-              opdTimings: 'Mon-Sun: 09:00 AM - 09:00 PM',
-              treatmentCategory: t.category,
-              serviceMode: t.serviceMode,
-              genderTarget: t.genderTarget
-            }
-          }))
-        } as CatalogService;
-      } else if (rawCat.includes('gym') || rawCat.includes('yoga') || serviceId.includes('fitness')) {
-        const fitCfg = getFitnessConfig(currentMerchant.id || 'zenfit-clinic');
-        return {
-          id: serviceId,
-          name: `${fitCfg.name} Passes & Batches`,
-          merchant: currentMerchant.merchantName || fitCfg.name,
-          price: fitCfg.passes[0]?.price || 299,
-          duration: 60,
-          category: 'Gym / Yoga Slot Booking',
-          active: true,
-          branchId,
-          rating: fitCfg.rating,
-          bookingsCount: 510,
-          imageUrl: fitCfg.heroImage,
-          description: `Open gym day passes, group yoga batches, personal trainers, and digital turnstile entry.`,
-          city: currentMerchant.city || 'Chennai',
-          metadata: {
-            isFitness: true,
-            passes: fitCfg.passes,
-            trainers: fitCfg.trainers,
-            timeSlots: fitCfg.timeSlots
-          },
-          listings: fitCfg.passes.map(p => ({
-            id: p.id,
-            name: p.name,
-            price: p.price,
-            originalPrice: Math.round(p.price * 1.3),
-            discountPercentage: 20,
-            imageUrl: fitCfg.heroImage,
-            description: `${p.durationMinutes === 720 ? 'Full Day' : `${p.durationMinutes}m`} • ${p.formatType}`,
-            images: fitCfg.galleryImages,
-            active: true,
-            metadata: {
-              speciality: p.formatType === 'OPEN_GYM' ? 'Open Gym Floor & Cardio' : p.formatType === 'YOGA_CLASS' ? 'Traditional Yoga & Pranayama' : 'Personal 1-on-1 Training',
-              consultationDuration: p.durationMinutes,
-              doctorName: p.formatType === 'YOGA_CLASS' ? 'Acharya Ananya Sharma' : 'Vikram Rathore, CSCS',
-              qualification: p.formatType === 'YOGA_CLASS' ? 'Yoga Alliance RYT 500' : 'Head Strength & Conditioning Coach (8+ yrs exp)',
-              opdRoomNumber: p.formatType === 'YOGA_CLASS' ? 'Bamboo-Floored Sound-Insulated Yoga Shala' : 'Main Strength & Free Weights Turf Floor',
-              maxDailyTokens: p.maxCapacity || 25,
-              consultationFee: p.price,
-              opdTimings: '05:30 AM – 10:00 PM (Monday – Sunday)',
-              formatType: p.formatType,
-              batchType: p.batchType
-            }
-          }))
-        } as CatalogService;
-      } else if (rawCat.includes('doctor') || rawCat.includes('clinic') || serviceId.includes('doc')) {
-        const docCfg = getClinicConfig(currentMerchant.id || 'apollo-dental');
-        return {
-          id: serviceId,
-          name: `${docCfg.name} OPD Slots`,
-          merchant: currentMerchant.merchantName || docCfg.name,
-          price: docCfg.doctors[0]?.consultationFee || 500,
-          duration: 20,
-          category: 'Doctor Appointment',
-          active: true,
-          branchId,
-          rating: docCfg.rating,
-          bookingsCount: 440,
-          imageUrl: docCfg.heroImage,
-          description: `OPD consultation chambers, live waiting room token queue, and verified medical specialists.`,
-          city: currentMerchant.city || 'Chennai',
-          metadata: {
-            isDoctor: true,
-            doctors: docCfg.doctors,
-            consultationModes: docCfg.consultationModes,
-            timeSlots: docCfg.timeSlots
-          },
-          listings: docCfg.doctors.map(d => ({
-            id: d.id,
-            name: d.name,
-            price: d.consultationFee,
-            imageUrl: d.avatar,
-            description: `${d.role} • ${d.opdRoom}`,
-            images: [d.avatar],
-            active: true
-          }))
-        } as CatalogService;
-      } else if (rawCat.includes('electrician') || rawCat.includes('plumber') || rawCat.includes('clean') || rawCat.includes('technician') || serviceId.includes('home')) {
-        const homeCfg = getHomeServiceConfig(rawCat);
-        const matched = homeCfg.services.find(s => rawCat.includes(s.category)) || homeCfg.services[0];
-        return {
-          id: serviceId,
-          name: matched.name,
-          merchant: currentMerchant.merchantName || homeCfg.name,
-          price: matched.inspectionFee,
-          duration: matched.estDurationMinutes,
-          category: currentMerchant.category || 'Electrician Booking',
-          active: true,
-          branchId,
-          rating: homeCfg.rating,
-          bookingsCount: 890,
-          imageUrl: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=1200&auto=format&fit=crop',
-          description: `${matched.description}`,
-          city: currentMerchant.city || 'Chennai',
-          metadata: {
-            isHomeService: true,
-            serviceItem: matched,
-            arrivalWindows: homeCfg.arrivalWindows,
-            warrantyDays: homeCfg.warrantyDays
-          },
-          listings: matched.popularAddons.map((a, idx) => ({
-            id: `addon-${idx}`,
-            name: a.name,
-            price: a.price,
-            imageUrl: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=1200&auto=format&fit=crop',
-            description: `Add-on Service (+₹${a.price})`,
-            images: ['https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=1200&auto=format&fit=crop'],
-            active: true
-          }))
-        } as CatalogService;
-      }
+          merchantName: currentMerchant.merchantName,
+          originalCategory: rawCat,
+        },
+        listings: []
+      } as CatalogService;
     }
     return cat || null;
   };

@@ -3,13 +3,6 @@
 import { useVendorStore, CatalogService, BranchInfo, PRESET_MERCHANTS } from '@/lib/store';
 import { getArchetypeConfig } from '@/lib/businessDictionary';
 import { compressImage } from '@/lib/imageUtils';
-import { getEntertainmentCategoryConfig, NOW_SHOWING_MOVIES, MovieListingItem } from '@/lib/entertainmentData';
-import { getDiningConfig } from '@/lib/diningData';
-import { getWellnessConfig } from '@/lib/wellnessData';
-import { getFitnessConfig } from '@/lib/fitnessData';
-import { getClinicConfig } from '@/lib/clinicalData';
-import { getHomeServiceConfig } from '@/lib/homeServicesData';
-import { getSportCategoryConfig } from '@/lib/sportsData';
 import {
   Plus, Trash2, Edit, X, Package, List, Building2, MapPin,
   Check, ChevronDown, Sparkles, Activity, Layers, Search,
@@ -201,68 +194,6 @@ export default function WorkspacePage() {
     }
     return true;
   });
-
-  // Dynamic Auto-Fallback for Entertainment / Multiplex Branches if local services are empty
-  if (merchantServices.length === 0 && isEntBranch) {
-    const entCfg = getEntertainmentCategoryConfig((activeBranch.category || currentMerchant.category || 'movies').toLowerCase());
-    if (entCfg) {
-      const branchOfferings = activeBranch.offeringsSummary || `${entCfg.categoryName} Auditoriums`;
-      const fallbackEntService: CatalogService = {
-        id: `svc-${entCfg.slug}-${activeBranch.id}`,
-        name: `${entCfg.categoryName} Passes & Screenings`,
-        merchant: activeBranch.name || currentMerchant.merchantName || entCfg.merchantName,
-        price: entCfg.defaultPrice,
-        duration: 120,
-        category: entCfg.categoryName,
-        active: true,
-        branchId: activeBranch.id,
-        rating: 4.9,
-        bookingsCount: 420,
-        imageUrl: entCfg.heroImage,
-        description: `Premier ${entCfg.categoryName} hall, screen formats (${branchOfferings}), tier pricing and concession add-on controls.`,
-        city: activeBranch.city || currentMerchant.city || 'Chennai',
-        metadata: {
-          isEntertainment: true,
-          branchId: activeBranch.id,
-          branchName: activeBranch.name,
-          merchantName: activeBranch.name || currentMerchant.merchantName || entCfg.merchantName,
-          originalCategory: entCfg.categoryName,
-          amenities: entCfg.amenities,
-          venueRules: entCfg.venueRules,
-          formats: entCfg.formats,
-          languages: entCfg.languages,
-          showtimes: entCfg.showtimes,
-          seatTiers: entCfg.seatTiers,
-          snackAddons: entCfg.snackAddons,
-          listings: entCfg.seatTiers.map(tier => ({
-            id: tier.id,
-            name: tier.name,
-            price: tier.price,
-            imageUrl: entCfg.heroImage,
-            description: tier.desc,
-            images: [entCfg.heroImage],
-            metadata: {
-              badge: tier.badge,
-              icon: tier.icon,
-              formats: entCfg.formats,
-              showtimes: entCfg.showtimes,
-              snackAddons: entCfg.snackAddons
-            }
-          }))
-        },
-        listings: entCfg.seatTiers.map(tier => ({
-          id: tier.id,
-          name: tier.name,
-          price: tier.price,
-          imageUrl: entCfg.heroImage,
-          description: tier.desc,
-          images: [entCfg.heroImage],
-          active: true
-        }))
-      };
-      merchantServices = [fallbackEntService];
-    }
-  }
 
   // Dynamic Auto-Fallback completely disabled when merchant has 0 services so empty state stays empty
   // Users create their own services and listings dynamically without intrusive code seeds
@@ -1052,36 +983,8 @@ export default function WorkspacePage() {
             </div>
 
             <div className="p-6 overflow-y-auto flex-1 space-y-4">
-              {/* Quick Select from Master Catalog */}
+              {/* Movie Title */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
-                  Select from Central Movie Catalog or Enter Custom
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
-                  {NOW_SHOWING_MOVIES.map((catalogMovie) => (
-                    <button
-                      key={catalogMovie.id}
-                      type="button"
-                      onClick={() => {
-                        setMovieTitle(catalogMovie.title);
-                        setMoviePoster(catalogMovie.posterUrl);
-                        if (catalogMovie.formats?.[0]) setMovieFormat(catalogMovie.formats[0]);
-                      }}
-                      className={`p-2 rounded-xl border text-left flex items-center gap-2 transition-all cursor-pointer ${
-                        movieTitle === catalogMovie.title
-                          ? 'border-purple-500 bg-purple-500/10 ring-2 ring-purple-500/30'
-                          : 'border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 bg-slate-50 dark:bg-white/5'
-                      }`}
-                    >
-                      <img src={catalogMovie.posterUrl} alt={catalogMovie.title} className="w-8 h-12 rounded object-cover shrink-0" />
-                      <div className="min-w-0">
-                        <p className="text-[11px] font-black text-slate-900 dark:text-white truncate">{catalogMovie.title}</p>
-                        <p className="text-[9px] text-slate-400 font-semibold">{catalogMovie.certificate} • {catalogMovie.runtime}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">Movie Title / Event Name</label>
                 <input
                   type="text"
