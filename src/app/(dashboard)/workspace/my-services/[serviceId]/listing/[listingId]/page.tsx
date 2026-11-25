@@ -23,6 +23,7 @@ export default function ListingEditorPage() {
 
   const { services, updateService, currentMerchant } = useVendorStore();
   const [mounted, setMounted] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [step, setStep] = useState(1);
 
   // Form State
@@ -526,6 +527,7 @@ export default function ListingEditorPage() {
             'APPOINTMENT';
 
   const handleSaveDetails = async () => {
+    if (isSaving) return;
     if (!serviceName.trim()) {
       alert("Please enter a Listing Name");
       setStep(1);
@@ -541,6 +543,8 @@ export default function ListingEditorPage() {
       alert("GSTIN must be exactly 15 alphanumeric characters (e.g., 33AAAAA0000A1Z5).");
       return;
     }
+
+    setIsSaving(true);
 
     const parsedTenureDiscounts = {
       mo3: tenureDiscounts.mo3Pct !== '' ? Number(tenureDiscounts.mo3Pct) : 0,
@@ -695,9 +699,19 @@ export default function ListingEditorPage() {
           <button
             type="button"
             onClick={handleSaveDetails}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md shadow-[#ff6325]/20 active:scale-95 cursor-pointer"
+            disabled={isSaving}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md shadow-[#ff6325]/20 active:scale-95 cursor-pointer ${isSaving ? 'opacity-80 cursor-wait' : ''}`}
           >
-            <Save size={15} /> {isCreating ? 'Save & Publish Unit' : 'Save Changes'}
+            {isSaving ? (
+              <>
+                <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Saving Unit...</span>
+              </>
+            ) : (
+              <>
+                <Save size={15} /> <span>{isCreating ? 'Save & Publish Unit' : 'Save Changes'}</span>
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -2313,9 +2327,19 @@ export default function ListingEditorPage() {
               <button
                 type="button"
                 onClick={handleSaveDetails}
-                className="flex items-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md shadow-[#ff6325]/20 active:scale-95 cursor-pointer"
+                disabled={isSaving}
+                className={`flex items-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md shadow-[#ff6325]/20 active:scale-95 cursor-pointer ${isSaving ? 'opacity-80 cursor-wait' : ''}`}
               >
-                <Save size={16} /> {isCreating ? 'Save & Publish Unit' : 'Save Changes'}
+                {isSaving ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Saving Unit...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save size={16} /> <span>{isCreating ? 'Save & Publish Unit' : 'Save Changes'}</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
