@@ -18,6 +18,25 @@ export default function ServiceListingsPage() {
   const serviceId = params.serviceId as string;
   const { services, addService, updateService, currentMerchant } = useVendorStore();
   const [mounted, setMounted] = useState(false);
+  const [activeTab, setActiveTab] = useState<'LISTINGS' | 'PASSES'>('LISTINGS');
+  const [editingPassModal, setEditingPassModal] = useState(false);
+  const [newPass, setNewPass] = useState<{
+    id: string;
+    name: string;
+    sessions: string;
+    price: number;
+    originalPrice?: number;
+    validity: string;
+    perk: string;
+  }>({
+    id: '',
+    name: '',
+    sessions: 'Unlimited',
+    price: 2999,
+    originalPrice: 3800,
+    validity: '30 Days Validity',
+    perk: ''
+  });
 
   useEffect(() => {
     setMounted(true);
@@ -350,8 +369,50 @@ export default function ServiceListingsPage() {
     ? (category.category || 'Service Units') 
     : category.name;
 
+  const isFitnessOrYoga = (category.category || '').toLowerCase().includes('yoga') ||
+    (category.category || '').toLowerCase().includes('gym') ||
+    (category.category || '').toLowerCase().includes('fitness') ||
+    (category.name || '').toLowerCase().includes('yoga') ||
+    (category.name || '').toLowerCase().includes('gym') ||
+    (category.name || '').toLowerCase().includes('fitness') ||
+    (currentMerchant.category || '').toLowerCase().includes('yoga') ||
+    (currentMerchant.category || '').toLowerCase().includes('gym') ||
+    (currentMerchant.category || '').toLowerCase().includes('fitness');
+
+  const passes: any[] = category.metadata?.classPasses || [
+    {
+      id: 'pass-5-classes',
+      name: '5-Class Flexible Pass',
+      sessions: '5 Classes',
+      price: 1799,
+      originalPrice: 2250,
+      validity: '45 Days Validity',
+      perk: 'Flexible morning/evening access'
+    },
+    {
+      id: 'pass-1-month',
+      name: '1-Month Unlimited Pass',
+      sessions: 'Unlimited',
+      price: 2999,
+      originalPrice: 3800,
+      validity: '30 Days Validity',
+      perk: 'Free Studio Locker + Daily Ayurvedic Brew'
+    }
+  ];
+
+  const handleSavePasses = (updatedPasses: any[]) => {
+    const updatedCategory = {
+      ...category,
+      metadata: {
+        ...(category.metadata || {}),
+        classPasses: updatedPasses
+      }
+    };
+    updateService(updatedCategory);
+  };
+
   return (
-    <div className="space-y-12 animate-fade-in pb-12 font-sans">
+    <div className="space-y-6 animate-fade-in pb-12 font-sans">
 
       {/* 1. Compact Header Strip with Clear Breadcrumbs */}
       <div className="px-5 py-4 rounded-2xl bg-white dark:bg-[#0f1624] border border-slate-200/80 dark:border-white/10 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -382,7 +443,7 @@ export default function ServiceListingsPage() {
           <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             <span className="capitalize">{displayName}</span>
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#ff6325]/10 text-[#ff6325] font-bold">
-              {listings.length} Bookable {listings.length === 1 ? 'Unit' : 'Units'}
+              {listings.length} Bookable {listings.length === 1 ? 'Batch' : 'Batches'}
             </span>
           </h1>
         </div>
@@ -397,19 +458,69 @@ export default function ServiceListingsPage() {
             <Building2 size={14} className="text-[#ff6325]" />
             <span>Venue Profile</span>
           </button>
-          <button
-            onClick={() => router.push(`/workspace/my-services/${serviceId}/listing/new`)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
-            title={`Add a new listing under ${displayName}`}
-          >
-            <Plus size={15} /> Add Listing
-          </button>
+          {activeTab === 'LISTINGS' && (
+            <button
+              onClick={() => router.push(`/workspace/my-services/${serviceId}/listing/new`)}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
+              title={`Add a new batch under ${displayName}`}
+            >
+              <Plus size={15} /> Add Batch
+            </button>
+          )}
+          {activeTab === 'PASSES' && (
+            <button
+              onClick={() => {
+                setNewPass({
+                  id: `pass-${Date.now()}`,
+                  name: '',
+                  sessions: 'Unlimited',
+                  price: 2999,
+                  originalPrice: 3800,
+                  validity: '30 Days Validity',
+                  perk: ''
+                });
+                setEditingPassModal(true);
+              }}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
+            >
+              <Plus size={15} /> Add Membership Pass
+            </button>
+          )}
         </div>
       </div>
 
-      {/* 2. Listings Grid (Matching Level 1 & 2 Size: 4 Columns) */}
-      <div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {/* Fitness / Yoga Tab Switcher: Daily Batches vs Memberships & Passes */}
+      {isFitnessOrYoga && (
+        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-white/10 pb-3">
+          <button
+            type="button"
+            onClick={() => setActiveTab('LISTINGS')}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+              activeTab === 'LISTINGS'
+                ? 'bg-[#ff6325] text-white shadow-xs'
+                : 'bg-white dark:bg-[#0f1624] text-slate-600 dark:text-slate-300 hover:text-slate-900 border border-slate-200 dark:border-white/10'
+            }`}
+          >
+            Daily Class Batches ({listings.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('PASSES')}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+              activeTab === 'PASSES'
+                ? 'bg-[#ff6325] text-white shadow-xs'
+                : 'bg-white dark:bg-[#0f1624] text-slate-600 dark:text-slate-300 hover:text-slate-900 border border-slate-200 dark:border-white/10'
+            }`}
+          >
+            Memberships & Multi-Class Passes ({passes.length})
+          </button>
+        </div>
+      )}
+
+      {/* 2. TAB A: LISTINGS / BATCHES GRID */}
+      {activeTab === 'LISTINGS' && (
+        <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {listings.map(list => {
             const isDiningCategory = (category.name || '').toLowerCase().includes('dining') ||
               (category.name || '').toLowerCase().includes('restaurant') ||
@@ -582,20 +693,294 @@ export default function ServiceListingsPage() {
               <div className="h-12 w-12 bg-white dark:bg-[#162033] rounded-2xl flex items-center justify-center mb-3 text-[#ff6325] shadow-sm border border-slate-200 dark:border-white/10">
                 <ImageIcon size={24} />
               </div>
-              <h3 className="text-base font-black text-slate-900 dark:text-white mb-1">No Listings Yet</h3>
+              <h3 className="text-base font-black text-slate-900 dark:text-white mb-1">No Batches Yet</h3>
               <p className="text-slate-400 max-w-sm text-xs mb-4">
-                Click below to add the first bookable unit for <strong className="text-slate-700 dark:text-white capitalize">{displayName}</strong>.
+                Click below to add the first daily batch for <strong className="text-slate-700 dark:text-white capitalize">{displayName}</strong>.
               </p>
               <button
                 onClick={() => router.push(`/workspace/my-services/${serviceId}/listing/new`)}
                 className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
               >
-                + Add First Listing
+                + Add First Batch
               </button>
             </div>
           )}
         </div>
       </div>
+      )}
+
+      {/* 3. TAB B: MEMBERSHIPS & PASSES GRID (SERVICE LEVEL) */}
+      {activeTab === 'PASSES' && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white">
+                All-Access Studio Memberships & Passes
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                These passes grant access across all daily batches. Customers can purchase these passes directly in your studio app.
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = [
+                    ...passes,
+                    {
+                      id: `pass-3m-${Date.now()}`,
+                      name: '3-Month Unlimited Sadhana Pass',
+                      sessions: 'Unlimited',
+                      price: 7999,
+                      originalPrice: 9999,
+                      validity: '90 Days Validity',
+                      perk: 'Free Studio Locker + Guru Consultation'
+                    }
+                  ];
+                  handleSavePasses(updated);
+                }}
+                className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-orange-50 dark:bg-orange-950/40 text-[#ff6325] border border-orange-200 dark:border-orange-500/20 hover:bg-orange-100 transition-all cursor-pointer"
+              >
+                + 3 Months Preset
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = [
+                    ...passes,
+                    {
+                      id: `pass-6m-${Date.now()}`,
+                      name: '6-Month Unlimited Sadhana Pass',
+                      sessions: 'Unlimited',
+                      price: 13999,
+                      originalPrice: 17999,
+                      validity: '180 Days Validity',
+                      perk: 'Free Locker + Mat Storage + 2 Guest Passes'
+                    }
+                  ];
+                  handleSavePasses(updated);
+                }}
+                className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-orange-50 dark:bg-orange-950/40 text-[#ff6325] border border-orange-200 dark:border-orange-500/20 hover:bg-orange-100 transition-all cursor-pointer"
+              >
+                + 6 Months Preset
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = [
+                    ...passes,
+                    {
+                      id: `pass-1y-${Date.now()}`,
+                      name: '1-Year Annual Sadhana Pass',
+                      sessions: 'Unlimited',
+                      price: 24999,
+                      originalPrice: 32000,
+                      validity: '365 Days Validity',
+                      perk: 'Full Shala Access + Free Workshop Passes'
+                    }
+                  ];
+                  handleSavePasses(updated);
+                }}
+                className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-orange-50 dark:bg-orange-950/40 text-[#ff6325] border border-orange-200 dark:border-orange-500/20 hover:bg-orange-100 transition-all cursor-pointer"
+              >
+                + 1 Year Annual Preset
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {passes.map((pass: any, pIdx: number) => (
+              <div
+                key={pass.id || pIdx}
+                className="p-5 rounded-2xl bg-white dark:bg-[#0f1624] border border-slate-200/90 dark:border-white/10 shadow-sm flex flex-col justify-between gap-4"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400">
+                      {pass.sessions}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = passes.filter((_, idx) => idx !== pIdx);
+                        handleSavePasses(updated);
+                      }}
+                      className="text-slate-400 hover:text-red-500 text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      ✕ Remove
+                    </button>
+                  </div>
+
+                  <h4 className="text-base font-black text-slate-900 dark:text-white">
+                    {pass.name}
+                  </h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    {pass.validity}
+                  </p>
+
+                  {pass.perk && (
+                    <div className="mt-3 py-2 px-3 rounded-xl bg-amber-50 dark:bg-slate-800 border border-amber-200/60 dark:border-white/5 text-[11px] font-bold text-amber-900 dark:text-amber-200">
+                      ✦ {pass.perk}
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
+                  <div>
+                    <span className="text-lg font-black text-[#ff6325] block">
+                      ₹{Number(pass.price).toLocaleString()}
+                    </span>
+                    {pass.originalPrice && (
+                      <span className="text-xs text-slate-400 line-through">
+                        ₹{Number(pass.originalPrice).toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewPass(pass);
+                      setEditingPassModal(true);
+                    }}
+                    className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors cursor-pointer"
+                  >
+                    Edit Pass
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: ADD / EDIT PASS */}
+      {editingPassModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#0f1624] w-full max-w-md rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-white/10 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
+              <h3 className="text-base font-black text-slate-900 dark:text-white">
+                {newPass.id && passes.some((p: any) => p.id === newPass.id) ? 'Edit Membership Pass' : 'New Membership Pass'}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingPassModal(false)}
+                className="text-slate-400 hover:text-slate-600 text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                  Pass Name *
+                </label>
+                <input
+                  type="text"
+                  value={newPass.name}
+                  onChange={(e) => setNewPass({ ...newPass, name: e.target.value })}
+                  placeholder="e.g. 3-Month Unlimited Sadhana Pass"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Selling Price (₹) *
+                  </label>
+                  <input
+                    type="number"
+                    value={newPass.price || ''}
+                    onChange={(e) => setNewPass({ ...newPass, price: Number(e.target.value) || 0 })}
+                    placeholder="e.g. 7999"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    MRP / Orig Price (₹)
+                  </label>
+                  <input
+                    type="number"
+                    value={newPass.originalPrice || ''}
+                    onChange={(e) => setNewPass({ ...newPass, originalPrice: Number(e.target.value) || undefined })}
+                    placeholder="e.g. 9999"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Sessions Count
+                  </label>
+                  <input
+                    type="text"
+                    value={newPass.sessions}
+                    onChange={(e) => setNewPass({ ...newPass, sessions: e.target.value })}
+                    placeholder="e.g. Unlimited or 10 Classes"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Validity
+                  </label>
+                  <input
+                    type="text"
+                    value={newPass.validity}
+                    onChange={(e) => setNewPass({ ...newPass, validity: e.target.value })}
+                    placeholder="e.g. 90 Days Validity"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                  Perk / Highlight
+                </label>
+                <input
+                  type="text"
+                  value={newPass.perk || ''}
+                  onChange={(e) => setNewPass({ ...newPass, perk: e.target.value })}
+                  placeholder="e.g. Free Locker + Tea + Guest Pass"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                />
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setEditingPassModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!newPass.name.trim()) return alert('Please enter a pass name');
+                  let updated;
+                  if (passes.some((p: any) => p.id === newPass.id)) {
+                    updated = passes.map((p: any) => p.id === newPass.id ? newPass : p);
+                  } else {
+                    updated = [...passes, { ...newPass, id: `pass-${Date.now()}` }];
+                  }
+                  handleSavePasses(updated);
+                  setEditingPassModal(false);
+                }}
+                className="px-5 py-2 rounded-xl text-xs font-black bg-[#ff6325] text-white hover:bg-[#e04e13]"
+              >
+                Save Pass
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

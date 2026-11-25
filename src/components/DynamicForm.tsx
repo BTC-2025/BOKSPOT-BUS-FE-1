@@ -352,21 +352,9 @@ export default function DynamicForm({
           };
         }
       } else if (isYogaShala) {
-        if (field.name === 'doctorName') {
-          return {
-            ...field,
-            label: "Lead Guru / Acharya Name",
-            placeholder: "e.g., Acharya Ananya Sharma or Guru Madhavan Nambiar",
-            required: false
-          };
-        }
-        if (field.name === 'qualification') {
-          return {
-            ...field,
-            label: "Yoga Certifications & Tradition",
-            placeholder: "e.g., Yoga Alliance RYT 500, Hatha & Ashtanga Tradition",
-            required: false
-          };
+        if (field.name === 'doctorName' || field.name === 'qualification') {
+          // Guru / Instructor details removed as requested
+          return null;
         }
         if (field.name === 'speciality') {
           return {
