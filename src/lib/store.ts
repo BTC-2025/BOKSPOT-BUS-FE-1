@@ -2560,6 +2560,19 @@ export const useVendorStore = create<VendorStoreState>()(
             
           let finalDataToMap = servicesData.length > 0 ? servicesData : [];
 
+          // Filter out any service IDs that have been explicitly deleted by the user
+          if (typeof window !== 'undefined') {
+            try {
+              const rawDeleted = localStorage.getItem('deleted_service_ids');
+              if (rawDeleted) {
+                const deletedList: string[] = JSON.parse(rawDeleted);
+                if (Array.isArray(deletedList) && deletedList.length > 0) {
+                  finalDataToMap = finalDataToMap.filter((s: any) => !deletedList.includes(s.id));
+                }
+              }
+            } catch {}
+          }
+
           // If backend has no services for this merchant yet, seed from sports or entertainment master archetype
           if (finalDataToMap.length === 0 && currentMerchant) {
             const catSlug = (currentMerchant.category || '').toLowerCase().replace(/\s+/g, '-');
@@ -2704,17 +2717,41 @@ export const useVendorStore = create<VendorStoreState>()(
             
             set({ services: mapped });
           } else {
-            // Keep local services if backend returns empty array to prevent overwriting vendor portal created listings
-            const currentServices = get().services;
+            // Keep local services if backend returns empty array to prevent overwriting vendor portal created listings, but exclude deleted ones
+            let currentServices = get().services;
+            if (typeof window !== 'undefined') {
+              try {
+                const rawDeleted = localStorage.getItem('deleted_service_ids');
+                if (rawDeleted) {
+                  const deletedList: string[] = JSON.parse(rawDeleted);
+                  if (Array.isArray(deletedList) && deletedList.length > 0) {
+                    currentServices = currentServices.filter((s) => !deletedList.includes(s.id));
+                  }
+                }
+              } catch {}
+            }
             if (currentServices.length > 0) {
               set({ services: currentServices });
             }
           }
           }
         } catch (e: any) {
-          // If backend fetch fails, check if local store has no services yet and seed from master config
+          // If backend fetch fails, check if local store has no services yet and seed from master config (unless deleted)
           const currentMerchant = get().currentMerchant;
-          if (get().services.length === 0 && currentMerchant) {
+          let currentServices = get().services;
+          if (typeof window !== 'undefined') {
+            try {
+              const rawDeleted = localStorage.getItem('deleted_service_ids');
+              if (rawDeleted) {
+                const deletedList: string[] = JSON.parse(rawDeleted);
+                if (Array.isArray(deletedList) && deletedList.length > 0) {
+                  currentServices = currentServices.filter((s) => !deletedList.includes(s.id));
+                  set({ services: currentServices });
+                }
+              }
+            } catch {}
+          }
+          if (currentServices.length === 0 && currentMerchant) {
             const catSlug = (currentMerchant.category || '').toLowerCase().replace(/\s+/g, '-');
             const sportCfg = getSportCategoryConfig(catSlug);
             const entCfg = getEntertainmentCategoryConfig(catSlug);
@@ -3090,6 +3127,21 @@ export const useVendorStore = create<VendorStoreState>()(
       },
       
       deleteService: async (serviceId) => {
+        // Track deleted service ID in localStorage blacklist so fetchServices never resurrects it
+        if (typeof window !== 'undefined') {
+          try {
+            const rawDeleted = localStorage.getItem('deleted_service_ids');
+            const deletedList: string[] = rawDeleted ? JSON.parse(rawDeleted) : [];
+            if (!deletedList.includes(serviceId)) {
+              deletedList.push(serviceId);
+              localStorage.setItem('deleted_service_ids', JSON.stringify(deletedList));
+            }
+            localStorage.removeItem(`custom_service_override_${serviceId}`);
+          } catch (e) {
+            console.warn('Could not update deleted_service_ids in localStorage:', e);
+          }
+        }
+
         set((state) => ({
           services: state.services.filter((s) => s.id !== serviceId)
         }));

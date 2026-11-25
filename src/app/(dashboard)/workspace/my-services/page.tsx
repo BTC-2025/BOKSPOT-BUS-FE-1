@@ -264,287 +264,8 @@ export default function WorkspacePage() {
     }
   }
 
-  // Dynamic Auto-Fallback for Lifestyle & Dining / Wellness / Fitness / Clinic / Home Services / Sports Branches
-  // Only inject if user hasn't explicitly deleted all services for this branch
-  const hasUserDeletedBranchServices = typeof window !== 'undefined' && localStorage.getItem(`deleted_services_branch_${activeBranch.id}`) === 'true';
-  if (merchantServices.length === 0 && !hasUserDeletedBranchServices) {
-    const rawCat = (activeBranch.category || currentMerchant.category || '').toLowerCase();
-    
-    // 0. Sports & Turf Fallback
-    const sportCfg = getSportCategoryConfig(rawCat);
-    if (sportCfg) {
-      const fallbackSportService: CatalogService = {
-        id: `svc-${sportCfg.slug}-${activeBranch.id}`,
-        name: `${sportCfg.categoryName} Master Units`,
-        merchant: activeBranch.name || currentMerchant.merchantName || sportCfg.merchantName,
-        price: sportCfg.defaultPrice,
-        duration: 60,
-        category: sportCfg.categoryName,
-        active: true,
-        branchId: activeBranch.id,
-        rating: 5.0,
-        bookingsCount: 320,
-        imageUrl: sportCfg.heroImage,
-        description: `Professional ${sportCfg.categoryName} court and unit management. Configure court surfaces, hourly tariffs, and equipment add-ons.`,
-        city: activeBranch.city || currentMerchant.city || 'Chennai',
-        metadata: {
-          isFacility: true,
-          branchId: activeBranch.id,
-          branchName: activeBranch.name,
-          merchantName: activeBranch.name || currentMerchant.merchantName || sportCfg.merchantName,
-          originalCategory: sportCfg.categoryName,
-          amenities: sportCfg.amenities,
-          mandatoryRule: sportCfg.mandatoryRule,
-          supervisorTitle: sportCfg.supervisorTitle,
-          includedGear: sportCfg.includedGear,
-          listings: sportCfg.units.map(u => ({
-            id: u.id,
-            name: u.name,
-            price: u.price,
-            imageUrl: u.imageUrl,
-            description: u.description,
-            images: [u.imageUrl],
-            metadata: {
-              imageUrl: u.imageUrl,
-              surface: u.surface,
-              badge: u.badge,
-              addons: sportCfg.addons,
-              mandatoryRule: sportCfg.mandatoryRule,
-              equipmentAddons: sportCfg.includedGear,
-              refereeOrManager: sportCfg.supervisorTitle
-            }
-          }))
-        },
-        listings: sportCfg.units.map(u => ({
-          id: u.id,
-          name: u.name,
-          price: u.price,
-          imageUrl: u.imageUrl,
-          description: u.description,
-          images: [u.imageUrl],
-          metadata: {
-            imageUrl: u.imageUrl,
-            surface: u.surface,
-            badge: u.badge,
-            addons: sportCfg.addons,
-            mandatoryRule: sportCfg.mandatoryRule,
-            equipmentAddons: sportCfg.includedGear,
-            refereeOrManager: sportCfg.supervisorTitle
-          }
-        }))
-      };
-      merchantServices = [fallbackSportService];
-    }
-    // 1. Dining Fallback
-    else if (rawCat.includes('dining') || rawCat.includes('restaurant')) {
-      const diningCfg = getDiningConfig(currentMerchant.id || 'grand-temple-dine');
-      const fallbackDiningService: CatalogService = {
-        id: `svc-dining-${activeBranch.id}`,
-        name: `${diningCfg.name} Table Reservations`,
-        merchant: activeBranch.name || currentMerchant.merchantName || diningCfg.name,
-        price: diningCfg.tableTypes[0]?.depositAmount || 0,
-        duration: 90,
-        category: 'Restaurant Table Reservation',
-        active: true,
-        branchId: activeBranch.id,
-        rating: diningCfg.rating,
-        bookingsCount: 380,
-        imageUrl: diningCfg.heroImage,
-        description: `Cozy dining tables, celebration setups, session time slots, and chef specialty pre-orders.`,
-        city: activeBranch.city || currentMerchant.city || 'Chennai',
-        metadata: {
-          isDining: true,
-          tableTypes: diningCfg.tableTypes,
-          timeSlots: diningCfg.timeSlots,
-          popularMenu: diningCfg.popularMenu,
-          listings: diningCfg.tableTypes.map(t => ({
-            id: t.id,
-            name: t.name,
-            price: t.depositAmount,
-            imageUrl: diningCfg.heroImage,
-            description: `${t.capacity} • Zone: ${t.zone}`,
-            images: diningCfg.galleryImages,
-            metadata: {
-              capacity: t.capacity,
-              zone: t.zone,
-              depositAmount: t.depositAmount
-            }
-          }))
-        },
-        listings: diningCfg.tableTypes.map(t => ({
-          id: t.id,
-          name: t.name,
-          price: t.depositAmount,
-          imageUrl: diningCfg.heroImage,
-          description: `${t.capacity} • Zone: ${t.zone}`,
-          images: diningCfg.galleryImages,
-          active: true
-        }))
-      };
-      merchantServices = [fallbackDiningService];
-    }
-    // 2. Salon & Wellness Fallback
-    else if (rawCat.includes('salon') || rawCat.includes('spa') || rawCat.includes('wellness')) {
-      const wellnessCfg = getWellnessConfig(currentMerchant.id || 'style-studio');
-      const fallbackWellnessService: CatalogService = {
-        id: `svc-wellness-${activeBranch.id}`,
-        name: `${wellnessCfg.name} Treatments`,
-        merchant: activeBranch.name || currentMerchant.merchantName || wellnessCfg.name,
-        price: wellnessCfg.treatments[0]?.price || 499,
-        duration: 45,
-        category: 'Salon / Spa Appointment',
-        active: true,
-        branchId: activeBranch.id,
-        rating: wellnessCfg.rating,
-        bookingsCount: 290,
-        imageUrl: wellnessCfg.heroImage,
-        description: `Hair styling, beard grooming, facial rejuvenation and spa therapy slots.`,
-        city: activeBranch.city || currentMerchant.city || 'Chennai',
-        metadata: {
-          isWellness: true,
-          treatments: wellnessCfg.treatments,
-          specialists: wellnessCfg.specialists,
-          homeVisitEnabled: wellnessCfg.homeVisitEnabled,
-          homeMinOrderValue: wellnessCfg.homeMinOrderValue,
-          homeConvenienceFee: wellnessCfg.homeConvenienceFee,
-          openTimeStr: wellnessCfg.openTimeStr,
-          closeTimeStr: wellnessCfg.closeTimeStr,
-          slotIntervalMinutes: wellnessCfg.slotIntervalMinutes
-        },
-        listings: wellnessCfg.treatments.map(t => ({
-          id: t.id,
-          name: t.name,
-          price: t.price,
-          originalPrice: t.originalPrice,
-          discountPercentage: t.originalPrice ? Math.round(((t.originalPrice - t.price) / t.originalPrice) * 100) : 0,
-          imageUrl: wellnessCfg.heroImage,
-          description: `${t.durationMinutes} Mins • ${t.category}`,
-          images: wellnessCfg.galleryImages,
-          active: true,
-          metadata: {
-            speciality: t.category,
-            consultationDuration: t.durationMinutes,
-            doctorName: t.genderTarget === 'MEN' ? 'Arun Varma (Lead Hair Director)' : t.genderTarget === 'WOMEN' ? 'Priya Sundaram (Senior Aesthetician)' : 'Any Senior Stylist',
-            qualification: "Toni&Guy Certified / L'Oréal Color Pro (8+ yrs exp)",
-            opdRoomNumber: 'Styling Station #2 (Luxury Suite)',
-            maxDailyTokens: 16,
-            consultationFee: t.price,
-            opdTimings: 'Mon-Sun: 09:00 AM - 09:00 PM',
-            treatmentCategory: t.category,
-            serviceMode: t.serviceMode,
-            genderTarget: t.genderTarget
-          }
-        }))
-      };
-      merchantServices = [fallbackWellnessService];
-    }
-    // 3. Fitness & Gym Fallback
-    else if (rawCat.includes('gym') || rawCat.includes('yoga') || rawCat.includes('fitness')) {
-      const fitCfg = getFitnessConfig(currentMerchant.id || 'zenfit-clinic');
-      const fallbackFitService: CatalogService = {
-        id: `svc-fitness-${activeBranch.id}`,
-        name: `${fitCfg.name} Passes & Batches`,
-        merchant: activeBranch.name || currentMerchant.merchantName || fitCfg.name,
-        price: fitCfg.passes[0]?.price || 299,
-        duration: 60,
-        category: 'Gym / Yoga Slot Booking',
-        active: true,
-        branchId: activeBranch.id,
-        rating: fitCfg.rating,
-        bookingsCount: 510,
-        imageUrl: fitCfg.heroImage,
-        description: `Open gym day passes, group yoga batches, personal trainers, and digital turnstile entry.`,
-        city: activeBranch.city || currentMerchant.city || 'Chennai',
-        metadata: {
-          isFitness: true,
-          passes: fitCfg.passes,
-          trainers: fitCfg.trainers,
-          timeSlots: fitCfg.timeSlots
-        },
-        listings: fitCfg.passes.map(p => ({
-          id: p.id,
-          name: p.name,
-          price: p.price,
-          imageUrl: fitCfg.heroImage,
-          description: `${p.durationMinutes === 720 ? 'Full Day' : `${p.durationMinutes}m`} • ${p.formatType}`,
-          images: fitCfg.galleryImages,
-          active: true
-        }))
-      };
-      merchantServices = [fallbackFitService];
-    }
-    // 4. Doctor & Clinic Fallback
-    else if (rawCat.includes('doctor') || rawCat.includes('clinic') || rawCat.includes('dental')) {
-      const docCfg = getClinicConfig(currentMerchant.id || 'apollo-dental');
-      const fallbackDocService: CatalogService = {
-        id: `svc-doc-${activeBranch.id}`,
-        name: `${docCfg.name} OPD Slots`,
-        merchant: activeBranch.name || currentMerchant.merchantName || docCfg.name,
-        price: docCfg.doctors[0]?.consultationFee || 500,
-        duration: 20,
-        category: 'Doctor Appointment',
-        active: true,
-        branchId: activeBranch.id,
-        rating: docCfg.rating,
-        bookingsCount: 440,
-        imageUrl: docCfg.heroImage,
-        description: `OPD consultation chambers, live waiting room token queue, and verified medical specialists.`,
-        city: activeBranch.city || currentMerchant.city || 'Chennai',
-        metadata: {
-          isDoctor: true,
-          doctors: docCfg.doctors,
-          consultationModes: docCfg.consultationModes,
-          timeSlots: docCfg.timeSlots
-        },
-        listings: docCfg.doctors.map(d => ({
-          id: d.id,
-          name: d.name,
-          price: d.consultationFee,
-          imageUrl: d.avatar,
-          description: `${d.role} • ${d.opdRoom}`,
-          images: [d.avatar],
-          active: true
-        }))
-      };
-      merchantServices = [fallbackDocService];
-    }
-    // 5. Home Services Fallback
-    else if (rawCat.includes('electrician') || rawCat.includes('plumber') || rawCat.includes('clean') || rawCat.includes('technician') || rawCat.includes('repair')) {
-      const homeCfg = getHomeServiceConfig(rawCat);
-      const matched = homeCfg.services.find(s => rawCat.includes(s.category)) || homeCfg.services[0];
-      const fallbackHomeService: CatalogService = {
-        id: `svc-home-${activeBranch.id}`,
-        name: `${matched.name}`,
-        merchant: activeBranch.name || currentMerchant.merchantName || homeCfg.name,
-        price: matched.inspectionFee,
-        duration: matched.estDurationMinutes,
-        category: currentMerchant.category || 'Electrician Booking',
-        active: true,
-        branchId: activeBranch.id,
-        rating: homeCfg.rating,
-        bookingsCount: 890,
-        imageUrl: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=1200&auto=format&fit=crop',
-        description: `${matched.description} Includes 30-Day BOKSPOT Warranty & Background-Checked Technician.`,
-        city: activeBranch.city || currentMerchant.city || 'Chennai',
-        metadata: {
-          isHomeService: true,
-          serviceItem: matched,
-          arrivalWindows: homeCfg.arrivalWindows,
-          warrantyDays: homeCfg.warrantyDays
-        },
-        listings: matched.popularAddons.map((a, idx) => ({
-          id: `addon-${idx}`,
-          name: a.name,
-          price: a.price,
-          imageUrl: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=1200&auto=format&fit=crop',
-          description: `Add-on Service / Spare Installation (+₹${a.price})`,
-          images: ['https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=1200&auto=format&fit=crop'],
-          active: true
-        }))
-      };
-      merchantServices = [fallbackHomeService];
-    }
-  }
+  // Dynamic Auto-Fallback completely disabled when merchant has 0 services so empty state stays empty
+  // Users create their own services and listings dynamically without intrusive code seeds
 
   const getSmartCover = (catName: string, explicitImg?: string | null) => {
     const lower = (catName || '').toLowerCase();
@@ -591,8 +312,10 @@ export default function WorkspacePage() {
       if (srv.city) acc[cat].city = srv.city;
     } else {
       acc[cat].count += 1;
-      acc[cat].totalListings += (srv.listings?.length || 1);
-      acc[cat].types.push(srv.name);
+      acc[cat].totalListings += (srv.listings?.length || 0);
+      if (srv.name && srv.name !== cat && srv.name !== '__BOKSPOT_GROUP__') {
+        acc[cat].types.push(srv.name);
+      }
       if (!acc[cat].mainImage) acc[cat].mainImage = srv.imageUrl;
     }
     return acc;
@@ -930,7 +653,7 @@ export default function WorkspacePage() {
                           {isTurf ? '⚽' : (isEnt ? '🎬' : (cat.toLowerCase().includes('resort') ? '🌴' : (cat.toLowerCase().includes('villa') ? '🏡' : '🏨')))}
                         </span>
                         <span style={{ color: '#ffffff' }} className="font-black !text-white text-xs">
-                          {isTurf ? 'Sports Arena' : (isEnt ? 'Cinema & Entertainment' : (cat.toLowerCase().includes('resort') ? 'Resort Stay' : (cat.toLowerCase().includes('villa') ? 'Villa Stay' : (cat.toLowerCase().includes('hotel') ? 'Hotel Stay' : (activeBranch.category || 'Standard Service')))))}
+                          {cat}
                         </span>
                       </span>
                       <div className="flex items-center gap-1.5">
@@ -948,8 +671,14 @@ export default function WorkspacePage() {
                               // Delete all services belonging to this category in this branch
                               const servicesToDelete = merchantServices.filter(s => s.category === cat);
                               servicesToDelete.forEach(s => deleteService(s.id));
-                              // Mark as explicitly deleted so fallback won't automatically re-generate
+                              // Also mark this category name in deleted list so it never resurrects
                               try {
+                                const rawDeleted = localStorage.getItem('deleted_service_ids');
+                                const deletedList: string[] = rawDeleted ? JSON.parse(rawDeleted) : [];
+                                servicesToDelete.forEach(s => {
+                                  if (!deletedList.includes(s.id)) deletedList.push(s.id);
+                                });
+                                localStorage.setItem('deleted_service_ids', JSON.stringify(deletedList));
                                 localStorage.setItem(`deleted_services_branch_${activeBranch.id}`, 'true');
                               } catch {}
                             }
@@ -981,7 +710,7 @@ export default function WorkspacePage() {
                           {activeBranch.name.split('-')[1]?.trim() || activeBranch.city}
                         </span>
                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#ff6325]/10 text-[#ff6325] font-black shrink-0">
-                          {info.count || 1} Formats
+                          {info.totalListings || 0} Units
                         </span>
                       </div>
 
@@ -990,19 +719,15 @@ export default function WorkspacePage() {
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {(info.types && info.types.length > 0) ? (
-                        info.types.slice(0, 2).map((t: string, i: number) => (
+                    {info.types && info.types.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {info.types.slice(0, 2).map((t: string, i: number) => (
                           <span key={i} className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-800 dark:text-slate-200 text-[10px] font-bold border border-slate-200/60 dark:border-white/5">
                             {t}
                           </span>
-                        ))
-                      ) : (
-                        <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 text-[10px] font-bold">
-                          {isTurf ? 'AstroTurf' : 'Suites'}
-                        </span>
-                      )}
-                    </div>
+                        ))}
+                      </div>
+                    )}
 
                     <div className="pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs">
                       <span className="font-black text-[#ff6325] text-xs">
