@@ -86,7 +86,7 @@ export default function WorkspacePage() {
       "Football Turf", "Cricket Ground", "Badminton Court", "Tennis Court", "Basketball Court", "Swimming Pool Slots", "Gaming Arena Booking", "Indoor Play Arena"
     ],
     "Health, Wellness & Dining": [
-      "Restaurant Table Reservation", "Salon / Spa Appointment", "Gym / Yoga Slot Booking", "Doctor Appointment"
+      "Restaurant Table Reservation", "Salon / Spa Appointment", "Gym Floor & Membership Booking", "Yoga Shala & Meditation Batches", "Doctor Appointment"
     ],
     "Workspaces, Studios & Events": [
       "Co-working Space", "Meeting Room", "Podcast Studio", "Conference Hall", "Studio Booking"
@@ -120,7 +120,8 @@ export default function WorkspacePage() {
       "Indoor Play Arena",
       "Restaurant Table Reservation",
       "Salon / Spa Appointment",
-      "Gym / Yoga Slot Booking",
+      "Gym Floor & Membership Booking",
+      "Yoga Shala & Meditation Batches",
       "Doctor Appointment",
       "Co-working Space",
       "Meeting Room",
@@ -264,7 +265,9 @@ export default function WorkspacePage() {
   }
 
   // Dynamic Auto-Fallback for Lifestyle & Dining / Wellness / Fitness / Clinic / Home Services / Sports Branches
-  if (merchantServices.length === 0) {
+  // Only inject if user hasn't explicitly deleted all services for this branch
+  const hasUserDeletedBranchServices = typeof window !== 'undefined' && localStorage.getItem(`deleted_services_branch_${activeBranch.id}`) === 'true';
+  if (merchantServices.length === 0 && !hasUserDeletedBranchServices) {
     const rawCat = (activeBranch.category || currentMerchant.category || '').toLowerCase();
     
     // 0. Sports & Turf Fallback
@@ -698,6 +701,9 @@ export default function WorkspacePage() {
       createdAt: new Date().toISOString()
     };
 
+    try {
+      localStorage.removeItem(`deleted_services_branch_${activeBranch.id}`);
+    } catch {}
     addService(newService);
     setShowBookingTypeModal(false);
     setBookingTypeCategory('');
@@ -942,6 +948,10 @@ export default function WorkspacePage() {
                               // Delete all services belonging to this category in this branch
                               const servicesToDelete = merchantServices.filter(s => s.category === cat);
                               servicesToDelete.forEach(s => deleteService(s.id));
+                              // Mark as explicitly deleted so fallback won't automatically re-generate
+                              try {
+                                localStorage.setItem(`deleted_services_branch_${activeBranch.id}`, 'true');
+                              } catch {}
                             }
                           }}
                           className="h-7 w-7 rounded-full bg-black/60 hover:bg-red-500 text-white/80 hover:text-white flex items-center justify-center transition-all cursor-pointer backdrop-blur-md shadow-md border border-white/20"
