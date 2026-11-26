@@ -13,6 +13,40 @@ export default function ServiceListingsPage() {
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<'LISTINGS' | 'PASSES'>('LISTINGS');
   const [editingPassModal, setEditingPassModal] = useState(false);
+  const [salonFilterCat, setSalonFilterCat] = useState<string>('ALL');
+  const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
+  const [salonOpenTime, setSalonOpenTime] = useState<string>('09:00');
+  const [salonCloseTime, setSalonCloseTime] = useState<string>('21:00');
+  const [salonSlotInterval, setSalonSlotInterval] = useState<number>(30);
+  const [salonCapacity, setSalonCapacity] = useState<number>(2);
+  const [manageSlotsOpen, setManageSlotsOpen] = useState(false);
+  const todayIso = new Date().toISOString().split('T')[0];
+  const tomorrowIso = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+  const [slotFromDate, setSlotFromDate] = useState<string>(todayIso);
+  const [slotToDate, setSlotToDate] = useState<string>(tomorrowIso);
+  const [breakfastBreak, setBreakfastBreak] = useState({ enabled: false, start: '10:30', end: '11:00' });
+  const [lunchBreak, setLunchBreak] = useState({ enabled: true, start: '13:00', end: '14:00' });
+  const [blockedSlotsByDate, setBlockedSlotsByDate] = useState<Record<string, string[]>>({});
+  const [scheduleSaved, setScheduleSaved] = useState(false);
+  const [editingTreatment, setEditingTreatment] = useState<{
+    id: string;
+    name: string;
+    salonCategory: string;
+    genderTarget: string;
+    serviceMode: string;
+    duration: number;
+    price: number;
+    description: string;
+    active: boolean;
+  } | null>(null);
+  const [quickTreatment, setQuickTreatment] = useState({
+    name: '',
+    salonCategory: 'HAIR',
+    genderTarget: 'UNISEX',
+    serviceMode: 'BOTH',
+    duration: 30,
+    price: 499
+  });
   const [newPass, setNewPass] = useState<{
     id: string;
     name: string;
@@ -205,6 +239,16 @@ export default function ServiceListingsPage() {
             <Building2 size={14} className="text-[#ff6325]" />
             <span>Venue Profile</span>
           </button>
+          {((category.category || '').toLowerCase().includes('salon') || (category.category || '').toLowerCase().includes('spa') || (category.name || '').toLowerCase().includes('salon') || (category.name || '').toLowerCase().includes('spa')) && (
+            <button
+              type="button"
+              onClick={() => setManageSlotsOpen(true)}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0a3161] hover:bg-[#ff6325] text-white font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
+            >
+              <Calendar size={14} />
+              <span>Manage Slots</span>
+            </button>
+          )}
           {activeTab === 'LISTINGS' && (
             <button
               onClick={() => router.push(`/workspace/my-services/${serviceId}/listing/new`)}
@@ -236,6 +280,165 @@ export default function ServiceListingsPage() {
         </div>
       </div>
 
+      {/* Quick Salon Menu Builder (Single-Screen Multi-Service Adder) */}
+      {activeTab === 'LISTINGS' && ((category.category || '').toLowerCase().includes('salon') || (category.category || '').toLowerCase().includes('spa') || (category.name || '').toLowerCase().includes('salon') || (category.name || '').toLowerCase().includes('spa')) && (
+        <div className="bg-white dark:bg-[#0f1624] rounded-2xl border border-slate-200/80 dark:border-white/10 p-4 sm:p-5 shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                <span>✂️ Quick Salon Menu Builder</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#0a3161]/10 text-[#0a3161] dark:bg-blue-500/20 dark:text-blue-300 font-bold">
+                  Instant Sync
+                </span>
+              </h3>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Add multiple treatments (Hair, Beard, Facial, Spa) in one place without opening separate forms.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 items-end">
+            <div className="lg:col-span-3">
+              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Treatment Name</label>
+              <input
+                type="text"
+                value={quickTreatment.name}
+                onChange={(e) => setQuickTreatment(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="e.g. Signature Haircut"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+              />
+            </div>
+            <div className="lg:col-span-2 relative">
+              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Filter</label>
+              <input
+                type="text"
+                value={quickTreatment.salonCategory}
+                onFocus={() => setFilterDropdownOpen(true)}
+                onBlur={() => setTimeout(() => setFilterDropdownOpen(false), 180)}
+                onChange={(e) => {
+                  setQuickTreatment(prev => ({ ...prev, salonCategory: e.target.value }));
+                  setFilterDropdownOpen(true);
+                }}
+                placeholder="Type or pick filter..."
+                className="w-full px-2.5 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+              />
+              {filterDropdownOpen && (() => {
+                const defaultSuggestions = [
+                  'Hair & Styling', 'Beard Grooming', 'Facials & Skin',
+                  'Massage & Spa', 'Packages', 'Bridal Makeup', 'Nail Art', 'Ayurvedic Therapy'
+                ];
+                const existingCats = listings.map(l => l.metadata?.salonCategory).filter(Boolean) as string[];
+                const allSuggestions = Array.from(new Set([...defaultSuggestions, ...existingCats]));
+                const q = quickTreatment.salonCategory.trim().toLowerCase();
+                const matches = allSuggestions.filter(s => !q || s.toLowerCase().includes(q));
+                const exactMatch = allSuggestions.some(s => s.toLowerCase() === q);
+
+                return (
+                  <div className="absolute left-0 top-full mt-1 w-52 max-h-48 overflow-y-auto z-50 bg-white dark:bg-[#121722] border border-slate-200 dark:border-white/10 rounded-xl shadow-xl p-1">
+                    {matches.map(item => (
+                      <button
+                        key={item}
+                        type="button"
+                        onMouseDown={() => {
+                          setQuickTreatment(prev => ({ ...prev, salonCategory: item }));
+                          setFilterDropdownOpen(false);
+                        }}
+                        className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-[#ff6325]/10 hover:text-[#ff6325] cursor-pointer"
+                      >
+                        {item}
+                      </button>
+                    ))}
+                    {quickTreatment.salonCategory.trim() && !exactMatch && (
+                      <button
+                        type="button"
+                        onMouseDown={() => setFilterDropdownOpen(false)}
+                        className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold text-[#0a3161] dark:text-blue-400 bg-[#0a3161]/5 hover:bg-[#0a3161]/10 cursor-pointer"
+                      >
+                        + Use &quot;{quickTreatment.salonCategory.trim()}&quot;
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+            <div className="lg:col-span-2">
+              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Gender</label>
+              <select
+                value={quickTreatment.genderTarget}
+                onChange={(e) => setQuickTreatment(prev => ({ ...prev, genderTarget: e.target.value }))}
+                className="w-full px-2.5 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+              >
+                <option value="UNISEX">All (Unisex)</option>
+                <option value="WOMEN">Women</option>
+                <option value="MEN">Men</option>
+              </select>
+            </div>
+            <div className="lg:col-span-2">
+              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Mode</label>
+              <select
+                value={quickTreatment.serviceMode}
+                onChange={(e) => setQuickTreatment(prev => ({ ...prev, serviceMode: e.target.value }))}
+                className="w-full px-2.5 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+              >
+                <option value="BOTH">In-Salon & Doorstep</option>
+                <option value="IN_SALON">In-Salon Only</option>
+                <option value="DOORSTEP">Doorstep Only</option>
+              </select>
+            </div>
+            <div className="lg:col-span-1">
+              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Mins</label>
+              <input
+                type="number"
+                min={10}
+                value={quickTreatment.duration}
+                onChange={(e) => setQuickTreatment(prev => ({ ...prev, duration: Number(e.target.value) || 30 }))}
+                className="w-full px-2.5 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+              />
+            </div>
+            <div className="lg:col-span-2 flex items-end gap-2">
+              <div className="flex-1">
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Price (₹)</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={quickTreatment.price}
+                  onChange={(e) => setQuickTreatment(prev => ({ ...prev, price: Number(e.target.value) || 0 }))}
+                  className="w-full px-2.5 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!quickTreatment.name.trim()) return;
+                  const newUnit: CatalogListing = {
+                    id: `list-${Date.now()}`,
+                    name: quickTreatment.name.trim(),
+                    price: quickTreatment.price,
+                    duration: quickTreatment.duration,
+                    active: true,
+                    description: `Professional ${quickTreatment.name.trim()} service.`,
+                    metadata: {
+                      salonCategory: quickTreatment.salonCategory,
+                      genderTarget: quickTreatment.genderTarget,
+                      serviceMode: quickTreatment.serviceMode,
+                    }
+                  };
+                  const updatedCategory: CatalogService = {
+                    ...category!,
+                    listings: [...(category?.listings || []), newUnit]
+                  };
+                  updateService(updatedCategory);
+                  setQuickTreatment(prev => ({ ...prev, name: '' }));
+                }}
+                className="px-3.5 py-2 rounded-xl bg-[#0a3161] hover:bg-[#ff6325] text-white font-black text-xs transition-colors cursor-pointer shrink-0 flex items-center gap-1"
+              >
+                <Plus size={14} /> Add
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Fitness / Yoga Tab Switcher: Daily Batches vs Memberships & Passes */}
       {isFitnessOrYoga && (
         <div className="flex items-center gap-2 border-b border-slate-200 dark:border-white/10 pb-3">
@@ -264,8 +467,129 @@ export default function ServiceListingsPage() {
         </div>
       )}
 
-      {/* 2. TAB A: LISTINGS / BATCHES GRID */}
-      {activeTab === 'LISTINGS' && (
+      {/* 2. TAB A: LISTINGS / BATCHES GRID (or Clean Salon & Spa Menu List) */}
+      {activeTab === 'LISTINGS' && ((category.category || '').toLowerCase().includes('salon') || (category.category || '').toLowerCase().includes('spa') || (category.name || '').toLowerCase().includes('salon') || (category.name || '').toLowerCase().includes('spa')) ? (
+        <div className="space-y-4">
+          {/* Dynamic Salon & Spa Category Filter Pills from Vendor's Listings */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+            {[
+              { id: 'ALL', label: 'All Services' },
+              ...Array.from(new Set(listings.map(l => {
+                const raw = l.metadata?.salonCategory || 'Hair & Styling';
+                const legacyMap: Record<string, string> = {
+                  HAIR: 'Hair & Styling',
+                  BEARD: 'Beard Grooming',
+                  SKIN_FACIAL: 'Facials & Skin',
+                  MASSAGE_SPA: 'Massage & Spa',
+                  PACKAGE: 'Packages'
+                };
+                return legacyMap[raw] || raw;
+              }))).map(cat => ({ id: cat, label: cat }))
+            ].map(tab => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setSalonFilterCat(tab.id)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  salonFilterCat === tab.id
+                    ? 'bg-[#ff6325] text-white shadow-sm'
+                    : 'bg-white dark:bg-[#0f1624] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 hover:border-[#ff6325]/40'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Clean Menu List */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {listings
+              .filter(list => {
+                if (salonFilterCat === 'ALL') return true;
+                const raw = list.metadata?.salonCategory || 'Hair & Styling';
+                const legacyMap: Record<string, string> = {
+                  HAIR: 'Hair & Styling',
+                  BEARD: 'Beard Grooming',
+                  SKIN_FACIAL: 'Facials & Skin',
+                  MASSAGE_SPA: 'Massage & Spa',
+                  PACKAGE: 'Packages'
+                };
+                return (legacyMap[raw] || raw) === salonFilterCat;
+              })
+              .map(list => {
+                const catLabel = ({
+                  HAIR: 'Hair & Styling',
+                  BEARD: 'Beard Grooming',
+                  SKIN_FACIAL: 'Facials & Skin',
+                  MASSAGE_SPA: 'Massage & Spa',
+                  PACKAGE: 'Packages'
+                } as Record<string, string>)[list.metadata?.salonCategory || 'HAIR'] || 'Treatment';
+                const genderLabel = list.metadata?.genderTarget === 'WOMEN' ? 'Women' : list.metadata?.genderTarget === 'MEN' ? 'Men' : 'Unisex';
+                const modeLabel = list.metadata?.serviceMode === 'IN_SALON' ? 'In-Salon Only' : list.metadata?.serviceMode === 'DOORSTEP' ? 'Doorstep Only' : 'In-Salon & Doorstep';
+
+                return (
+                  <div
+                    key={list.id}
+                    onClick={() => setEditingTreatment({
+                      id: list.id,
+                      name: list.name || '',
+                      salonCategory: list.metadata?.salonCategory || 'HAIR',
+                      genderTarget: list.metadata?.genderTarget || 'UNISEX',
+                      serviceMode: list.metadata?.serviceMode || 'BOTH',
+                      duration: list.duration || 30,
+                      price: list.price || 499,
+                      description: list.description || '',
+                      active: list.active !== false
+                    })}
+                    className="group bg-white dark:bg-[#0f1624] rounded-2xl border border-slate-200/80 dark:border-white/10 p-4 flex items-center justify-between gap-4 hover:border-[#ff6325]/60 hover:shadow-md transition-all cursor-pointer"
+                  >
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#0a3161]/10 text-[#0a3161] dark:bg-blue-500/20 dark:text-blue-300">
+                          {catLabel}
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300">
+                          {genderLabel}
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                          {modeLabel}
+                        </span>
+                      </div>
+                      <h4 className="text-sm font-black text-slate-900 dark:text-white truncate group-hover:text-[#ff6325] transition-colors">
+                        {list.name}
+                      </h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        {list.duration || 30} mins • <span className="text-emerald-600 dark:text-emerald-400 font-bold">Active</span>
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="text-right">
+                        <span className="text-base font-black text-slate-900 dark:text-white block">₹{list.price}</span>
+                        <span className="text-[10px] font-bold text-[#ff6325] group-hover:underline">Edit →</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const updatedCategory: CatalogService = {
+                            ...category!,
+                            listings: listings.filter(l => l.id !== list.id)
+                          };
+                          updateService(updatedCategory);
+                        }}
+                        className="p-2 rounded-xl bg-slate-100 hover:bg-red-500/15 text-slate-400 hover:text-red-500 transition-colors cursor-pointer"
+                        title="Delete Service"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      ) : activeTab === 'LISTINGS' && (
         <div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {listings.map(list => {
@@ -600,6 +924,8 @@ export default function ServiceListingsPage() {
         </div>
       )}
 
+
+
       {/* MODAL: ADD / EDIT PASS */}
       {editingPassModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -723,6 +1049,443 @@ export default function ServiceListingsPage() {
                 className="px-5 py-2 rounded-xl text-xs font-black bg-[#ff6325] text-white hover:bg-[#e04e13]"
               >
                 Save Pass
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+
+      {/* Quick Edit Salon & Spa Treatment Modal */}
+      {editingTreatment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-[#0f1624] w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-white/10 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
+              <h3 className="text-base font-black text-slate-900 dark:text-white">Edit Salon / Spa Service</h3>
+              <button
+                type="button"
+                onClick={() => setEditingTreatment(null)}
+                className="text-xs font-bold text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
+              >
+                ✕ Close
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Treatment Name</label>
+                <input
+                  type="text"
+                  value={editingTreatment.name}
+                  onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, name: e.target.value }) : null)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Filter</label>
+                  <select
+                    value={editingTreatment.salonCategory}
+                    onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, salonCategory: e.target.value }) : null)}
+                    className="w-full px-2.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                  >
+                    <option value="HAIR">Hair & Styling</option>
+                    <option value="BEARD">Beard Grooming</option>
+                    <option value="SKIN_FACIAL">Facials & Skin</option>
+                    <option value="MASSAGE_SPA">Massage & Spa</option>
+                    <option value="PACKAGE">Packages</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Gender</label>
+                  <select
+                    value={editingTreatment.genderTarget}
+                    onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, genderTarget: e.target.value }) : null)}
+                    className="w-full px-2.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                  >
+                    <option value="UNISEX">All (Unisex)</option>
+                    <option value="WOMEN">Women</option>
+                    <option value="MEN">Men</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Service Mode</label>
+                  <select
+                    value={editingTreatment.serviceMode}
+                    onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, serviceMode: e.target.value }) : null)}
+                    className="w-full px-2.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                  >
+                    <option value="BOTH">In-Salon & Doorstep</option>
+                    <option value="IN_SALON">In-Salon Only</option>
+                    <option value="DOORSTEP">Doorstep Only</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Duration (Mins)</label>
+                  <input
+                    type="number"
+                    min={10}
+                    value={editingTreatment.duration}
+                    onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, duration: Number(e.target.value) || 30 }) : null)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Price (₹)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={editingTreatment.price}
+                    onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, price: Number(e.target.value) || 0 }) : null)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Description</label>
+                <textarea
+                  rows={2}
+                  value={editingTreatment.description}
+                  onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, description: e.target.value }) : null)}
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-white/10">
+              <button
+                type="button"
+                onClick={() => setEditingTreatment(null)}
+                className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white text-xs font-bold cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!editingTreatment.name.trim()) return;
+                  const updatedListings = listings.map(l =>
+                    l.id === editingTreatment.id
+                      ? {
+                          ...l,
+                          name: editingTreatment.name.trim(),
+                          duration: editingTreatment.duration,
+                          price: editingTreatment.price,
+                          description: editingTreatment.description,
+                          active: editingTreatment.active,
+                          metadata: {
+                            ...(l.metadata || {}),
+                            salonCategory: editingTreatment.salonCategory,
+                            genderTarget: editingTreatment.genderTarget,
+                            serviceMode: editingTreatment.serviceMode,
+                          }
+                        }
+                      : l
+                  );
+                  updateService({ ...category!, listings: updatedListings });
+                  setEditingTreatment(null);
+                }}
+                className="px-5 py-2 rounded-xl bg-[#ff6325] hover:bg-[#e04e13] text-white text-xs font-black cursor-pointer shadow-sm"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+
+      {/* Manage Slots Modal (Multi-Date, When-to-When, Interval, Breakfast/Lunch Breaks, Manual Block) */}
+      {manageSlotsOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-[#0f1624] w-full max-w-3xl rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-white/10 space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
+              <div>
+                <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+                  <span>🕒 Manage Salon &amp; Spa Slots</span>
+                </h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Set operating hours, interval, breakfast/lunch breaks, and block slots for 1 or multiple days at once.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setManageSlotsOpen(false)}
+                className="text-xs font-bold text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
+              >
+                ✕ Close
+              </button>
+            </div>
+
+            {/* 1. Date Range (2 to 7 days at once) */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end bg-slate-50 dark:bg-white/5 p-3.5 rounded-2xl border border-slate-200/70 dark:border-white/10">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">From Date</label>
+                <input
+                  type="date"
+                  value={slotFromDate}
+                  min={todayIso}
+                  onChange={(e) => setSlotFromDate(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">To Date</label>
+                <input
+                  type="date"
+                  value={slotToDate}
+                  min={slotFromDate}
+                  onChange={(e) => setSlotToDate(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                />
+              </div>
+              <div className="flex items-center gap-1.5">
+                {[
+                  { label: 'Today', days: 0 },
+                  { label: '2 Days', days: 1 },
+                  { label: '7 Days', days: 6 },
+                ].map(p => (
+                  <button
+                    key={p.label}
+                    type="button"
+                    onClick={() => {
+                      setSlotFromDate(todayIso);
+                      setSlotToDate(new Date(Date.now() + p.days * 86400000).toISOString().split('T')[0]);
+                    }}
+                    className="flex-1 py-2 rounded-xl bg-white dark:bg-[#0f1624] border border-slate-200 dark:border-white/10 hover:border-[#ff6325] text-[11px] font-bold text-slate-700 dark:text-slate-200 cursor-pointer"
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 2. When to When, Interval, Chairs / Rooms */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Opens At</label>
+                <input
+                  type="time"
+                  value={salonOpenTime}
+                  onChange={(e) => setSalonOpenTime(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Closes At</label>
+                <input
+                  type="time"
+                  value={salonCloseTime}
+                  onChange={(e) => setSalonCloseTime(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Interval</label>
+                <select
+                  value={salonSlotInterval}
+                  onChange={(e) => setSalonSlotInterval(Number(e.target.value))}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                >
+                  <option value={15}>15 mins</option>
+                  <option value={30}>30 mins</option>
+                  <option value={45}>45 mins</option>
+                  <option value={60}>60 mins</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Chairs / Rooms</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={50}
+                  value={salonCapacity}
+                  onChange={(e) => setSalonCapacity(Math.max(1, Number(e.target.value) || 1))}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                />
+              </div>
+            </div>
+
+            {/* 3. Breakfast & Lunch Breaks */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-white/5 space-y-2">
+                <label className="flex items-center justify-between cursor-pointer">
+                  <span className="text-xs font-black text-slate-800 dark:text-white">☕ Breakfast Break</span>
+                  <input
+                    type="checkbox"
+                    checked={breakfastBreak.enabled}
+                    onChange={(e) => setBreakfastBreak(prev => ({ ...prev, enabled: e.target.checked }))}
+                    className="accent-[#ff6325] w-4 h-4"
+                  />
+                </label>
+                {breakfastBreak.enabled && (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="time"
+                      value={breakfastBreak.start}
+                      onChange={(e) => setBreakfastBreak(prev => ({ ...prev, start: e.target.value }))}
+                      className="flex-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold"
+                    />
+                    <span className="text-xs text-slate-400">to</span>
+                    <input
+                      type="time"
+                      value={breakfastBreak.end}
+                      onChange={(e) => setBreakfastBreak(prev => ({ ...prev, end: e.target.value }))}
+                      className="flex-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="p-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-white/5 space-y-2">
+                <label className="flex items-center justify-between cursor-pointer">
+                  <span className="text-xs font-black text-slate-800 dark:text-white">🍽️ Lunch Break</span>
+                  <input
+                    type="checkbox"
+                    checked={lunchBreak.enabled}
+                    onChange={(e) => setLunchBreak(prev => ({ ...prev, enabled: e.target.checked }))}
+                    className="accent-[#ff6325] w-4 h-4"
+                  />
+                </label>
+                {lunchBreak.enabled && (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="time"
+                      value={lunchBreak.start}
+                      onChange={(e) => setLunchBreak(prev => ({ ...prev, start: e.target.value }))}
+                      className="flex-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold"
+                    />
+                    <span className="text-xs text-slate-400">to</span>
+                    <input
+                      type="time"
+                      value={lunchBreak.end}
+                      onChange={(e) => setLunchBreak(prev => ({ ...prev, end: e.target.value }))}
+                      className="flex-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 4. Generated Slots Preview (Click to Block/Unblock) */}
+            {(() => {
+              const toMins = (t: string) => {
+                const [h, m] = (t || '09:00').split(':').map(Number);
+                return (h || 0) * 60 + (m || 0);
+              };
+              const fmt = (mins: number) => {
+                let h = Math.floor(mins / 60);
+                const m = mins % 60;
+                const ap = h >= 12 ? 'PM' : 'AM';
+                h = h % 12 || 12;
+                return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} ${ap}`;
+              };
+              const sM = toMins(salonOpenTime);
+              const eM = toMins(salonCloseTime);
+              const bStart = toMins(breakfastBreak.start);
+              const bEnd = toMins(breakfastBreak.end);
+              const lStart = toMins(lunchBreak.start);
+              const lEnd = toMins(lunchBreak.end);
+              const previewSlots: { label: string; slotValue: string; isBreak: boolean }[] = [];
+              for (let m = sM; m <= eM - salonSlotInterval; m += salonSlotInterval) {
+                const isBreak =
+                  (breakfastBreak.enabled && m >= bStart && m < bEnd) ||
+                  (lunchBreak.enabled && m >= lStart && m < lEnd);
+                const sTime = fmt(m);
+                previewSlots.push({ label: `${sTime} – ${fmt(m + salonSlotInterval)}`, slotValue: sTime, isBreak });
+              }
+              const currentBlocked = blockedSlotsByDate[slotFromDate] || [];
+
+              return (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">
+                      Generated Slots Preview ({previewSlots.length} slots) — Click any slot to Block/Unblock
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-1">
+                    {previewSlots.map(s => {
+                      const isBlocked = currentBlocked.includes(s.slotValue);
+                      return (
+                        <button
+                          key={s.label}
+                          type="button"
+                          disabled={s.isBreak}
+                          onClick={() => {
+                            const dates: string[] = [];
+                            const cur = new Date(slotFromDate + 'T00:00:00');
+                            const end = new Date(slotToDate + 'T00:00:00');
+                            while (cur <= end) {
+                              dates.push(cur.toISOString().split('T')[0]);
+                              cur.setDate(cur.getDate() + 1);
+                            }
+                            setBlockedSlotsByDate(prev => {
+                              const next = { ...prev };
+                              dates.forEach(d => {
+                                const list = next[d] || [];
+                                next[d] = isBlocked ? list.filter(x => x !== s.slotValue) : Array.from(new Set([...list, s.slotValue]));
+                              });
+                              return next;
+                            });
+                          }}
+                          className={`p-2 rounded-xl border text-left transition-all ${
+                            s.isBreak
+                              ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20 text-amber-700 dark:text-amber-300 cursor-not-allowed'
+                              : isBlocked
+                                ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-300 text-rose-600 line-through cursor-pointer'
+                                : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-[#ff6325] text-slate-800 dark:text-white cursor-pointer'
+                          }`}
+                        >
+                          <span className="text-[11px] font-bold block">{s.label}</span>
+                          <span className="text-[9px] font-semibold opacity-80">
+                            {s.isBreak ? '☕ Break' : isBlocked ? 'Blocked' : 'Available'}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-white/10">
+              <button
+                type="button"
+                onClick={() => setManageSlotsOpen(false)}
+                className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white text-xs font-bold cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  updateService({
+                    ...category!,
+                    metadata: {
+                      ...(category?.metadata || {}),
+                      salonSchedule: {
+                        openTime: salonOpenTime,
+                        closeTime: salonCloseTime,
+                        slotInterval: salonSlotInterval,
+                        capacity: salonCapacity,
+                        breakfastBreak,
+                        lunchBreak,
+                        blockedSlotsByDate,
+                      }
+                    }
+                  });
+                  setManageSlotsOpen(false);
+                }}
+                className="px-5 py-2 rounded-xl bg-[#ff6325] hover:bg-[#e04e13] text-white text-xs font-black cursor-pointer shadow-sm"
+              >
+                Save &amp; Apply to Selected Dates
               </button>
             </div>
           </div>

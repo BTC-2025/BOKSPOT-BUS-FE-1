@@ -1463,6 +1463,55 @@ export default function ListingEditorPage() {
                           : "Custom caption overlaid onto the room card's atmospheric getaway banner."}
                     </p>
                   </div>
+
+                  {isSalonCategory && (
+                    <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-slate-200 dark:border-white/10">
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                          Treatment Category
+                        </label>
+                        <select
+                          value={metadata.salonCategory || 'HAIR'}
+                          onChange={(e) => setMetadata((prev: any) => ({ ...prev, salonCategory: e.target.value }))}
+                          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                        >
+                          <option value="HAIR">Hair & Styling</option>
+                          <option value="BEARD">Beard Grooming</option>
+                          <option value="SKIN_FACIAL">Facials & Skin</option>
+                          <option value="MASSAGE_SPA">Massage & Spa</option>
+                          <option value="PACKAGE">Packages</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                          Gender Target
+                        </label>
+                        <select
+                          value={metadata.genderTarget || 'UNISEX'}
+                          onChange={(e) => setMetadata((prev: any) => ({ ...prev, genderTarget: e.target.value }))}
+                          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                        >
+                          <option value="UNISEX">All (Unisex)</option>
+                          <option value="WOMEN">Women</option>
+                          <option value="MEN">Men</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                          Service Mode
+                        </label>
+                        <select
+                          value={metadata.serviceMode || 'BOTH'}
+                          onChange={(e) => setMetadata((prev: any) => ({ ...prev, serviceMode: e.target.value }))}
+                          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                        >
+                          <option value="BOTH">Both (In-Salon & Doorstep)</option>
+                          <option value="IN_SALON">In-Salon Visit Only</option>
+                          <option value="DOORSTEP">Doorstep Service Only</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
