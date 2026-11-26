@@ -11,10 +11,29 @@ export default function ServiceListingsPage() {
   const serviceId = params.serviceId as string;
   const { services, addService, updateService, currentMerchant } = useVendorStore();
   const [mounted, setMounted] = useState(false);
-  const [activeTab, setActiveTab] = useState<'LISTINGS' | 'PASSES'>('LISTINGS');
+  const [activeTab, setActiveTab] = useState<'LISTINGS' | 'PASSES' | 'TRAINERS'>('LISTINGS');
+  const [newTrainer, setNewTrainer] = useState({ name: '', title: '', experienceYears: 5, certs: '', avatar: '', price: 0, priceUnit: 'session' });
+  const [trainerModalOpen, setTrainerModalOpen] = useState(false);
   const [editingPassModal, setEditingPassModal] = useState(false);
   const [salonFilterCat, setSalonFilterCat] = useState<string>('ALL');
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
+  const [gymFilterCat, setGymFilterCat] = useState<string>('ALL');
+  const [quickGymAddOpen, setQuickGymAddOpen] = useState(false);
+  const [quickGymPass, setQuickGymPass] = useState({
+    name: '',
+    filter: 'Gym Floor',
+    duration: 60,
+    price: 299,
+    originalPrice: 499
+  });
+  const [gymAmenities, setGymAmenities] = useState<string[]>([
+    'Olympic Barbells & Rogue Racks',
+    'Hi-Tech Cardio & Sled Track',
+    'Steam Sauna & Luxury Showers',
+    'InBody Composition Scan',
+    'RFID Smart Lockers',
+    'Valet Parking'
+  ]);
   const [salonOpenTime, setSalonOpenTime] = useState<string>('09:00');
   const [salonCloseTime, setSalonCloseTime] = useState<string>('21:00');
   const [salonSlotInterval, setSalonSlotInterval] = useState<number>(30);
@@ -194,6 +213,19 @@ export default function ServiceListingsPage() {
     updateService(updatedCategory);
   };
 
+  const trainers: any[] = category.metadata?.trainers || [];
+
+  const handleSaveTrainers = (updatedTrainers: any[]) => {
+    const updatedCategory = {
+      ...category,
+      metadata: {
+        ...(category.metadata || {}),
+        trainers: updatedTrainers
+      }
+    };
+    updateService(updatedCategory);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in pb-12 font-sans">
 
@@ -241,7 +273,7 @@ export default function ServiceListingsPage() {
             <Building2 size={14} className="text-[#ff6325]" />
             <span>Venue Profile</span>
           </button>
-          {((category.category || '').toLowerCase().includes('salon') || (category.category || '').toLowerCase().includes('spa') || (category.name || '').toLowerCase().includes('salon') || (category.name || '').toLowerCase().includes('spa')) && (
+          {(isFitnessOrYoga || (category.category || '').toLowerCase().includes('salon') || (category.category || '').toLowerCase().includes('spa') || (category.name || '').toLowerCase().includes('salon') || (category.name || '').toLowerCase().includes('spa')) && (
             <button
               type="button"
               onClick={() => setManageSlotsOpen(true)}
@@ -251,7 +283,15 @@ export default function ServiceListingsPage() {
               <span>Manage Slots</span>
             </button>
           )}
-          {activeTab === 'LISTINGS' && (
+          {activeTab === 'LISTINGS' && isFitnessOrYoga && !(category.category || category.name || '').toLowerCase().includes('yoga') ? (
+            <button
+              type="button"
+              onClick={() => setQuickGymAddOpen(true)}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
+            >
+              <Plus size={15} /> Add Pass
+            </button>
+          ) : activeTab === 'LISTINGS' && !isFitnessOrYoga && !((category.category || '').toLowerCase().includes('salon') || (category.category || '').toLowerCase().includes('spa') || (category.name || '').toLowerCase().includes('salon') || (category.name || '').toLowerCase().includes('spa')) && (
             <button
               onClick={() => router.push(`/workspace/my-services/${serviceId}/listing/new`)}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
@@ -277,6 +317,18 @@ export default function ServiceListingsPage() {
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
             >
               <Plus size={15} /> Add Membership Pass
+            </button>
+          )}
+          {activeTab === 'TRAINERS' && (
+            <button
+              type="button"
+              onClick={() => {
+                setNewTrainer({ name: '', title: '', experienceYears: 5, certs: '', avatar: '', price: 0, priceUnit: 'session' });
+                setTrainerModalOpen(true);
+              }}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
+            >
+              <Plus size={15} /> Add Trainer
             </button>
           )}
         </div>
@@ -406,7 +458,7 @@ export default function ServiceListingsPage() {
                 type="number"
                 min={10}
                 value={quickTreatment.duration}
-                onChange={(e) => setQuickTreatment(prev => ({ ...prev, duration: Number(e.target.value) || 30 }))}
+                onChange={(e) => setQuickTreatment(prev => ({ ...prev, duration: e.target.value === '' ? ('' as any) : Number(e.target.value) }))}
                 className="w-full px-2.5 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
               />
             </div>
@@ -417,7 +469,7 @@ export default function ServiceListingsPage() {
                   type="number"
                   min={0}
                   value={quickTreatment.price}
-                  onChange={(e) => setQuickTreatment(prev => ({ ...prev, price: Number(e.target.value) || 0 }))}
+                  onChange={(e) => setQuickTreatment(prev => ({ ...prev, price: e.target.value === '' ? ('' as any) : Number(e.target.value) }))}
                   className="w-full px-2.5 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
                 />
               </div>
@@ -455,6 +507,126 @@ export default function ServiceListingsPage() {
         );
       })()}
 
+      {/* Quick Gym Pass Builder Modal (Opens on + Add Pass click) */}
+      {quickGymAddOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-[#0f1624] w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-white/10 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
+              <div>
+                <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+                  <span>🏋️ Add Gym Pass / Session</span>
+                </h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Add Day Passes, CrossFit sessions, or 1-on-1 Personal Training.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setQuickGymAddOpen(false)}
+                className="text-xs font-bold text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
+              >
+                ✕ Close
+              </button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Pass / Session Name</label>
+                <input
+                  type="text"
+                  value={quickGymPass.name}
+                  onChange={(e) => setQuickGymPass(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="e.g. Day Pass (Full Open Gym & Steam)"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Filter</label>
+                  <select
+                    value={quickGymPass.filter}
+                    onChange={(e) => setQuickGymPass(prev => ({ ...prev, filter: e.target.value }))}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                  >
+                    <option value="Gym Floor">Gym Floor</option>
+                    <option value="1-on-1 PT">1-on-1 PT</option>
+                    <option value="Group Class">Group Class</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Duration (Mins)</label>
+                  <input
+                    type="number"
+                    min={15}
+                    value={quickGymPass.duration}
+                    onChange={(e) => setQuickGymPass(prev => ({ ...prev, duration: e.target.value === '' ? ('' as any) : Number(e.target.value) }))}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Price (₹)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={quickGymPass.price}
+                    onChange={(e) => setQuickGymPass(prev => ({ ...prev, price: e.target.value === '' ? ('' as any) : Number(e.target.value) }))}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">MRP (₹)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={quickGymPass.originalPrice}
+                    onChange={(e) => setQuickGymPass(prev => ({ ...prev, originalPrice: e.target.value === '' ? ('' as any) : Number(e.target.value) }))}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-white/10">
+              <button
+                type="button"
+                onClick={() => setQuickGymAddOpen(false)}
+                className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white text-xs font-bold cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!quickGymPass.name.trim()) return;
+                  const dur = Number(quickGymPass.duration) || 60;
+                  const newUnit: CatalogListing = {
+                    id: `list-${Date.now()}`,
+                    name: quickGymPass.name.trim(),
+                    price: Number(quickGymPass.price) || 0,
+                    originalPrice: Number(quickGymPass.originalPrice) || 0,
+                    duration: dur,
+                    active: true,
+                    description: `${dur} mins session • Turnstile pass`,
+                    metadata: {
+                      gymFilter: quickGymPass.filter,
+                    }
+                  };
+                  updateService({
+                    ...category!,
+                    listings: [...(category?.listings || []), newUnit]
+                  });
+                  setQuickGymPass(prev => ({ ...prev, name: '' }));
+                  setQuickGymAddOpen(false);
+                }}
+                className="px-5 py-2 rounded-xl bg-[#ff6325] hover:bg-[#e04e13] text-white text-xs font-black cursor-pointer shadow-sm"
+              >
+                + Add Pass
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Fitness / Yoga Tab Switcher: Daily Batches vs Memberships & Passes */}
       {isFitnessOrYoga && (
         <div className="flex items-center gap-2 border-b border-slate-200 dark:border-white/10 pb-3">
@@ -480,18 +652,29 @@ export default function ServiceListingsPage() {
           >
             Memberships & Multi-Class Passes ({passes.length})
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('TRAINERS')}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+              activeTab === 'TRAINERS'
+                ? 'bg-[#ff6325] text-white shadow-xs'
+                : 'bg-white dark:bg-[#0f1624] text-slate-600 dark:text-slate-300 hover:text-slate-900 border border-slate-200 dark:border-white/10'
+            }`}
+          >
+            Coaches & Trainers ({trainers.length})
+          </button>
         </div>
       )}
 
-      {/* 2. TAB A: LISTINGS / BATCHES GRID (or Clean Salon & Spa Menu List) */}
-      {activeTab === 'LISTINGS' && ((category.category || '').toLowerCase().includes('salon') || (category.category || '').toLowerCase().includes('spa') || (category.name || '').toLowerCase().includes('salon') || (category.name || '').toLowerCase().includes('spa')) ? (
+      {/* 2. TAB A: LISTINGS / BATCHES GRID (Clean Menu/Pass List for Salon, Spa, Gym & Yoga) */}
+      {activeTab === 'LISTINGS' && (isFitnessOrYoga || (category.category || '').toLowerCase().includes('salon') || (category.category || '').toLowerCase().includes('spa') || (category.name || '').toLowerCase().includes('salon') || (category.name || '').toLowerCase().includes('spa')) ? (
         <div className="space-y-4">
           {/* Dynamic Salon & Spa Category Filter Pills from Vendor's Listings */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1">
             {[
               { id: 'ALL', label: 'All Services' },
               ...Array.from(new Set(listings.map(l => {
-                const raw = l.metadata?.salonCategory || 'Hair & Styling';
+                const raw = isFitnessOrYoga ? (l.metadata?.gymCategory || 'Gym Floor') : (l.metadata?.salonCategory || 'Hair & Styling');
                 const legacyMap: Record<string, string> = {
                   HAIR: 'Hair & Styling',
                   BEARD: 'Beard Grooming',
@@ -518,11 +701,11 @@ export default function ServiceListingsPage() {
           </div>
 
           {/* Clean Menu List */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {listings
               .filter(list => {
                 if (salonFilterCat === 'ALL') return true;
-                const raw = list.metadata?.salonCategory || 'Hair & Styling';
+                const raw = isFitnessOrYoga ? (list.metadata?.gymCategory || 'Gym Floor') : (list.metadata?.salonCategory || 'Hair & Styling');
                 const legacyMap: Record<string, string> = {
                   HAIR: 'Hair & Styling',
                   BEARD: 'Beard Grooming',
@@ -533,13 +716,15 @@ export default function ServiceListingsPage() {
                 return (legacyMap[raw] || raw) === salonFilterCat;
               })
               .map(list => {
-                const catLabel = ({
-                  HAIR: 'Hair & Styling',
-                  BEARD: 'Beard Grooming',
-                  SKIN_FACIAL: 'Facials & Skin',
-                  MASSAGE_SPA: 'Massage & Spa',
-                  PACKAGE: 'Packages'
-                } as Record<string, string>)[list.metadata?.salonCategory || 'HAIR'] || 'Treatment';
+                const catLabel = isFitnessOrYoga
+                  ? (list.metadata?.gymFilter || ((category.category || category.name || '').toLowerCase().includes('yoga') ? 'Yoga Batch' : 'Gym Floor'))
+                  : (({
+                      HAIR: 'Hair & Styling',
+                      BEARD: 'Beard Grooming',
+                      SKIN_FACIAL: 'Facials & Skin',
+                      MASSAGE_SPA: 'Massage & Spa',
+                      PACKAGE: 'Packages'
+                    } as Record<string, string>)[list.metadata?.salonCategory || 'HAIR'] || list.metadata?.salonCategory || 'Treatment');
                 const genderLabel = list.metadata?.genderTarget === 'WOMEN' ? 'Women' : list.metadata?.genderTarget === 'MEN' ? 'Men' : 'Unisex';
                 const modeLabel = list.metadata?.serviceMode === 'IN_SALON' ? 'In-Salon Only' : list.metadata?.serviceMode === 'DOORSTEP' ? 'Doorstep Only' : 'In-Salon & Doorstep';
 
@@ -549,7 +734,7 @@ export default function ServiceListingsPage() {
                     onClick={() => setEditingTreatment({
                       id: list.id,
                       name: list.name || '',
-                      salonCategory: list.metadata?.salonCategory || 'HAIR',
+                      salonCategory: isFitnessOrYoga ? (list.metadata?.gymFilter || 'Gym Floor') : (list.metadata?.salonCategory || 'HAIR'),
                       genderTarget: list.metadata?.genderTarget || 'UNISEX',
                       serviceMode: list.metadata?.serviceMode || 'BOTH',
                       duration: list.duration || 30,
@@ -564,12 +749,20 @@ export default function ServiceListingsPage() {
                         <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#0a3161]/10 text-[#0a3161] dark:bg-blue-500/20 dark:text-blue-300">
                           {catLabel}
                         </span>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300">
-                          {genderLabel}
-                        </span>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                          {modeLabel}
-                        </span>
+                        {!isFitnessOrYoga ? (
+                          <>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300">
+                              {genderLabel}
+                            </span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                              {modeLabel}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                            Turnstile Pass
+                          </span>
+                        )}
                       </div>
                       <h4 className="text-sm font-black text-slate-900 dark:text-white truncate group-hover:text-[#ff6325] transition-colors">
                         {list.name}
@@ -642,7 +835,23 @@ export default function ServiceListingsPage() {
             return (
               <div
                 key={list.id}
-                onClick={() => router.push(`/workspace/my-services/${serviceId}/listing/${list.id}`)}
+                onClick={() => {
+                  if (isFitnessOrYoga) {
+                    setEditingTreatment({
+                      id: list.id,
+                      name: list.name || '',
+                      salonCategory: list.metadata?.gymFilter || 'Gym Floor',
+                      genderTarget: 'UNISEX',
+                      serviceMode: 'IN_SALON',
+                      duration: list.duration || 60,
+                      price: list.price || 299,
+                      description: list.description || '',
+                      active: list.active !== false
+                    });
+                  } else {
+                    router.push(`/workspace/my-services/${serviceId}/listing/${list.id}`);
+                  }
+                }}
                 className="bg-white dark:bg-[#0f1624] rounded-2xl border border-slate-200/80 dark:border-white/10 hover:border-[#ff6325]/50 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 overflow-hidden flex flex-col cursor-pointer group"
               >
                 {/* Compact Cover Image (h-36 identical to Category/Format card) */}
@@ -796,6 +1005,143 @@ export default function ServiceListingsPage() {
       </div>
       )}
 
+      {/* 3B. TAB C: COACHES & TRAINERS */}
+      {activeTab === 'TRAINERS' && (
+        <div className="space-y-4">
+          {trainers.length === 0 ? (
+            <div className="p-8 rounded-2xl bg-white dark:bg-[#0f1624] border border-dashed border-slate-200 dark:border-white/10 text-center text-xs text-slate-500">
+              No trainers added yet. Click &quot;+ Add Trainer&quot; above so customers can select them!
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {trainers.map((tr: any) => (
+                <div
+                  key={tr.id}
+                  className="p-4 rounded-2xl bg-white dark:bg-[#0f1624] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs font-black shrink-0 border border-slate-200 dark:border-white/10">
+                      {(tr.name || 'TR').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="text-sm font-black text-slate-900 dark:text-white truncate">{tr.name}</h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                        {tr.title} • {tr.experienceYears}y exp{tr.certs ? ` • ${tr.certs}` : ''}{Number(tr.price) > 0 ? ` • ₹${tr.price}/${tr.priceUnit === 'month' ? 'month' : 'session'}` : ' • Included'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleSaveTrainers(trainers.filter((t: any) => t.id !== tr.id))}
+                    className="p-2 rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 cursor-pointer shrink-0"
+                    title="Delete Trainer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          {trainerModalOpen && (
+            <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+              <div className="w-full max-w-md rounded-2xl bg-white dark:bg-[#0f1624] border border-slate-200 dark:border-white/10 p-5 space-y-4 shadow-xl">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white">Add Coach / Trainer</h3>
+                  <button
+                    type="button"
+                    onClick={() => setTrainerModalOpen(false)}
+                    className="text-xs font-bold text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    placeholder="Trainer Name (e.g. Vikram Sethi)"
+                    value={newTrainer.name}
+                    onChange={(e) => setNewTrainer({ ...newTrainer, name: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Role / Specialty (e.g. Strength Coach)"
+                    value={newTrainer.title}
+                    onChange={(e) => setNewTrainer({ ...newTrainer, title: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <input
+                      type="number"
+                      min={1}
+                      placeholder="Experience (Years)"
+                      value={newTrainer.experienceYears || ''}
+                      onChange={(e) => setNewTrainer({ ...newTrainer, experienceYears: Number(e.target.value) })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Certifications (e.g. ACE)"
+                      value={newTrainer.certs}
+                      onChange={(e) => setNewTrainer({ ...newTrainer, certs: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <input
+                      type="number"
+                      min={0}
+                      placeholder="Fee (₹, 0 = Included)"
+                      value={newTrainer.price || ''}
+                      onChange={(e) => setNewTrainer({ ...newTrainer, price: Math.max(0, Number(e.target.value) || 0) })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                    />
+                    <select
+                      value={newTrainer.priceUnit}
+                      onChange={(e) => setNewTrainer({ ...newTrainer, priceUnit: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                    >
+                      <option value="session">Per Session</option>
+                      <option value="month">Per Month</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setTrainerModalOpen(false)}
+                    className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!newTrainer.name.trim()) return;
+                      const created = {
+                        id: `trn-${Date.now()}`,
+                        name: newTrainer.name.trim(),
+                        title: newTrainer.title.trim() || 'Certified Trainer',
+                        experienceYears: Number(newTrainer.experienceYears) || 1,
+                        certs: newTrainer.certs.trim() || 'Certified',
+                        price: Number(newTrainer.price) || 0,
+                        priceUnit: newTrainer.priceUnit || 'session',
+                        avatar: ''
+                      };
+                      handleSaveTrainers([...trainers, created]);
+                      setTrainerModalOpen(false);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-[#ff6325] text-white text-xs font-black hover:bg-[#e5531a] transition-colors cursor-pointer"
+                  >
+                    Save Trainer
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* 3. TAB B: MEMBERSHIPS & PASSES GRID (SERVICE LEVEL) */}
       {activeTab === 'PASSES' && (
         <div className="space-y-4">
@@ -808,71 +1154,7 @@ export default function ServiceListingsPage() {
                 These passes grant access across all daily batches. Customers can purchase these passes directly in your studio app.
               </p>
             </div>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <button
-                type="button"
-                onClick={() => {
-                  const updated = [
-                    ...passes,
-                    {
-                      id: `pass-3m-${Date.now()}`,
-                      name: '3-Month Unlimited Sadhana Pass',
-                      sessions: 'Unlimited',
-                      price: 7999,
-                      originalPrice: 9999,
-                      validity: '90 Days Validity',
-                      perk: 'Free Studio Locker + Guru Consultation'
-                    }
-                  ];
-                  handleSavePasses(updated);
-                }}
-                className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-orange-50 dark:bg-orange-950/40 text-[#ff6325] border border-orange-200 dark:border-orange-500/20 hover:bg-orange-100 transition-all cursor-pointer"
-              >
-                + 3 Months Preset
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const updated = [
-                    ...passes,
-                    {
-                      id: `pass-6m-${Date.now()}`,
-                      name: '6-Month Unlimited Sadhana Pass',
-                      sessions: 'Unlimited',
-                      price: 13999,
-                      originalPrice: 17999,
-                      validity: '180 Days Validity',
-                      perk: 'Free Locker + Mat Storage + 2 Guest Passes'
-                    }
-                  ];
-                  handleSavePasses(updated);
-                }}
-                className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-orange-50 dark:bg-orange-950/40 text-[#ff6325] border border-orange-200 dark:border-orange-500/20 hover:bg-orange-100 transition-all cursor-pointer"
-              >
-                + 6 Months Preset
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const updated = [
-                    ...passes,
-                    {
-                      id: `pass-1y-${Date.now()}`,
-                      name: '1-Year Annual Sadhana Pass',
-                      sessions: 'Unlimited',
-                      price: 24999,
-                      originalPrice: 32000,
-                      validity: '365 Days Validity',
-                      perk: 'Full Shala Access + Free Workshop Passes'
-                    }
-                  ];
-                  handleSavePasses(updated);
-                }}
-                className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-orange-50 dark:bg-orange-950/40 text-[#ff6325] border border-orange-200 dark:border-orange-500/20 hover:bg-orange-100 transition-all cursor-pointer"
-              >
-                + 1 Year Annual Preset
-              </button>
-            </div>
+            <div className="flex items-center gap-1.5 flex-wrap" />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -904,12 +1186,6 @@ export default function ServiceListingsPage() {
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                     {pass.validity}
                   </p>
-
-                  {pass.perk && (
-                    <div className="mt-3 py-2 px-3 rounded-xl bg-amber-50 dark:bg-slate-800 border border-amber-200/60 dark:border-white/5 text-[11px] font-bold text-amber-900 dark:text-amber-200">
-                      ✦ {pass.perk}
-                    </div>
-                  )}
                 </div>
 
                 <div className="pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
@@ -1025,19 +1301,6 @@ export default function ServiceListingsPage() {
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                  Perk / Highlight
-                </label>
-                <input
-                  type="text"
-                  value={newPass.perk || ''}
-                  onChange={(e) => setNewPass({ ...newPass, perk: e.target.value })}
-                  placeholder="e.g. Free Locker + Tea + Guest Pass"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
-                />
               </div>
             </div>
 
@@ -1317,7 +1580,7 @@ export default function ServiceListingsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Chairs / Rooms</label>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{isFitnessOrYoga ? 'Batch Capacity' : 'Chairs / Rooms'}</label>
                 <input
                   type="number"
                   min={1}
@@ -1390,7 +1653,8 @@ export default function ServiceListingsPage() {
               </div>
             </div>
 
-            {/* 3b. Doorstep Convenience Fee & Min Order */}
+            {/* 3b. Doorstep Convenience Fee & Min Order (Salon & Spa only) */}
+            {!isFitnessOrYoga && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 dark:bg-white/5 p-3.5 rounded-2xl border border-slate-200/70 dark:border-white/10">
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Doorstep Convenience Fee (₹)</label>
@@ -1413,6 +1677,7 @@ export default function ServiceListingsPage() {
                 />
               </div>
             </div>
+            )}
 
             {/* 4. Generated Slots Preview (Click to Block/Unblock) */}
             {(() => {
@@ -1512,6 +1777,7 @@ export default function ServiceListingsPage() {
                       ...(category?.metadata || {}),
                       homeConvenienceFee,
                       homeMinOrderValue,
+                      gymAmenities,
                       salonSchedule: {
                         openTime: salonOpenTime,
                         closeTime: salonCloseTime,
