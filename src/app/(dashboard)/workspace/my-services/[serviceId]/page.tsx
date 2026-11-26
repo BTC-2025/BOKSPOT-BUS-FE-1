@@ -27,6 +27,8 @@ export default function ServiceListingsPage() {
   const [breakfastBreak, setBreakfastBreak] = useState({ enabled: false, start: '10:30', end: '11:00' });
   const [lunchBreak, setLunchBreak] = useState({ enabled: true, start: '13:00', end: '14:00' });
   const [blockedSlotsByDate, setBlockedSlotsByDate] = useState<Record<string, string[]>>({});
+  const [homeConvenienceFee, setHomeConvenienceFee] = useState<number>(49);
+  const [homeMinOrderValue, setHomeMinOrderValue] = useState<number>(399);
   const [scheduleSaved, setScheduleSaved] = useState(false);
   const [editingTreatment, setEditingTreatment] = useState<{
     id: string;
@@ -280,31 +282,44 @@ export default function ServiceListingsPage() {
         </div>
       </div>
 
-      {/* Quick Salon Menu Builder (Single-Screen Multi-Service Adder) */}
-      {activeTab === 'LISTINGS' && ((category.category || '').toLowerCase().includes('salon') || (category.category || '').toLowerCase().includes('spa') || (category.name || '').toLowerCase().includes('salon') || (category.name || '').toLowerCase().includes('spa')) && (
+      {/* Quick Salon / Spa Menu Builder (Single-Screen Multi-Service Adder) */}
+      {activeTab === 'LISTINGS' && ((category.category || '').toLowerCase().includes('salon') || (category.category || '').toLowerCase().includes('spa') || (category.name || '').toLowerCase().includes('salon') || (category.name || '').toLowerCase().includes('spa')) && (() => {
+        const lowerTitle = `${category.category || ''} ${category.name || ''}`.toLowerCase();
+        const hasSpa = lowerTitle.includes('spa');
+        const hasSalon = lowerTitle.includes('salon');
+        const isSpaOnly = hasSpa && !hasSalon;
+        const builderTitle = isSpaOnly ? '🧘 Quick Spa Menu Builder' : (hasSpa && hasSalon) ? '✨ Quick Salon & Spa Menu Builder' : '✂️ Quick Salon Menu Builder';
+        const builderDesc = isSpaOnly
+          ? 'Add multiple spa therapies (Massage, Aromatherapy, Body Scrub, Steam) in one place.'
+          : 'Add multiple treatments (Hair, Beard, Facial, Spa) in one place without opening separate forms.';
+        const namePlaceholder = isSpaOnly ? 'e.g. Aromatherapy Deep Tissue' : 'e.g. Signature Haircut';
+        const modeBothLabel = isSpaOnly ? 'In-Spa & Doorstep' : 'In-Salon & Doorstep';
+        const modeInLabel = isSpaOnly ? 'In-Spa Only' : 'In-Salon Only';
+
+        return (
         <div className="bg-white dark:bg-[#0f1624] rounded-2xl border border-slate-200/80 dark:border-white/10 p-4 sm:p-5 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-                <span>✂️ Quick Salon Menu Builder</span>
+                <span>{builderTitle}</span>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#0a3161]/10 text-[#0a3161] dark:bg-blue-500/20 dark:text-blue-300 font-bold">
                   Instant Sync
                 </span>
               </h3>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Add multiple treatments (Hair, Beard, Facial, Spa) in one place without opening separate forms.
+                {builderDesc}
               </p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 items-end">
             <div className="lg:col-span-3">
-              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Treatment Name</label>
+              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{isSpaOnly ? 'Therapy Name' : 'Treatment Name'}</label>
               <input
                 type="text"
                 value={quickTreatment.name}
                 onChange={(e) => setQuickTreatment(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="e.g. Signature Haircut"
+                placeholder={namePlaceholder}
                 className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
               />
             </div>
@@ -380,8 +395,8 @@ export default function ServiceListingsPage() {
                 onChange={(e) => setQuickTreatment(prev => ({ ...prev, serviceMode: e.target.value }))}
                 className="w-full px-2.5 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
               >
-                <option value="BOTH">In-Salon & Doorstep</option>
-                <option value="IN_SALON">In-Salon Only</option>
+                <option value="BOTH">{modeBothLabel}</option>
+                <option value="IN_SALON">{modeInLabel}</option>
                 <option value="DOORSTEP">Doorstep Only</option>
               </select>
             </div>
@@ -437,7 +452,8 @@ export default function ServiceListingsPage() {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* Fitness / Yoga Tab Switcher: Daily Batches vs Memberships & Passes */}
       {isFitnessOrYoga && (
@@ -1374,6 +1390,30 @@ export default function ServiceListingsPage() {
               </div>
             </div>
 
+            {/* 3b. Doorstep Convenience Fee & Min Order */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 dark:bg-white/5 p-3.5 rounded-2xl border border-slate-200/70 dark:border-white/10">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Doorstep Convenience Fee (₹)</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={homeConvenienceFee}
+                  onChange={(e) => setHomeConvenienceFee(Math.max(0, Number(e.target.value) || 0))}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Min Order for Doorstep (₹)</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={homeMinOrderValue}
+                  onChange={(e) => setHomeMinOrderValue(Math.max(0, Number(e.target.value) || 0))}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                />
+              </div>
+            </div>
+
             {/* 4. Generated Slots Preview (Click to Block/Unblock) */}
             {(() => {
               const toMins = (t: string) => {
@@ -1470,6 +1510,8 @@ export default function ServiceListingsPage() {
                     ...category!,
                     metadata: {
                       ...(category?.metadata || {}),
+                      homeConvenienceFee,
+                      homeMinOrderValue,
                       salonSchedule: {
                         openTime: salonOpenTime,
                         closeTime: salonCloseTime,

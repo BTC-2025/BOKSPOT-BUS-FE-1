@@ -121,6 +121,19 @@ export default function DashboardPage() {
     const mCat = (currentMerchant.category || '').toLowerCase();
     return !isYogaBranch && (bCat.includes('gym') || bCat.includes('fitness') || bName.includes('gym') || mCat.includes('gym') || mCat.includes('fitness'));
   })();
+  const isSalonBranch = (() => {
+    const bCat = (activeBranch.category || '').toLowerCase();
+    const bName = (activeBranch.name || '').toLowerCase();
+    const mCat = (currentMerchant.category || '').toLowerCase();
+    const mName = (currentMerchant.merchantName || '').toLowerCase();
+    const hasSalonSvc = (services || []).some((s: any) =>
+      (s.category || '').toLowerCase().includes('salon') ||
+      (s.category || '').toLowerCase().includes('spa') ||
+      (s.name || '').toLowerCase().includes('salon') ||
+      (s.name || '').toLowerCase().includes('spa')
+    );
+    return bCat.includes('salon') || bCat.includes('spa') || bName.includes('salon') || bName.includes('spa') || mCat.includes('salon') || mCat.includes('spa') || mName.includes('salon') || mName.includes('spa') || hasSalonSvc;
+  })();
 
   // Display Branch Name cleaned of legacy Gym mismatch if this branch hosts Yoga services
   const branchDisplayName = (() => {
@@ -567,7 +580,7 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block leading-none">
-                      {isTurfBranch ? 'MATCHES' : isYogaBranch ? 'BATCHES' : isGymBranch ? 'ADMISSIONS' : 'RESERVATIONS'}
+                      {isTurfBranch ? 'MATCHES' : isYogaBranch ? 'BATCHES' : isGymBranch ? 'ADMISSIONS' : isSalonBranch ? 'APPOINTMENTS' : 'RESERVATIONS'}
                     </span>
                     <h3 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-1 leading-none">
                       {allMerchantBookings.length}
@@ -608,7 +621,7 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block leading-none">
-                      {isTurfBranch ? 'PLAYERS' : isYogaBranch ? 'PRACTITIONERS' : isGymBranch ? 'MEMBERS' : 'GUESTS'}
+                      {isTurfBranch ? 'PLAYERS' : isYogaBranch ? 'PRACTITIONERS' : isGymBranch ? 'MEMBERS' : isSalonBranch ? 'CLIENTS' : 'GUESTS'}
                     </span>
                     <h3 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-1 leading-none">
                       {occupancy}
@@ -720,7 +733,7 @@ export default function DashboardPage() {
               <div className="flex items-center gap-2">
                 <FileText size={17} className="text-[#ff6325]" />
                 <h2 className="text-base font-black text-[#0a3161] dark:text-white">
-                  {isTurfBranch ? 'Live Queue & Incoming Slots' : 'Live Queue & Upcoming Reservations'}
+                  {isTurfBranch ? 'Live Queue & Incoming Slots' : isSalonBranch ? 'Live Queue & Upcoming Appointments' : 'Live Queue & Upcoming Reservations'}
                 </h2>
                 {liveForMerchant.filter(b => b.status === 'PENDING').length > 0 && (
                   <span className="px-2.5 py-0.5 rounded-full bg-[#ff6325]/15 text-[#ff6325] border border-[#ff6325]/30 text-[10px] font-black animate-pulse">
@@ -820,10 +833,10 @@ export default function DashboardPage() {
                 </span>
                 <div>
                   <h3 className="text-sm font-black text-[#0a3161] dark:text-white">
-                    {isTurfBranch ? 'Live Slot & Pitch Grid' : isYogaBranch ? 'Shala Floor & Mat Grid' : isGymBranch ? 'Live Gym Floor & Locker Grid' : 'Live Suite & Room Inventory'}
+                    {isTurfBranch ? 'Live Slot & Pitch Grid' : isYogaBranch ? 'Shala Floor & Mat Grid' : isGymBranch ? 'Live Gym Floor & Locker Grid' : isSalonBranch ? 'Live Salon & Spa Menu' : 'Live Suite & Room Inventory'}
                   </h3>
                   <p className="text-[11px] text-slate-400">
-                    {isTurfBranch ? 'Pitches & Court Availability' : isYogaBranch ? 'Shala Mat Spots & Batches' : isGymBranch ? 'Floor & Equipment Capacity' : 'Suites & Cottages Availability'}
+                    {isTurfBranch ? 'Pitches & Court Availability' : isYogaBranch ? 'Shala Mat Spots & Batches' : isGymBranch ? 'Floor & Equipment Capacity' : isSalonBranch ? 'Treatments & Therapy Slots' : 'Suites & Cottages Availability'}
                   </p>
                 </div>
               </div>
@@ -872,13 +885,13 @@ export default function DashboardPage() {
               )) : (
                 <div className="p-6 text-center rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-dashed border-slate-200 dark:border-white/10">
                   <p className="text-xs font-bold text-slate-600 dark:text-slate-300">
-                    {isTurfBranch ? 'No active pitch or court units yet' : isYogaBranch ? 'No active yoga batches configured yet' : isGymBranch ? 'No active gym plans or floor shifts yet' : 'No active inventory units yet'}
+                    {isTurfBranch ? 'No active pitch or court units yet' : isYogaBranch ? 'No active yoga batches configured yet' : isGymBranch ? 'No active gym plans or floor shifts yet' : isSalonBranch ? 'No active salon or spa treatments yet' : 'No active inventory units yet'}
                   </p>
                   <p className="text-[11px] text-slate-400 mt-1">
                     {isTurfBranch ? 'Add your court units or pitch slots in My Services' : isYogaBranch ? 'Add your daily batches and memberships in My Services' : isGymBranch ? 'Add your floor shifts and memberships in My Services' : 'Add your catalog services or room units in My Services'}
                   </p>
                   <button onClick={() => router.push('/workspace/my-services')} className="mt-3 px-3 py-1.5 rounded-xl bg-[#ff6325] hover:bg-[#e04e13] text-white text-[11px] font-bold shadow-sm transition-all cursor-pointer">
-                    {isTurfBranch ? '+ Add Pitch / Court Unit' : isYogaBranch ? '+ Add Yoga Batch' : isGymBranch ? '+ Add Gym Plan' : '+ Add First Service / Unit'}
+                    {isTurfBranch ? '+ Add Pitch / Court Unit' : isYogaBranch ? '+ Add Yoga Batch' : isGymBranch ? '+ Add Gym Plan' : isSalonBranch ? '+ Add First Treatment' : '+ Add First Service / Unit'}
                   </button>
                 </div>
               )}
@@ -920,7 +933,7 @@ export default function DashboardPage() {
                 className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-[#ff6325] hover:bg-[#e04e13] text-white font-black text-xs transition-all shadow-lg shadow-[#ff6325]/30 cursor-pointer active:scale-95"
               >
                 <span className="flex items-center gap-2">
-                  <Plus size={15} /> {isTurfBranch ? 'Book Walk-in Slot' : isYogaBranch ? 'Admit Walk-in Practitioner' : isGymBranch ? 'Admit Walk-in Member' : 'Book Walk-in Guest'}
+                  <Plus size={15} /> {isTurfBranch ? 'Book Walk-in Slot' : isYogaBranch ? 'Admit Walk-in Practitioner' : isGymBranch ? 'Admit Walk-in Member' : isSalonBranch ? 'Book Walk-in Client' : 'Book Walk-in Guest'}
                 </span>
                 <ChevronRight size={14} />
               </button>
@@ -939,7 +952,7 @@ export default function DashboardPage() {
                 onClick={() => router.push('/workspace/my-services')}
                 className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-white/90 font-bold text-xs transition-all border border-white/10 cursor-pointer"
               >
-                <span>{isTurfBranch ? 'Edit Pitch & Turf Pricing' : isYogaBranch ? 'Edit Yoga Batches & Passes' : isGymBranch ? 'Edit Gym Membership Plans' : 'Edit Suite & Villa Tariff'}</span>
+                <span>{isTurfBranch ? 'Edit Pitch & Turf Pricing' : isYogaBranch ? 'Edit Yoga Batches & Passes' : isGymBranch ? 'Edit Gym Membership Plans' : isSalonBranch ? 'Edit Salon & Spa Menu' : 'Edit Suite & Villa Tariff'}</span>
                 <ChevronRight size={14} />
               </button>
             </div>
