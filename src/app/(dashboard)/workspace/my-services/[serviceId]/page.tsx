@@ -59,6 +59,7 @@ export default function ServiceListingsPage() {
     price: number;
     description: string;
     active: boolean;
+    clinicContact?: string;
   } | null>(null);
   const [quickTreatment, setQuickTreatment] = useState({
     name: '',
@@ -181,6 +182,14 @@ export default function ServiceListingsPage() {
     (currentMerchant.category || '').toLowerCase().includes('gym') ||
     (currentMerchant.category || '').toLowerCase().includes('fitness');
 
+  const isDoctorClinic = (category.category || '').toLowerCase().includes('doctor') ||
+    (category.category || '').toLowerCase().includes('clinic') ||
+    (category.category || '').toLowerCase().includes('medical') ||
+    (category.name || '').toLowerCase().includes('doctor') ||
+    (category.name || '').toLowerCase().includes('clinic') ||
+    (currentMerchant.category || '').toLowerCase().includes('doctor') ||
+    (currentMerchant.category || '').toLowerCase().includes('clinic');
+
   const passes: any[] = category.metadata?.classPasses || [
     {
       id: 'pass-5-classes',
@@ -273,7 +282,7 @@ export default function ServiceListingsPage() {
             <Building2 size={14} className="text-[#ff6325]" />
             <span>Venue Profile</span>
           </button>
-          {(isFitnessOrYoga || (category.category || '').toLowerCase().includes('salon') || (category.category || '').toLowerCase().includes('spa') || (category.name || '').toLowerCase().includes('salon') || (category.name || '').toLowerCase().includes('spa')) && (
+          {(isFitnessOrYoga || isDoctorClinic || (category.category || '').toLowerCase().includes('salon') || (category.category || '').toLowerCase().includes('spa') || (category.name || '').toLowerCase().includes('salon') || (category.name || '').toLowerCase().includes('spa')) && (
             <button
               type="button"
               onClick={() => setManageSlotsOpen(true)}
@@ -293,11 +302,28 @@ export default function ServiceListingsPage() {
             </button>
           ) : activeTab === 'LISTINGS' && !isFitnessOrYoga && !((category.category || '').toLowerCase().includes('salon') || (category.category || '').toLowerCase().includes('spa') || (category.name || '').toLowerCase().includes('salon') || (category.name || '').toLowerCase().includes('spa')) && (
             <button
-              onClick={() => router.push(`/workspace/my-services/${serviceId}/listing/new`)}
+              type="button"
+              onClick={() => {
+                if (isDoctorClinic) {
+                  setEditingTreatment({
+                    id: `doc-${Date.now()}`,
+                    name: '',
+                    price: 500,
+                    active: true,
+                    duration: 20,
+                    salonCategory: 'General Physician',
+                    genderTarget: 'ALL',
+                    serviceMode: 'IN_SALON',
+                    description: 'MBBS • 5+ years experience'
+                  });
+                } else {
+                  router.push(`/workspace/my-services/${serviceId}/listing/new`);
+                }
+              }}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
-              title={`Add a new batch under ${displayName}`}
+              title={isDoctorClinic ? 'Add a new Doctor' : `Add a new batch under ${displayName}`}
             >
-              <Plus size={15} /> Add Batch
+              <Plus size={15} /> {isDoctorClinic ? 'Add Doctor' : 'Add Batch'}
             </button>
           )}
           {activeTab === 'PASSES' && (
@@ -667,7 +693,7 @@ export default function ServiceListingsPage() {
       )}
 
       {/* 2. TAB A: LISTINGS / BATCHES GRID (Clean Menu/Pass List for Salon, Spa, Gym & Yoga) */}
-      {activeTab === 'LISTINGS' && (isFitnessOrYoga || (category.category || '').toLowerCase().includes('salon') || (category.category || '').toLowerCase().includes('spa') || (category.name || '').toLowerCase().includes('salon') || (category.name || '').toLowerCase().includes('spa')) ? (
+      {activeTab === 'LISTINGS' && (isFitnessOrYoga || isDoctorClinic || (category.category || '').toLowerCase().includes('salon') || (category.category || '').toLowerCase().includes('spa') || (category.name || '').toLowerCase().includes('salon') || (category.name || '').toLowerCase().includes('spa')) ? (
         <div className="space-y-4">
           {/* Dynamic Salon & Spa Category Filter Pills from Vendor's Listings */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1">
@@ -726,7 +752,9 @@ export default function ServiceListingsPage() {
                       PACKAGE: 'Packages'
                     } as Record<string, string>)[list.metadata?.salonCategory || 'HAIR'] || list.metadata?.salonCategory || 'Treatment');
                 const genderLabel = list.metadata?.genderTarget === 'WOMEN' ? 'Women' : list.metadata?.genderTarget === 'MEN' ? 'Men' : 'Unisex';
-                const modeLabel = list.metadata?.serviceMode === 'IN_SALON' ? 'In-Salon Only' : list.metadata?.serviceMode === 'DOORSTEP' ? 'Doorstep Only' : 'In-Salon & Doorstep';
+                const modeLabel = isDoctorClinic
+                  ? (list.metadata?.serviceMode === 'IN_SALON' ? 'In-Clinic' : list.metadata?.serviceMode === 'DOORSTEP' ? 'Video Consult' : 'In-Clinic & Video')
+                  : (list.metadata?.serviceMode === 'IN_SALON' ? 'In-Salon Only' : list.metadata?.serviceMode === 'DOORSTEP' ? 'Doorstep Only' : 'In-Salon & Doorstep');
 
                 return (
                   <div
@@ -740,7 +768,8 @@ export default function ServiceListingsPage() {
                       duration: list.duration || 30,
                       price: list.price || 499,
                       description: list.description || '',
-                      active: list.active !== false
+                      active: list.active !== false,
+                      clinicContact: list.metadata?.clinicContact || ''
                     })}
                     className="group bg-white dark:bg-[#0f1624] rounded-2xl border border-slate-200/80 dark:border-white/10 p-4 flex items-center justify-between gap-4 hover:border-[#ff6325]/60 hover:shadow-md transition-all cursor-pointer"
                   >
@@ -749,7 +778,7 @@ export default function ServiceListingsPage() {
                         <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#0a3161]/10 text-[#0a3161] dark:bg-blue-500/20 dark:text-blue-300">
                           {catLabel}
                         </span>
-                        {!isFitnessOrYoga ? (
+                        {!isFitnessOrYoga && !isDoctorClinic ? (
                           <>
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300">
                               {genderLabel}
@@ -1341,7 +1370,9 @@ export default function ServiceListingsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-white dark:bg-[#0f1624] w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-white/10 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
-              <h3 className="text-base font-black text-slate-900 dark:text-white">Edit Salon / Spa Service</h3>
+              <h3 className="text-base font-black text-slate-900 dark:text-white">
+                {isDoctorClinic ? 'Doctor / Consultation Details' : 'Edit Salon / Spa Service'}
+              </h3>
               <button
                 type="button"
                 onClick={() => setEditingTreatment(null)}
@@ -1353,30 +1384,42 @@ export default function ServiceListingsPage() {
 
             <div className="space-y-3">
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Treatment Name</label>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{isDoctorClinic ? 'Doctor Name' : 'Treatment Name'}</label>
                 <input
                   type="text"
+                  placeholder={isDoctorClinic ? 'e.g. Dr. Rajesh Kumar (Senior Consultant)' : 'e.g. Haircut & Styling'}
                   value={editingTreatment.name}
                   onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, name: e.target.value }) : null)}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className={`grid grid-cols-1 ${isDoctorClinic ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-3`}>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Filter</label>
-                  <select
-                    value={editingTreatment.salonCategory}
-                    onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, salonCategory: e.target.value }) : null)}
-                    className="w-full px-2.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
-                  >
-                    <option value="HAIR">Hair & Styling</option>
-                    <option value="BEARD">Beard Grooming</option>
-                    <option value="SKIN_FACIAL">Facials & Skin</option>
-                    <option value="MASSAGE_SPA">Massage & Spa</option>
-                    <option value="PACKAGE">Packages</option>
-                  </select>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{isDoctorClinic ? 'Specialization' : 'Filter'}</label>
+                  {isDoctorClinic ? (
+                    <input
+                      type="text"
+                      placeholder="e.g. Cardiologist, Dentist"
+                      value={editingTreatment.salonCategory}
+                      onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, salonCategory: e.target.value }) : null)}
+                      className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                    />
+                  ) : (
+                    <select
+                      value={editingTreatment.salonCategory}
+                      onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, salonCategory: e.target.value }) : null)}
+                      className="w-full px-2.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                    >
+                      <option value="HAIR">Hair & Styling</option>
+                      <option value="BEARD">Beard Grooming</option>
+                      <option value="SKIN_FACIAL">Facials & Skin</option>
+                      <option value="MASSAGE_SPA">Massage & Spa</option>
+                      <option value="PACKAGE">Packages</option>
+                    </select>
+                  )}
                 </div>
+                {!isDoctorClinic && (
                 <div>
                   <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Gender</label>
                   <select
@@ -1389,16 +1432,27 @@ export default function ServiceListingsPage() {
                     <option value="MEN">Men</option>
                   </select>
                 </div>
+                )}
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Service Mode</label>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{isDoctorClinic ? 'Consultation Mode' : 'Service Mode'}</label>
                   <select
                     value={editingTreatment.serviceMode}
                     onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, serviceMode: e.target.value }) : null)}
                     className="w-full px-2.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
                   >
-                    <option value="BOTH">In-Salon & Doorstep</option>
-                    <option value="IN_SALON">In-Salon Only</option>
-                    <option value="DOORSTEP">Doorstep Only</option>
+                    {isDoctorClinic ? (
+                      <>
+                        <option value="BOTH">In-Clinic & Video</option>
+                        <option value="IN_SALON">In-Clinic Only</option>
+                        <option value="DOORSTEP">Video Consult Only</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="BOTH">In-Salon & Doorstep</option>
+                        <option value="IN_SALON">In-Salon Only</option>
+                        <option value="DOORSTEP">Doorstep Only</option>
+                      </>
+                    )}
                   </select>
                 </div>
               </div>
@@ -1407,34 +1461,56 @@ export default function ServiceListingsPage() {
                 <div>
                   <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Duration (Mins)</label>
                   <input
-                    type="number"
-                    min={10}
-                    value={editingTreatment.duration}
-                    onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, duration: Number(e.target.value) || 30 }) : null)}
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="e.g. 20"
+                    value={editingTreatment.duration || ''}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, '');
+                      setEditingTreatment(prev => prev ? ({ ...prev, duration: val ? Number(val) : 0 }) : null);
+                    }}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Price (₹)</label>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{isDoctorClinic ? 'Consultation Fee (₹)' : 'Price (₹)'}</label>
                   <input
-                    type="number"
-                    min={0}
-                    value={editingTreatment.price}
-                    onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, price: Number(e.target.value) || 0 }) : null)}
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="e.g. 500"
+                    value={editingTreatment.price || ''}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, '');
+                      setEditingTreatment(prev => prev ? ({ ...prev, price: val ? Number(val) : 0 }) : null);
+                    }}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Description</label>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{isDoctorClinic ? 'Qualification & Experience' : 'Description'}</label>
                 <textarea
                   rows={2}
+                  placeholder={isDoctorClinic ? 'e.g. MBBS, MD • 12 yrs exp' : 'Service details...'}
                   value={editingTreatment.description}
                   onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, description: e.target.value }) : null)}
                   className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
                 />
               </div>
+
+              {isDoctorClinic && (
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Clinic Contact (Optional • Shown After Booking)</label>
+                  <input
+                    type="tel"
+                    placeholder="e.g. +91 98765 43210"
+                    value={editingTreatment.clinicContact || ''}
+                    onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, clinicContact: e.target.value }) : null)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-white/10">
@@ -1580,7 +1656,7 @@ export default function ServiceListingsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{isFitnessOrYoga ? 'Batch Capacity' : 'Chairs / Rooms'}</label>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{isFitnessOrYoga ? 'Batch Capacity' : isDoctorClinic ? 'Consultation Rooms' : 'Chairs / Rooms'}</label>
                 <input
                   type="number"
                   min={1}
@@ -1654,7 +1730,7 @@ export default function ServiceListingsPage() {
             </div>
 
             {/* 3b. Doorstep Convenience Fee & Min Order (Salon & Spa only) */}
-            {!isFitnessOrYoga && (
+            {!isFitnessOrYoga && !isDoctorClinic && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 dark:bg-white/5 p-3.5 rounded-2xl border border-slate-200/70 dark:border-white/10">
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Doorstep Convenience Fee (₹)</label>
