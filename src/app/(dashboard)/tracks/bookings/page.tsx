@@ -411,7 +411,8 @@ export default function BookingsPage() {
           {filteredBookings.map((b) => {
             const staff = staffAccounts.find(s => s.id === b.assignedDoctorId || s.name === b.refereeAssigned);
             const isPending = b.status === 'CONFIRMED' || b.status === 'CHECKED_IN';
-            const primaryName = (b.teamName || b.customerName || 'Guest Customer');
+            const docMeta = (b as any).metadata?.doctor;
+            const primaryName = (docMeta?.patientName || b.teamName || b.customerName || 'Guest Customer');
             
             return (
               <div 
@@ -427,6 +428,17 @@ export default function BookingsPage() {
                   <div>
                     <h3 className={`text-sm font-black text-text-primary transition-colors group-hover:text-[#ff6325]`}>{primaryName}</h3>
                     <p className="text-[10px] font-bold text-text-secondary flex items-center gap-1 mt-0.5"><FileDigit size={12} /> {b.ref}</p>
+                    {docMeta && (
+                      <p className="text-[10px] font-bold text-text-muted mt-0.5 truncate max-w-[220px]">
+                        {[docMeta.patientAge ? `${docMeta.patientAge}y` : null, docMeta.patientGender, docMeta.patientVisitType === 'RETURNING' ? 'Returning' : docMeta.patientVisitType === 'NEW' ? 'New' : null].filter(Boolean).join(' • ')}
+                        {docMeta.symptoms ? ` — ${docMeta.symptoms}` : ''}
+                      </p>
+                    )}
+                    {docMeta?.patientName && b.customerName && docMeta.patientName.toLowerCase().trim() !== b.customerName.toLowerCase().trim() && (
+                      <p className="text-[10px] font-bold text-[#0a3161] dark:text-sky-400 mt-0.5">
+                        Booked by: {b.customerName}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -478,7 +490,7 @@ export default function BookingsPage() {
                         onChange={(e) => handleAssignStaff(b, e.target.value)}
                         className="w-full bg-bg-secondary hover:bg-bg-tertiary border border-border-brand/70 rounded-lg px-2 py-1 text-xs font-bold text-text-primary outline-none focus:border-[#ff6325] cursor-pointer transition-colors truncate"
                       >
-                        <option value="">Unassigned</option>
+                        <option value="">{(b.metadata as any)?.doctor?.doctorName || 'Unassigned'}</option>
                         {staffAccounts.map(s => {
                           const role = s.roleTitle || (s as any).role || '';
                           return (
@@ -570,10 +582,10 @@ export default function BookingsPage() {
             {/* Entity Snapshot */}
             <div className="bg-bg-secondary border-b border-border-brand/40 p-6 shrink-0 flex flex-col md:flex-row gap-6 items-start md:items-center">
               <div className="h-16 w-16 md:h-20 md:w-20 rounded-[2rem] bg-gradient-to-br from-[#ff6325] to-[#ff8452] border-2 border-[#ff6325]/40 shadow-lg flex items-center justify-center shrink-0 text-white font-black text-2xl md:text-3xl select-none">
-                {((selectedBooking.customerName || selectedBooking.teamName || 'U').charAt(0)).toUpperCase()}
+                {(((selectedBooking.metadata as any)?.doctor?.patientName || selectedBooking.teamName || selectedBooking.customerName || 'U').charAt(0)).toUpperCase()}
               </div>
               <div className="flex-1">
-                <h3 className="text-2xl font-black text-text-primary">{selectedBooking.teamName || selectedBooking.customerName}</h3>
+                <h3 className="text-2xl font-black text-text-primary">{(selectedBooking.metadata as any)?.doctor?.patientName || selectedBooking.teamName || selectedBooking.customerName}</h3>
                 <div className="flex flex-wrap items-center gap-4 mt-2 text-xs font-semibold text-text-secondary">
                   <span className="flex items-center gap-1"><User size={14} className="text-text-muted" /> Booker: {selectedBooking.customerName}</span>
                   <span>•</span>
@@ -595,7 +607,7 @@ export default function BookingsPage() {
                   onChange={(e) => handleAssignStaff(selectedBooking, e.target.value)}
                   className="bg-bg-secondary hover:bg-bg-tertiary border border-border-brand/70 rounded-lg px-2 py-1 text-xs font-bold text-text-primary outline-none focus:border-[#ff6325] cursor-pointer transition-colors max-w-full"
                 >
-                  <option value="">Unassigned</option>
+                  <option value="">{(selectedBooking?.metadata as any)?.doctor?.doctorName || 'Unassigned'}</option>
                   {staffAccounts.map(s => {
                     const role = s.roleTitle || (s as any).role || '';
                     return (
@@ -1117,7 +1129,7 @@ export default function BookingsPage() {
               })()}
 
               {/* 1-B. DOCTOR / HEALTHCARE OPD QUEUE & EMR TAB */}
-              {((currentMerchant.category?.toLowerCase().includes('doctor') || currentMerchant.archetype === 'Healthcare' || (selectedBooking.metadata?.appointmentBooking && !selectedBooking.metadata?.appointmentBooking?.treatmentDetails && !selectedBooking.metadata?.appointmentBooking?.serviceMode && !currentMerchant.category?.toLowerCase().includes('salon') && !currentMerchant.category?.toLowerCase().includes('spa')))) && (
+              {(!(selectedBooking.metadata as any)?.doctor && (currentMerchant.category?.toLowerCase().includes('doctor') || currentMerchant.archetype === 'Healthcare' || (selectedBooking.metadata?.appointmentBooking && !selectedBooking.metadata?.appointmentBooking?.treatmentDetails && !selectedBooking.metadata?.appointmentBooking?.serviceMode && !currentMerchant.category?.toLowerCase().includes('salon') && !currentMerchant.category?.toLowerCase().includes('spa')))) && (
                 <div className="p-5 rounded-2xl bg-blue-500/5 border border-blue-500/20 space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-blue-500 font-extrabold text-sm">

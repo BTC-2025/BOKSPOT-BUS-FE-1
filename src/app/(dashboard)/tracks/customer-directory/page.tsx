@@ -4,8 +4,8 @@ import { useState, useMemo, useEffect } from 'react';
 import { useVendorStore } from '@/lib/store';
 import { getArchetypeConfig } from '@/lib/businessDictionary';
 import { getArchetypeFromCategory } from '@/lib/archetypes';
-import { 
-  Users, Search, Mail, Phone, Calendar, ArrowUpRight, 
+import {
+  Users, Search, Mail, Phone, Calendar, ArrowUpRight,
   DollarSign, BookOpen, Star, RefreshCw
 } from 'lucide-react';
 
@@ -63,14 +63,14 @@ export default function CustomersPage() {
             });
             setLiveBookings(filtered);
           }
-        } catch (err2) {}
+        } catch (err2) { }
       }
     };
     fetchSync();
     const interval = setInterval(fetchSync, 2000);
     return () => clearInterval(interval);
   }, [currentMerchant]);
-  
+
   const customers = useMemo(() => {
     if (!currentMerchant) return [];
 
@@ -101,37 +101,41 @@ export default function CustomersPage() {
         if (bArch === 'TRANSPORT' || ['buses', 'trains', 'flights', 'cabs'].includes(bCategory)) return false;
         if (/bus|train|flight|shatabdi|volvo/i.test(bServiceName)) return false;
       }
-      if (curArch && bArch && curArch !== bArch) return false;
+      // If matched by exact merchantId, don't filter out by archetype mismatch
+      if (!matchesId && curArch && bArch && curArch !== bArch) return false;
       return true;
     });
 
     const customersMap = new Map<string, CustomerRecord>();
-    
+
     merchantBookings.forEach((b) => {
+      const docMeta = (b as any).metadata?.doctor;
+      const effectiveName = docMeta?.patientName || b.customerName || 'Guest Customer';
+      const effectivePhone = docMeta?.patientPhone || b.customerPhone || '';
       // Group uniquely by Customer Phone or Normalized Email or Name
-      const rawPhone = (b.customerPhone || '').replace(/\D/g, '');
-      const key = rawPhone ? `p_${rawPhone.slice(-10)}` : (b.customerEmail ? `e_${b.customerEmail.toLowerCase().trim()}` : `n_${(b.customerName || 'guest').toLowerCase().trim()}`);
-      
+      const rawPhone = effectivePhone.replace(/\D/g, '');
+      const key = rawPhone ? `p_${rawPhone.slice(-10)}` : (b.customerEmail ? `e_${b.customerEmail.toLowerCase().trim()}` : `n_${effectiveName.toLowerCase().trim()}`);
+
       const isCancelled = b.status === 'CANCELLED';
 
       if (!customersMap.has(key)) {
         customersMap.set(key, {
           id: `cust-${key}`,
-          name: b.customerName || 'Guest Customer',
+          name: effectiveName,
           email: b.customerEmail || "",
-          phone: b.customerPhone || "",
+          phone: effectivePhone,
           totalBookings: 0,
           totalSpend: 0,
           lastBookingDate: '',
           rating: 4.5,
           status: 'New',
-          complaint: undefined
+          complaint: docMeta?.symptoms ? `Symptoms: ${docMeta.symptoms}` : undefined
         });
       }
       const cust = customersMap.get(key)!;
       // Prefer latest email/phone if available
       if (b.customerEmail && !cust.email) cust.email = b.customerEmail;
-      if (b.customerPhone && !cust.phone) cust.phone = b.customerPhone;
+      if (effectivePhone && !cust.phone) cust.phone = effectivePhone;
 
       // Only count completed or confirmed bookings towards actual Stays and Total Spend
       if (!isCancelled) {
@@ -148,7 +152,7 @@ export default function CustomersPage() {
         cust.lastBookingDate = b.date;
       }
     });
-    
+
     return Array.from(customersMap.values()).map(c => {
       if (c.totalBookings >= 5) c.status = 'Loyal';
       else if (c.totalBookings >= 2) c.status = 'Frequent';
@@ -157,7 +161,7 @@ export default function CustomersPage() {
     }).sort((a, b) => b.totalSpend - a.totalSpend);
   }, [currentMerchant, bookings, liveBookings]);
 
-  const filteredCustomers = customers.filter(c => 
+  const filteredCustomers = customers.filter(c =>
     (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (c.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (c.phone || '').toLowerCase().includes(searchTerm.toLowerCase())
@@ -172,7 +176,7 @@ export default function CustomersPage() {
     return <div className="text-center text-text-secondary py-12">Loading database...</div>;
   }
 
-        
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -225,7 +229,7 @@ export default function CustomersPage() {
       {/* Search Input */}
       <div className="rounded-xl border border-border-brand bg-bg-secondary p-4">
         <div className="relative">
-          <input 
+          <input
             type="text"
             placeholder={archetypeConfig.customerSearchPlaceholder || 'Search...'}
             value={searchTerm}

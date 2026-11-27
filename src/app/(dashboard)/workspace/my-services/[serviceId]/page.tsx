@@ -14,6 +14,7 @@ export default function ServiceListingsPage() {
   const [activeTab, setActiveTab] = useState<'LISTINGS' | 'PASSES' | 'TRAINERS'>('LISTINGS');
   const [newTrainer, setNewTrainer] = useState({ name: '', title: '', experienceYears: 5, certs: '', avatar: '', price: 0, priceUnit: 'session' });
   const [trainerModalOpen, setTrainerModalOpen] = useState(false);
+  const [slotTargetListingId, setSlotTargetListingId] = useState<string>('ALL');
   const [editingPassModal, setEditingPassModal] = useState(false);
   const [salonFilterCat, setSalonFilterCat] = useState<string>('ALL');
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
@@ -1579,6 +1580,23 @@ export default function ServiceListingsPage() {
               </button>
             </div>
 
+            {/* 0. Target Doctor Selector (Doctor/Clinic only) */}
+            {isDoctorClinic && listings.length > 0 && (
+              <div className="bg-slate-50 dark:bg-white/5 p-3.5 rounded-2xl border border-slate-200/70 dark:border-white/10">
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Apply Schedule To Doctor</label>
+                <select
+                  value={slotTargetListingId}
+                  onChange={(e) => setSlotTargetListingId(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                >
+                  <option value="ALL">All Doctors (Clinic Default)</option>
+                  {listings.map((l: any) => (
+                    <option key={l.id} value={l.id}>{l.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* 1. Date Range (2 to 7 days at once) */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end bg-slate-50 dark:bg-white/5 p-3.5 rounded-2xl border border-slate-200/70 dark:border-white/10">
               <div>
@@ -1847,24 +1865,36 @@ export default function ServiceListingsPage() {
               <button
                 type="button"
                 onClick={() => {
-                  updateService({
-                    ...category!,
-                    metadata: {
-                      ...(category?.metadata || {}),
-                      homeConvenienceFee,
-                      homeMinOrderValue,
-                      gymAmenities,
-                      salonSchedule: {
-                        openTime: salonOpenTime,
-                        closeTime: salonCloseTime,
-                        slotInterval: salonSlotInterval,
-                        capacity: salonCapacity,
-                        breakfastBreak,
-                        lunchBreak,
-                        blockedSlotsByDate,
+                  const schedulePayload = {
+                    openTime: salonOpenTime,
+                    closeTime: salonCloseTime,
+                    slotInterval: salonSlotInterval,
+                    capacity: salonCapacity,
+                    breakfastBreak,
+                    lunchBreak,
+                    blockedSlotsByDate,
+                  };
+                  if (isDoctorClinic && slotTargetListingId !== 'ALL') {
+                    updateService({
+                      ...category!,
+                      listings: (category?.listings || []).map((l: any) =>
+                        l.id === slotTargetListingId
+                          ? { ...l, metadata: { ...(l.metadata || {}), salonSchedule: schedulePayload } }
+                          : l
+                      )
+                    });
+                  } else {
+                    updateService({
+                      ...category!,
+                      metadata: {
+                        ...(category?.metadata || {}),
+                        homeConvenienceFee,
+                        homeMinOrderValue,
+                        gymAmenities,
+                        salonSchedule: schedulePayload
                       }
-                    }
-                  });
+                    });
+                  }
                   setManageSlotsOpen(false);
                 }}
                 className="px-5 py-2 rounded-xl bg-[#ff6325] hover:bg-[#e04e13] text-white text-xs font-black cursor-pointer shadow-sm"
