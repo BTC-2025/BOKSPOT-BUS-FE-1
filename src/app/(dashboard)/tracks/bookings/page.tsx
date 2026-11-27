@@ -1789,11 +1789,17 @@ export default function BookingsPage() {
                             body: JSON.stringify(updated),
                           });
                         } catch (e) {}
-                        alert(`📢 Token #${selectedBooking.metadata?.doctor?.tokenNumber || '14'} Called! ${selectedBooking.metadata?.doctor?.patientName || selectedBooking.customerName} admitted into ${selectedBooking.metadata?.doctor?.opdRoom || 'OPD Room'}.`);
+                        if (selectedBooking.metadata?.doctor?.consultationMode === 'VIDEO_CONSULTATION') {
+                          window.open(`https://meet.jit.si/bokspot-${selectedBooking.ref}`, '_blank', 'noopener,noreferrer');
+                        } else {
+                          alert(`📢 Token #${selectedBooking.metadata?.doctor?.tokenNumber || '14'} Called! ${selectedBooking.metadata?.doctor?.patientName || selectedBooking.customerName} admitted into ${selectedBooking.metadata?.doctor?.opdRoom || 'OPD Room'}.`);
+                        }
                       }}
                       className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
                     >
-                      📢 Call Token #{selectedBooking.metadata?.doctor?.tokenNumber || '14'} into Chamber
+                      {selectedBooking.metadata?.doctor?.consultationMode === 'VIDEO_CONSULTATION'
+                        ? `📹 Start Video Consultation (Token #${selectedBooking.metadata?.doctor?.tokenNumber || '14'})`
+                        : `📢 Call Token #${selectedBooking.metadata?.doctor?.tokenNumber || '14'} into Chamber`}
                     </button>
                     {selectedBooking.status === 'CHECKED_IN' && (
                       <span className="px-3 py-2 rounded-xl bg-emerald-500/20 text-emerald-400 font-black text-xs border border-emerald-500/30">
