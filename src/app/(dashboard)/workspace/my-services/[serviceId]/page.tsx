@@ -273,7 +273,7 @@ export default function ServiceListingsPage() {
           <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             <span className="capitalize">{displayName}</span>
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#ff6325]/10 text-[#ff6325] font-bold">
-              {listings.length} Bookable {listings.length === 1 ? 'Batch' : 'Batches'}
+              {listings.length} {isHomeService ? (listings.length === 1 ? 'Service' : 'Services') : `Bookable ${listings.length === 1 ? 'Batch' : 'Batches'}`}
             </span>
           </h1>
         </div>
@@ -911,6 +911,7 @@ export default function ServiceListingsPage() {
                       serviceGuarantee: (list.metadata as any)?.serviceGuarantee || 'NONE',
                       customGuarantee: (list.metadata as any)?.customGuarantee || '',
                       whatsIncluded: (list.metadata as any)?.whatsIncluded || '',
+                      whatsExcluded: (list.metadata as any)?.whatsExcluded || '',
                       duration: Number(list.duration) || 45,
                       price: Number(list.price) || 0,
                       description: list.description || '',
@@ -1015,10 +1016,34 @@ export default function ServiceListingsPage() {
                     </p>
 
                     <div className="mt-2.5 flex flex-wrap gap-1">
-                      {list.isTimingEnabled && <span className="px-2 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold rounded">Timing</span>}
-                      {list.isAddonsEnabled && <span className="px-2 py-0.5 bg-[#ff6325]/10 text-[#ff6325] text-[10px] font-bold rounded">Add-ons</span>}
-                      {list.isRulesEnabled && <span className="px-2 py-0.5 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 text-[10px] font-bold rounded">Rules</span>}
-                      {list.isOffersEnabled && <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold rounded">Offers</span>}
+                      {isHomeService ? (
+                        <>
+                          {(list.metadata as any)?.priceType === 'STARTING_FROM' && (
+                            <span className="px-2 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-bold rounded">Starting From</span>
+                          )}
+                          {(list.metadata as any)?.priceType === 'CUSTOM_QUOTE' && (
+                            <span className="px-2 py-0.5 bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[10px] font-bold rounded">Custom Quote</span>
+                          )}
+                          {(list.metadata as any)?.serviceGuarantee && (list.metadata as any)?.serviceGuarantee !== 'NONE' && (
+                            <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold rounded">
+                              {(list.metadata as any).serviceGuarantee === '7_DAY_REVISIT' ? '7-Day Revisit' : (list.metadata as any).serviceGuarantee === '30_DAY_LABOR' ? '30-Day Labor' : ((list.metadata as any).customGuarantee || 'Warranty')}
+                            </span>
+                          )}
+                          {(list.metadata as any)?.materials === 'INCLUDED' && (
+                            <span className="px-2 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold rounded">Materials Included</span>
+                          )}
+                          {(list.metadata as any)?.materials === 'CHARGED_SEPARATELY' && (
+                            <span className="px-2 py-0.5 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 text-[10px] font-bold rounded">Spares Extra</span>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          {list.isTimingEnabled && <span className="px-2 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold rounded">Timing</span>}
+                          {list.isAddonsEnabled && <span className="px-2 py-0.5 bg-[#ff6325]/10 text-[#ff6325] text-[10px] font-bold rounded">Add-ons</span>}
+                          {list.isRulesEnabled && <span className="px-2 py-0.5 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 text-[10px] font-bold rounded">Rules</span>}
+                          {list.isOffersEnabled && <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold rounded">Offers</span>}
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -1430,7 +1455,7 @@ export default function ServiceListingsPage() {
           <div className="bg-white dark:bg-[#0f1624] w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-white/10 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
               <h3 className="text-base font-black text-slate-900 dark:text-white">
-                {isDoctorClinic ? 'Doctor / Consultation Details' : isHomeService ? 'Home Service Details' : 'Edit Salon / Spa Service'}
+                {isDoctorClinic ? 'Doctor / Consultation Details' : isHomeService ? `${displayName} Details` : 'Edit Salon / Spa Service'}
               </h3>
               <button
                 type="button"
@@ -1446,7 +1471,7 @@ export default function ServiceListingsPage() {
                 <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{isDoctorClinic ? 'Doctor Name' : isHomeService ? 'Service Title' : 'Treatment Name'}</label>
                 <input
                   type="text"
-                  placeholder={isDoctorClinic ? 'e.g. Dr. Rajesh Kumar (Senior Consultant)' : isHomeService ? 'e.g. MCB & Wiring Check / Tap Leak Repair' : 'e.g. Haircut & Styling'}
+                  placeholder={isDoctorClinic ? 'e.g. Dr. Rajesh Kumar (Senior Consultant)' : isHomeService ? (displayName.toLowerCase().includes('plumb') ? 'e.g. Tap Leak Repair / Drain Unclogging' : displayName.toLowerCase().includes('clean') ? 'e.g. 2BHK Deep Cleaning / Kitchen Degreasing' : displayName.toLowerCase().includes('tech') ? 'e.g. AC Gas Refill / RO Filter Service' : 'e.g. MCB & Wiring Check / Fan Installation') : 'e.g. Haircut & Styling'}
                   value={editingTreatment.name}
                   onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, name: e.target.value }) : null)}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
@@ -1606,9 +1631,19 @@ export default function ServiceListingsPage() {
                     <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">What&apos;s Included</label>
                     <textarea
                       rows={2}
-                      placeholder="e.g. Labor charges, fault diagnosis, basic fitting up to 2 points"
+                      placeholder={displayName.toLowerCase().includes('plumb') ? 'e.g. Labor, leak inspection, washer replacement' : displayName.toLowerCase().includes('clean') ? 'e.g. Floor scrubbing, bathroom sanitization, dusting' : displayName.toLowerCase().includes('tech') ? 'e.g. Full diagnostics, filter cleaning, safety check' : 'e.g. Labor charges, fault diagnosis, basic fitting up to 2 points'}
                       value={(editingTreatment as any).whatsIncluded || ''}
                       onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, whatsIncluded: e.target.value } as any) : null)}
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">What&apos;s NOT Included (Exclusions)</label>
+                    <textarea
+                      rows={2}
+                      placeholder={displayName.toLowerCase().includes('plumb') ? 'e.g. New pipes, taps, concealed wall breaking' : displayName.toLowerCase().includes('clean') ? 'e.g. Paint/cement stain removal, high-ceiling chandelier' : displayName.toLowerCase().includes('tech') ? 'e.g. Spare parts, PCB replacement, gas refill' : 'e.g. Spare MCBs, concealed wiring, civil/wall work'}
+                      value={(editingTreatment as any).whatsExcluded || ''}
+                      onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, whatsExcluded: e.target.value } as any) : null)}
                       className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
                     />
                   </div>
@@ -1662,6 +1697,7 @@ export default function ServiceListingsPage() {
                     serviceGuarantee: (editingTreatment as any).serviceGuarantee,
                     customGuarantee: (editingTreatment as any).customGuarantee,
                     whatsIncluded: (editingTreatment as any).whatsIncluded,
+                    whatsExcluded: (editingTreatment as any).whatsExcluded,
                   };
                   const updatedListings = exists
                     ? listings.map(l =>

@@ -86,6 +86,9 @@ export default function WorkspacePage() {
     ],
     "Cinema & Live Entertainment": [
       "Cinema / Movie Tickets", "Theatre Shows", "Concert Tickets", "Events & Festivals", "Exhibition Entry", "Workshops / Classes"
+    ],
+    "Home Services & Repairs": [
+      "Electrician Booking", "Plumber Booking", "Cleaning Service", "Technician Service"
     ]
   };
 

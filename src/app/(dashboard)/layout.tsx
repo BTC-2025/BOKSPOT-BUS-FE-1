@@ -1046,7 +1046,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex-auto overflow-x-auto custom-scrollbar flex justify-center">
             <nav className="flex items-center gap-1 mx-auto px-1 w-max p-0.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.03] dark:border-white/[0.04]">
               {navItems.map((item) => {
-                const active = pathname === item.href;
+                const active = pathname === item.href || (item.href !== '/workspace' && pathname.startsWith(`${item.href}/`));
                 return (
                   <Link
                     key={item.href}
