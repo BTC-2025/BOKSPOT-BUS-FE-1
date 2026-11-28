@@ -912,6 +912,11 @@ export default function ServiceListingsPage() {
                       customGuarantee: (list.metadata as any)?.customGuarantee || '',
                       whatsIncluded: (list.metadata as any)?.whatsIncluded || '',
                       whatsExcluded: (list.metadata as any)?.whatsExcluded || '',
+                      technicianName: (list.metadata as any)?.technicianName || '',
+                      serviceContact: (list.metadata as any)?.serviceContact || '',
+                      expressAvailable: Boolean((list.metadata as any)?.expressAvailable),
+                      expressFee: (list.metadata as any)?.expressFee ?? 149,
+                      expressAreas: (list.metadata as any)?.expressAreas || '',
                       duration: Number(list.duration) || 45,
                       price: Number(list.price) || 0,
                       description: list.description || '',
@@ -1027,6 +1032,11 @@ export default function ServiceListingsPage() {
                           {(list.metadata as any)?.serviceGuarantee && (list.metadata as any)?.serviceGuarantee !== 'NONE' && (
                             <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold rounded">
                               {(list.metadata as any).serviceGuarantee === '7_DAY_REVISIT' ? '7-Day Revisit' : (list.metadata as any).serviceGuarantee === '30_DAY_LABOR' ? '30-Day Labor' : ((list.metadata as any).customGuarantee || 'Warranty')}
+                            </span>
+                          )}
+                          {(list.metadata as any)?.expressAvailable && (
+                            <span className="px-2 py-0.5 bg-[#ff6325]/10 text-[#ff6325] text-[10px] font-bold rounded">
+                              ⚡ 90-Min Express (+₹{(list.metadata as any).expressFee || 149})
                             </span>
                           )}
                           {(list.metadata as any)?.materials === 'INCLUDED' && (
@@ -1452,8 +1462,8 @@ export default function ServiceListingsPage() {
       {/* Quick Edit Salon & Spa Treatment Modal */}
       {editingTreatment && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-[#0f1624] w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-white/10 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
+          <div className={`bg-white dark:bg-[#0f1624] w-full ${isHomeService ? 'max-w-xl' : 'max-w-lg'} rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-white/10 flex flex-col max-h-[90vh] gap-4`}>
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3 shrink-0">
               <h3 className="text-base font-black text-slate-900 dark:text-white">
                 {isDoctorClinic ? 'Doctor / Consultation Details' : isHomeService ? `${displayName} Details` : 'Edit Salon / Spa Service'}
               </h3>
@@ -1466,7 +1476,7 @@ export default function ServiceListingsPage() {
               </button>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 overflow-y-auto pr-1 flex-1">
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{isDoctorClinic ? 'Doctor Name' : isHomeService ? 'Service Title' : 'Treatment Name'}</label>
                 <input
@@ -1627,25 +1637,27 @@ export default function ServiceListingsPage() {
                       />
                     )}
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">What&apos;s Included</label>
-                    <textarea
-                      rows={2}
-                      placeholder={displayName.toLowerCase().includes('plumb') ? 'e.g. Labor, leak inspection, washer replacement' : displayName.toLowerCase().includes('clean') ? 'e.g. Floor scrubbing, bathroom sanitization, dusting' : displayName.toLowerCase().includes('tech') ? 'e.g. Full diagnostics, filter cleaning, safety check' : 'e.g. Labor charges, fault diagnosis, basic fitting up to 2 points'}
-                      value={(editingTreatment as any).whatsIncluded || ''}
-                      onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, whatsIncluded: e.target.value } as any) : null)}
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">What&apos;s NOT Included (Exclusions)</label>
-                    <textarea
-                      rows={2}
-                      placeholder={displayName.toLowerCase().includes('plumb') ? 'e.g. New pipes, taps, concealed wall breaking' : displayName.toLowerCase().includes('clean') ? 'e.g. Paint/cement stain removal, high-ceiling chandelier' : displayName.toLowerCase().includes('tech') ? 'e.g. Spare parts, PCB replacement, gas refill' : 'e.g. Spare MCBs, concealed wiring, civil/wall work'}
-                      value={(editingTreatment as any).whatsExcluded || ''}
-                      onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, whatsExcluded: e.target.value } as any) : null)}
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">What&apos;s Included</label>
+                      <textarea
+                        rows={2}
+                        placeholder={displayName.toLowerCase().includes('plumb') ? 'e.g. Labor, leak inspection, washer replacement' : displayName.toLowerCase().includes('clean') ? 'e.g. Floor scrubbing, bathroom sanitization, dusting' : displayName.toLowerCase().includes('tech') ? 'e.g. Full diagnostics, filter cleaning, safety check' : 'e.g. Labor charges, fault diagnosis, basic fitting up to 2 points'}
+                        value={(editingTreatment as any).whatsIncluded || ''}
+                        onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, whatsIncluded: e.target.value } as any) : null)}
+                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">What&apos;s NOT Included (Exclusions)</label>
+                      <textarea
+                        rows={2}
+                        placeholder={displayName.toLowerCase().includes('plumb') ? 'e.g. New pipes, taps, concealed wall breaking' : displayName.toLowerCase().includes('clean') ? 'e.g. Paint/cement stain removal, high-ceiling chandelier' : displayName.toLowerCase().includes('tech') ? 'e.g. Spare parts, PCB replacement, gas refill' : 'e.g. Spare MCBs, concealed wiring, civil/wall work'}
+                        value={(editingTreatment as any).whatsExcluded || ''}
+                        onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, whatsExcluded: e.target.value } as any) : null)}
+                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                      />
+                    </div>
                   </div>
                 </div>
               )}
@@ -1660,6 +1672,85 @@ export default function ServiceListingsPage() {
                   className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
                 />
               </div>
+
+              {isHomeService && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Technician / Pro Name (Optional)</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Ramesh Kumar"
+                        value={(editingTreatment as any).technicianName || ''}
+                        onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, technicianName: e.target.value } as any) : null)}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Technician Contact (Post-Booking)</label>
+                      <input
+                        type="tel"
+                        placeholder="e.g. +91 98765 43210"
+                        value={(editingTreatment as any).serviceContact || ''}
+                        onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, serviceContact: e.target.value } as any) : null)}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Express 90-Min Dispatch Configuration */}
+                  <div className="p-3.5 rounded-2xl bg-orange-50/70 dark:bg-[#ff6325]/10 border border-orange-200/80 dark:border-[#ff6325]/30 space-y-3">
+                    <label className="flex items-center justify-between gap-3 cursor-pointer">
+                      <div>
+                        <span className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                          ⚡ Express 90-Min Dispatch
+                        </span>
+                        <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 block">
+                          Enable urgent doorstep arrival (8 AM – 8 PM) for nearby areas
+                        </span>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={Boolean((editingTreatment as any).expressAvailable)}
+                        onChange={(e) => setEditingTreatment(prev => prev ? ({
+                          ...prev,
+                          expressAvailable: e.target.checked,
+                          expressFee: (prev as any).expressFee ?? 149,
+                        } as any) : null)}
+                        className="h-4 w-4 accent-[#ff6325] cursor-pointer"
+                      />
+                    </label>
+                    {(editingTreatment as any).expressAvailable && (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-orange-200/60 dark:border-[#ff6325]/20">
+                        <div className="sm:col-span-2">
+                          <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase mb-1">Express Coverage Areas</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Anna Nagar, T. Nagar, Adyar (Within 8 km)"
+                            value={(editingTreatment as any).expressAreas || ''}
+                            onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, expressAreas: e.target.value } as any) : null)}
+                            className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase mb-1">Express Fee (₹)</label>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="149"
+                            value={(editingTreatment as any).expressFee ?? ''}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/[^0-9]/g, '');
+                              setEditingTreatment(prev => prev ? ({ ...prev, expressFee: val ? Number(val) : 0 } as any) : null);
+                            }}
+                            className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1624] text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {isDoctorClinic && (
                 <div>
@@ -1698,6 +1789,11 @@ export default function ServiceListingsPage() {
                     customGuarantee: (editingTreatment as any).customGuarantee,
                     whatsIncluded: (editingTreatment as any).whatsIncluded,
                     whatsExcluded: (editingTreatment as any).whatsExcluded,
+                    technicianName: (editingTreatment as any).technicianName,
+                    serviceContact: (editingTreatment as any).serviceContact,
+                    expressAvailable: Boolean((editingTreatment as any).expressAvailable),
+                    expressFee: Number((editingTreatment as any).expressFee ?? 149),
+                    expressAreas: (editingTreatment as any).expressAreas || '',
                   };
                   const updatedListings = exists
                     ? listings.map(l =>
