@@ -329,11 +329,15 @@ export default function ServiceListingsPage() {
                     price: 499,
                     active: true,
                     duration: 45,
-                    salonCategory: '30 Days Warranty',
+                    salonCategory: 'NONE',
                     genderTarget: 'ALL',
-                    serviceMode: 'IN_SALON',
+                    serviceMode: 'DOORSTEP',
+                    priceType: 'FIXED',
+                    materials: 'CHARGED_SEPARATELY',
+                    serviceGuarantee: 'NONE',
+                    whatsIncluded: '',
                     description: ''
-                  });
+                  } as any);
                 } else {
                   router.push(`/workspace/my-services/${serviceId}/listing/new`);
                 }
@@ -1049,11 +1053,15 @@ export default function ServiceListingsPage() {
                       price: 499,
                       active: true,
                       duration: 45,
-                      salonCategory: '30 Days Warranty',
+                      salonCategory: 'NONE',
                       genderTarget: 'ALL',
-                      serviceMode: 'IN_SALON',
+                      serviceMode: 'DOORSTEP',
+                      priceType: 'FIXED',
+                      materials: 'CHARGED_SEPARATELY',
+                      serviceGuarantee: 'NONE',
+                      whatsIncluded: '',
                       description: ''
-                    });
+                    } as any);
                   } else {
                     router.push(`/workspace/my-services/${serviceId}/listing/new`);
                   }
@@ -1429,12 +1437,40 @@ export default function ServiceListingsPage() {
               </div>
 
               <div className={`grid grid-cols-1 ${(isDoctorClinic || isHomeService) ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-3`}>
+                {isHomeService ? (
+                  <>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Price Type</label>
+                      <select
+                        value={(editingTreatment as any).priceType || 'FIXED'}
+                        onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, priceType: e.target.value } as any) : null)}
+                        className="w-full px-2.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                      >
+                        <option value="FIXED">Fixed Price</option>
+                        <option value="STARTING_FROM">Starting From ₹</option>
+                        <option value="CUSTOM_QUOTE">Custom Quote (Inspect First)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Materials / Spares</label>
+                      <select
+                        value={(editingTreatment as any).materials || 'CHARGED_SEPARATELY'}
+                        onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, materials: e.target.value } as any) : null)}
+                        className="w-full px-2.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                      >
+                        <option value="INCLUDED">Included in Price</option>
+                        <option value="CHARGED_SEPARATELY">Charged Separately (Actuals)</option>
+                        <option value="CUSTOMER_PROVIDES">Customer to Provide</option>
+                      </select>
+                    </div>
+                  </>
+                ) : (
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{isDoctorClinic ? 'Specialization' : isHomeService ? 'Warranty / Policy' : 'Filter'}</label>
-                  {(isDoctorClinic || isHomeService) ? (
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{isDoctorClinic ? 'Specialization' : 'Filter'}</label>
+                  {isDoctorClinic ? (
                     <input
                       type="text"
-                      placeholder={isDoctorClinic ? 'e.g. Cardiologist, Dentist' : 'e.g. 30 Days Warranty / No Warranty'}
+                      placeholder="e.g. Cardiologist, Dentist"
                       value={editingTreatment.salonCategory}
                       onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, salonCategory: e.target.value }) : null)}
                       className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
@@ -1453,6 +1489,7 @@ export default function ServiceListingsPage() {
                     </select>
                   )}
                 </div>
+                )}
                 {!isDoctorClinic && !isHomeService && (
                 <div>
                   <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Gender</label>
@@ -1524,8 +1561,36 @@ export default function ServiceListingsPage() {
                 </div>
               </div>
 
+              {isHomeService && (
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Service Guarantee (Optional)</label>
+                    <select
+                      value={(editingTreatment as any).serviceGuarantee || 'NONE'}
+                      onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, serviceGuarantee: e.target.value } as any) : null)}
+                      className="w-full px-2.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                    >
+                      <option value="NONE">None (No Guarantee)</option>
+                      <option value="7_DAY_REVISIT">7-Day Free Revisit</option>
+                      <option value="30_DAY_LABOR">30-Day Labor Warranty</option>
+                      <option value="CUSTOM">Custom Policy</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">What&apos;s Included</label>
+                    <textarea
+                      rows={2}
+                      placeholder="e.g. Labor charges, fault diagnosis, basic fitting up to 2 points"
+                      value={(editingTreatment as any).whatsIncluded || ''}
+                      onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, whatsIncluded: e.target.value } as any) : null)}
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                    />
+                  </div>
+                </div>
+              )}
+
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{isDoctorClinic ? 'Qualification & Experience' : 'Description'}</label>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{isDoctorClinic ? 'Qualification & Experience' : isHomeService ? 'Description / Notes' : 'Description'}</label>
                 <textarea
                   rows={2}
                   placeholder={isDoctorClinic ? 'e.g. MBBS, MD • 12 yrs exp' : 'Service details...'}
@@ -1561,24 +1626,45 @@ export default function ServiceListingsPage() {
                 type="button"
                 onClick={() => {
                   if (!editingTreatment.name.trim()) return;
-                  const updatedListings = listings.map(l =>
-                    l.id === editingTreatment.id
-                      ? {
-                          ...l,
+                  const exists = listings.some(l => l.id === editingTreatment.id);
+                  const newMetadata = {
+                    salonCategory: editingTreatment.salonCategory,
+                    genderTarget: editingTreatment.genderTarget,
+                    serviceMode: editingTreatment.serviceMode,
+                    priceType: (editingTreatment as any).priceType,
+                    materials: (editingTreatment as any).materials,
+                    serviceGuarantee: (editingTreatment as any).serviceGuarantee,
+                    whatsIncluded: (editingTreatment as any).whatsIncluded,
+                  };
+                  const updatedListings = exists
+                    ? listings.map(l =>
+                        l.id === editingTreatment.id
+                          ? {
+                              ...l,
+                              name: editingTreatment.name.trim(),
+                              duration: editingTreatment.duration,
+                              price: editingTreatment.price,
+                              description: editingTreatment.description,
+                              active: editingTreatment.active,
+                              metadata: {
+                                ...(l.metadata || {}),
+                                ...newMetadata,
+                              }
+                            }
+                          : l
+                      )
+                    : [
+                        ...listings,
+                        {
+                          id: editingTreatment.id,
                           name: editingTreatment.name.trim(),
                           duration: editingTreatment.duration,
                           price: editingTreatment.price,
                           description: editingTreatment.description,
                           active: editingTreatment.active,
-                          metadata: {
-                            ...(l.metadata || {}),
-                            salonCategory: editingTreatment.salonCategory,
-                            genderTarget: editingTreatment.genderTarget,
-                            serviceMode: editingTreatment.serviceMode,
-                          }
+                          metadata: newMetadata,
                         }
-                      : l
-                  );
+                      ];
                   updateService({ ...category!, listings: updatedListings });
                   setEditingTreatment(null);
                 }}
