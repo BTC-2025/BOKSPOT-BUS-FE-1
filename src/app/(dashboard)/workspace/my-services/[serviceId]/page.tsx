@@ -322,14 +322,26 @@ export default function ServiceListingsPage() {
                     serviceMode: 'IN_SALON',
                     description: 'MBBS • 5+ years experience'
                   });
+                } else if (isHomeService) {
+                  setEditingTreatment({
+                    id: `svc-${Date.now()}`,
+                    name: '',
+                    price: 499,
+                    active: true,
+                    duration: 45,
+                    salonCategory: '30 Days Warranty',
+                    genderTarget: 'ALL',
+                    serviceMode: 'IN_SALON',
+                    description: ''
+                  });
                 } else {
                   router.push(`/workspace/my-services/${serviceId}/listing/new`);
                 }
               }}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
-              title={isDoctorClinic ? 'Add a new Doctor' : `Add a new batch under ${displayName}`}
+              title={isDoctorClinic ? 'Add a new Doctor' : isHomeService ? 'Add a new Service' : `Add a new batch under ${displayName}`}
             >
-              <Plus size={15} /> {isDoctorClinic ? 'Add Doctor' : 'Add Batch'}
+              <Plus size={15} /> {isDoctorClinic ? 'Add Doctor' : isHomeService ? 'Add Service' : 'Add Batch'}
             </button>
           )}
           {activeTab === 'PASSES' && (
@@ -1024,15 +1036,31 @@ export default function ServiceListingsPage() {
               <div className="h-12 w-12 bg-white dark:bg-[#162033] rounded-2xl flex items-center justify-center mb-3 text-[#ff6325] shadow-sm border border-slate-200 dark:border-white/10">
                 <ImageIcon size={24} />
               </div>
-              <h3 className="text-base font-black text-slate-900 dark:text-white mb-1">No Batches Yet</h3>
+              <h3 className="text-base font-black text-slate-900 dark:text-white mb-1">{isHomeService ? 'No Services Yet' : 'No Batches Yet'}</h3>
               <p className="text-slate-400 max-w-sm text-xs mb-4">
-                Click below to add the first daily batch for <strong className="text-slate-700 dark:text-white capitalize">{displayName}</strong>.
+                Click below to add the first {isHomeService ? 'service' : 'daily batch'} for <strong className="text-slate-700 dark:text-white capitalize">{displayName}</strong>.
               </p>
               <button
-                onClick={() => router.push(`/workspace/my-services/${serviceId}/listing/new`)}
+                onClick={() => {
+                  if (isHomeService) {
+                    setEditingTreatment({
+                      id: `svc-${Date.now()}`,
+                      name: '',
+                      price: 499,
+                      active: true,
+                      duration: 45,
+                      salonCategory: '30 Days Warranty',
+                      genderTarget: 'ALL',
+                      serviceMode: 'IN_SALON',
+                      description: ''
+                    });
+                  } else {
+                    router.push(`/workspace/my-services/${serviceId}/listing/new`);
+                  }
+                }}
                 className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff6325] to-[#e04e13] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
               >
-                + Add First Batch
+                {isHomeService ? '+ Add First Service' : '+ Add First Batch'}
               </button>
             </div>
           )}
@@ -1377,7 +1405,7 @@ export default function ServiceListingsPage() {
           <div className="bg-white dark:bg-[#0f1624] w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-white/10 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
               <h3 className="text-base font-black text-slate-900 dark:text-white">
-                {isDoctorClinic ? 'Doctor / Consultation Details' : 'Edit Salon / Spa Service'}
+                {isDoctorClinic ? 'Doctor / Consultation Details' : isHomeService ? 'Home Service Details' : 'Edit Salon / Spa Service'}
               </h3>
               <button
                 type="button"
@@ -1390,23 +1418,23 @@ export default function ServiceListingsPage() {
 
             <div className="space-y-3">
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{isDoctorClinic ? 'Doctor Name' : 'Treatment Name'}</label>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{isDoctorClinic ? 'Doctor Name' : isHomeService ? 'Service Title' : 'Treatment Name'}</label>
                 <input
                   type="text"
-                  placeholder={isDoctorClinic ? 'e.g. Dr. Rajesh Kumar (Senior Consultant)' : 'e.g. Haircut & Styling'}
+                  placeholder={isDoctorClinic ? 'e.g. Dr. Rajesh Kumar (Senior Consultant)' : isHomeService ? 'e.g. MCB & Wiring Check / Tap Leak Repair' : 'e.g. Haircut & Styling'}
                   value={editingTreatment.name}
                   onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, name: e.target.value }) : null)}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
                 />
               </div>
 
-              <div className={`grid grid-cols-1 ${isDoctorClinic ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-3`}>
+              <div className={`grid grid-cols-1 ${(isDoctorClinic || isHomeService) ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-3`}>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{isDoctorClinic ? 'Specialization' : 'Filter'}</label>
-                  {isDoctorClinic ? (
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{isDoctorClinic ? 'Specialization' : isHomeService ? 'Warranty / Policy' : 'Filter'}</label>
+                  {(isDoctorClinic || isHomeService) ? (
                     <input
                       type="text"
-                      placeholder="e.g. Cardiologist, Dentist"
+                      placeholder={isDoctorClinic ? 'e.g. Cardiologist, Dentist' : 'e.g. 30 Days Warranty / No Warranty'}
                       value={editingTreatment.salonCategory}
                       onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, salonCategory: e.target.value }) : null)}
                       className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
@@ -1425,7 +1453,7 @@ export default function ServiceListingsPage() {
                     </select>
                   )}
                 </div>
-                {!isDoctorClinic && (
+                {!isDoctorClinic && !isHomeService && (
                 <div>
                   <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Gender</label>
                   <select
@@ -1439,6 +1467,7 @@ export default function ServiceListingsPage() {
                   </select>
                 </div>
                 )}
+                {!isHomeService && (
                 <div>
                   <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{isDoctorClinic ? 'Consultation Mode' : 'Service Mode'}</label>
                   <select
@@ -1461,6 +1490,7 @@ export default function ServiceListingsPage() {
                     )}
                   </select>
                 </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
