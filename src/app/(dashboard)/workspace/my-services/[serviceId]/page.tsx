@@ -899,6 +899,23 @@ export default function ServiceListingsPage() {
                       description: list.description || '',
                       active: list.active !== false
                     });
+                  } else if (isHomeService) {
+                    setEditingTreatment({
+                      id: list.id,
+                      name: list.name || '',
+                      salonCategory: (list.metadata as any)?.salonCategory || 'NONE',
+                      genderTarget: (list.metadata as any)?.genderTarget || 'ALL',
+                      serviceMode: (list.metadata as any)?.serviceMode || 'DOORSTEP',
+                      priceType: (list.metadata as any)?.priceType || 'FIXED',
+                      materials: (list.metadata as any)?.materials || 'CHARGED_SEPARATELY',
+                      serviceGuarantee: (list.metadata as any)?.serviceGuarantee || 'NONE',
+                      customGuarantee: (list.metadata as any)?.customGuarantee || '',
+                      whatsIncluded: (list.metadata as any)?.whatsIncluded || '',
+                      duration: Number(list.duration) || 45,
+                      price: Number(list.price) || 0,
+                      description: list.description || '',
+                      active: list.active !== false
+                    } as any);
                   } else {
                     router.push(`/workspace/my-services/${serviceId}/listing/${list.id}`);
                   }
@@ -939,7 +956,7 @@ export default function ServiceListingsPage() {
                           >
                             ₹{Number(list.price).toLocaleString('en-IN')}
                             <span className="text-[10px] font-semibold ml-1 opacity-90">
-                              {list.priceUnit || (list.metadata as any)?.priceUnit || (isTurfListing ? '/hr' : '/night')}
+                              {list.priceUnit || (list.metadata as any)?.priceUnit || (isTurfListing ? '/hr' : isHomeService ? '/visit' : '/night')}
                             </span>
                           </span>
                           {(list.discountPercentage || (list.metadata as any)?.discountPercentage) ? (
@@ -1027,7 +1044,7 @@ export default function ServiceListingsPage() {
                     )}
 
                     <span className="font-bold text-slate-500 dark:text-slate-400 group-hover:text-[#ff6325] transition-colors text-xs flex items-center gap-1 ml-auto">
-                      Edit Unit &rarr;
+                      {isHomeService ? 'Edit Service' : 'Edit Unit'} &rarr;
                     </span>
                   </div>
                 </div>
