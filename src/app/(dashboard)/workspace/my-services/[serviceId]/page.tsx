@@ -1575,6 +1575,15 @@ export default function ServiceListingsPage() {
                       <option value="30_DAY_LABOR">30-Day Labor Warranty</option>
                       <option value="CUSTOM">Custom Policy</option>
                     </select>
+                    {(editingTreatment as any).serviceGuarantee === 'CUSTOM' && (
+                      <input
+                        type="text"
+                        placeholder="e.g. 15-Day Parts & Labor Warranty"
+                        value={(editingTreatment as any).customGuarantee || ''}
+                        onChange={(e) => setEditingTreatment(prev => prev ? ({ ...prev, customGuarantee: e.target.value } as any) : null)}
+                        className="mt-2 w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-[#ff6325]"
+                      />
+                    )}
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">What&apos;s Included</label>
@@ -1634,6 +1643,7 @@ export default function ServiceListingsPage() {
                     priceType: (editingTreatment as any).priceType,
                     materials: (editingTreatment as any).materials,
                     serviceGuarantee: (editingTreatment as any).serviceGuarantee,
+                    customGuarantee: (editingTreatment as any).customGuarantee,
                     whatsIncluded: (editingTreatment as any).whatsIncluded,
                   };
                   const updatedListings = exists
