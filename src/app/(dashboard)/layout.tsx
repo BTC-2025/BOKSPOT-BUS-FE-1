@@ -696,52 +696,37 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <nav className="custom-nav-capsule shadow-lg relative p-[3px] rounded-full">
               <Link
                 href="/home/dashboard-home"
-                className={`px-3.5 py-1 rounded-full text-[13px] font-semibold tracking-normal hover:scale-[1.02] active:scale-[0.98] relative z-10 custom-nav-link select-none ${(pathname === '/home/dashboard-home' || pathname === '/home/verify-code')
-                    ? 'custom-nav-link-active !text-white'
-                    : 'custom-nav-link-inactive'
+                className={`px-3.5 py-1.5 rounded-full text-[13px] tracking-normal relative z-10 custom-nav-link select-none outline-none focus:outline-none transition-colors duration-150 ${(pathname === '/home/dashboard-home' || pathname === '/home/verify-code')
+                    ? 'custom-nav-link-active font-semibold !text-white'
+                    : 'custom-nav-link-inactive font-medium !text-white/80 hover:!text-white active:!text-white'
                   }`}
               >
                 {(pathname === '/home/dashboard-home' || pathname === '/home/verify-code') && (
-                  <motion.div
-                    layoutId="activeNavIndicatorAdmin"
-                    className="absolute inset-0 rounded-full bg-white/26 shadow-[0_1px_4px_rgba(0,0,0,0.08)] -z-10 custom-nav-active-bg"
-                    style={{ willChange: 'transform' }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 38, mass: 0.5 }}
-                  />
+                  <div className="absolute inset-0 rounded-full bg-white/26 shadow-[0_1px_4px_rgba(0,0,0,0.08)] -z-10 custom-nav-active-bg" />
                 )}
                 <span>Home</span>
               </Link>
               <Link
                 href="/workspace/my-services"
-                className={`px-3.5 py-1 rounded-full text-[13px] font-semibold tracking-normal hover:scale-[1.02] active:scale-[0.98] relative z-10 custom-nav-link select-none ${(!['/home/dashboard-home', '/home/verify-code'].includes(pathname) && !pathname.startsWith('/tracks/bookings') && pathname !== '/tracks/customer-directory')
-                    ? 'custom-nav-link-active !text-white'
-                    : 'custom-nav-link-inactive'
+                className={`px-3.5 py-1.5 rounded-full text-[13px] tracking-normal relative z-10 custom-nav-link select-none outline-none focus:outline-none transition-colors duration-150 ${(!['/home/dashboard-home', '/home/verify-code'].includes(pathname) && !pathname.startsWith('/tracks/bookings') && pathname !== '/tracks/customer-directory')
+                    ? 'custom-nav-link-active font-semibold !text-white'
+                    : 'custom-nav-link-inactive font-medium !text-white/80 hover:!text-white active:!text-white'
                   }`}
               >
                 {(!['/home/dashboard-home', '/home/verify-code'].includes(pathname) && !pathname.startsWith('/tracks/bookings') && pathname !== '/tracks/customer-directory') && (
-                  <motion.div
-                    layoutId="activeNavIndicatorAdmin"
-                    className="absolute inset-0 rounded-full bg-white/26 shadow-[0_1px_4px_rgba(0,0,0,0.08)] -z-10 custom-nav-active-bg"
-                    style={{ willChange: 'transform' }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 38, mass: 0.5 }}
-                  />
+                  <div className="absolute inset-0 rounded-full bg-white/26 shadow-[0_1px_4px_rgba(0,0,0,0.08)] -z-10 custom-nav-active-bg" />
                 )}
                 <span>Workspace</span>
               </Link>
               <Link
                 href="/tracks/bookings"
-                className={`px-3.5 py-1 rounded-full text-[13px] font-semibold tracking-normal hover:scale-[1.02] active:scale-[0.98] relative z-10 custom-nav-link select-none ${(pathname.startsWith('/tracks/bookings') || pathname === '/tracks/customer-directory')
-                    ? 'custom-nav-link-active !text-white'
-                    : 'custom-nav-link-inactive'
+                className={`px-3.5 py-1.5 rounded-full text-[13px] tracking-normal relative z-10 custom-nav-link select-none outline-none focus:outline-none transition-colors duration-150 ${(pathname.startsWith('/tracks/bookings') || pathname === '/tracks/customer-directory')
+                    ? 'custom-nav-link-active font-semibold !text-white'
+                    : 'custom-nav-link-inactive font-medium !text-white/80 hover:!text-white active:!text-white'
                   }`}
               >
                 {(pathname.startsWith('/tracks/bookings') || pathname === '/tracks/customer-directory') && (
-                  <motion.div
-                    layoutId="activeNavIndicatorAdmin"
-                    className="absolute inset-0 rounded-full bg-white/26 shadow-[0_1px_4px_rgba(0,0,0,0.08)] -z-10 custom-nav-active-bg"
-                    style={{ willChange: 'transform' }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 38, mass: 0.5 }}
-                  />
+                  <div className="absolute inset-0 rounded-full bg-white/26 shadow-[0_1px_4px_rgba(0,0,0,0.08)] -z-10 custom-nav-active-bg" />
                 )}
                 <span>Bookings</span>
               </Link>

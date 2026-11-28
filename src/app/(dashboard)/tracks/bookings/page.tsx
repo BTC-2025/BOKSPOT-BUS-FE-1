@@ -510,34 +510,16 @@ export default function BookingsPage() {
                     <div className="px-3.5 py-1.5 rounded-xl flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-wider bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
                       <span>👥 Split ({b.splitPaidMembers || 0}/{b.splitCount || 2})</span>
                     </div>
-                  ) : b.status === 'PENDING' ? (
-                    <button
-                      disabled={acceptingId === b.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAccept(b);
-                      }}
-                      className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[11px] uppercase tracking-wider shadow-md shadow-emerald-500/20 transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-1.5"
-                    >
-                      {acceptingId === b.id ? (
-                        <>
-                          <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          Accepting...
-                        </>
-                      ) : (
-                        <>✓ Accept</>
-                      )}
-                    </button>
                   ) : (
                     <div className={`px-4 py-2 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest border ${
                       b.status === 'COMPLETED' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' :
                       b.status === 'CHECKED_IN' ? 'bg-blue-500/10 border-blue-500/30 text-blue-400' :
-                      b.status === 'CONFIRMED' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500' :
+                      (b.status === 'CONFIRMED' || b.status === 'PENDING') ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500' :
                       b.status === 'CANCELLED' ? 'bg-red-500/10 border-red-500/30 text-red-400' :
                       'bg-[#ff6325]/10 border-[#ff6325]/30 text-[#ff6325]'
                     }`}>
-                      {b.status === 'COMPLETED' || b.status === 'CONFIRMED' ? <CheckCircle2 size={14} /> : <Clock size={14} />}
-                      {b.status.replace('_', ' ')}
+                      {(b.status === 'COMPLETED' || b.status === 'CONFIRMED' || b.status === 'PENDING') ? <CheckCircle2 size={14} /> : <Clock size={14} />}
+                      {(b.status === 'PENDING' ? 'CONFIRMED' : b.status).replace('_', ' ')}
                     </div>
                   )}
                 </div>
@@ -728,26 +710,9 @@ export default function BookingsPage() {
                     }`}>
                       {selectedBooking.status === 'SPLIT_PENDING' 
                         ? `SPLIT (${selectedBooking.splitPaidMembers || 0}/${selectedBooking.splitCount || 2} PAID)` 
-                        : (selectedBooking.status || 'PENDING')}
+                        : (selectedBooking.status === 'PENDING' ? 'CONFIRMED' : (selectedBooking.status || 'CONFIRMED'))}
                     </span>
                   </div>
-
-                  {selectedBooking.status === 'PENDING' && (
-                    <button
-                      disabled={acceptingId === selectedBooking.id}
-                      onClick={() => handleAccept(selectedBooking)}
-                      className="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs uppercase tracking-wider shadow-md shadow-emerald-500/30 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
-                    >
-                      {acceptingId === selectedBooking.id ? (
-                        <>
-                          <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          Accepting...
-                        </>
-                      ) : (
-                        <>✓ Accept Reservation</>
-                      )}
-                    </button>
-                  )}
                 </div>
 
                 {/* Group Split Details Card for Merchant */}
