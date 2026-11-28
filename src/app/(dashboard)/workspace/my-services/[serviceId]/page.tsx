@@ -191,6 +191,11 @@ export default function ServiceListingsPage() {
     (currentMerchant.category || '').toLowerCase().includes('doctor') ||
     (currentMerchant.category || '').toLowerCase().includes('clinic');
 
+  const isHomeService = ['electrician', 'plumber', 'cleaning', 'technician'].some(k =>
+    (category.category || '').toLowerCase().includes(k) ||
+    (category.name || '').toLowerCase().includes(k)
+  );
+
   const passes: any[] = category.metadata?.classPasses || [
     {
       id: 'pass-5-classes',
@@ -362,7 +367,7 @@ export default function ServiceListingsPage() {
       </div>
 
       {/* Quick Salon / Spa Menu Builder (Single-Screen Multi-Service Adder) */}
-      {activeTab === 'LISTINGS' && ((category.category || '').toLowerCase().includes('salon') || (category.category || '').toLowerCase().includes('spa') || (category.name || '').toLowerCase().includes('salon') || (category.name || '').toLowerCase().includes('spa')) && (() => {
+      {activeTab === 'LISTINGS' && !isHomeService && ((category.category || '').toLowerCase().includes('salon') || (category.category || '').toLowerCase().includes('spa') || (category.name || '').toLowerCase().includes('salon') || (category.name || '').toLowerCase().includes('spa')) && (() => {
         const lowerTitle = `${category.category || ''} ${category.name || ''}`.toLowerCase();
         const hasSpa = lowerTitle.includes('spa');
         const hasSalon = lowerTitle.includes('salon');

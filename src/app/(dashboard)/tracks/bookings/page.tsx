@@ -1682,6 +1682,44 @@ export default function BookingsPage() {
                 );
               })()}
 
+              {/* 7-B. HOME SERVICE DISPATCH DETAILS */}
+              {(selectedBooking.metadata as any)?.homeService && (
+                <div className="p-5 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-black text-[#0a3161] dark:text-amber-400">
+                      🛠️ Home Service Dispatch Details
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 font-black text-[10px]">
+                      {(selectedBooking.metadata as any).homeService.timeSlot}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand">
+                      <span className="text-[10px] font-bold text-text-muted uppercase block">Service Address</span>
+                      <p className="font-bold text-text-primary mt-0.5">
+                        {(selectedBooking.metadata as any).homeService.addressLine}
+                      </p>
+                      {(selectedBooking.metadata as any).homeService.landmark && (
+                        <p className="text-[11px] text-text-secondary mt-0.5">
+                          Landmark: {(selectedBooking.metadata as any).homeService.landmark}
+                        </p>
+                      )}
+                    </div>
+                    <div className="p-3 rounded-xl bg-bg-secondary border border-border-brand">
+                      <span className="text-[10px] font-bold text-text-muted uppercase block">Contact & Issue</span>
+                      <p className="font-bold text-text-primary mt-0.5">
+                        📞 {(selectedBooking.metadata as any).homeService.contactPhone}
+                      </p>
+                      {(selectedBooking.metadata as any).homeService.issueNotes && (
+                        <p className="text-[11px] text-text-secondary mt-0.5">
+                          {(selectedBooking.metadata as any).homeService.issueNotes}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* 8. CLINIC & DOCTOR OPD TOKEN DISPATCH CONSOLE */}
               {(currentMerchant.category?.toLowerCase().includes('doc') || currentMerchant.category?.toLowerCase().includes('clinic') || currentMerchant.category?.toLowerCase().includes('dental') || selectedBooking.category?.toLowerCase().includes('doc') || selectedBooking.metadata?.isDoctor || selectedBooking.metadata?.doctor) && (
                 <div className="p-5 rounded-2xl bg-blue-500/10 border border-blue-500/25 space-y-4">
